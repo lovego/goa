@@ -1,6 +1,8 @@
 package router
 
-import "fmt"
+import (
+//  "fmt"
+)
 
 type Router struct {
 	middlewares []handleFunc
