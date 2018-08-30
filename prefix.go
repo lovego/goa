@@ -4,8 +4,8 @@ import (
 	"regexp/syntax"
 )
 
-// 最长公共前缀
-func longestCommonPrefix(a, b string) string {
+// 字符串公共前缀
+func stringCommonPrefix(a, b string) string {
 	if len(a) > len(b) {
 		a, b = b, a
 	}
@@ -17,25 +17,37 @@ func longestCommonPrefix(a, b string) string {
 	return a
 }
 
-// 正则非字面量前缀
-func regexpNonLiteralPrefix(expr string) string {
-	re, err := syntax.Parse(expr, syntax.Perl)
+// 正则表达式公共前缀
+func regexpCommonPrefix(aStr, bStr string) string {
+	a, err := syntax.Parse(aStr, syntax.Perl)
 	if err != nil {
 		panic(err)
 	}
-	re = re.Simplify()
-	if re.Op != syntax.OpConcat {
-		return expr
+	a = a.Simplify()
+
+	b, err := syntax.Parse(bStr, syntax.Perl)
+	if err != nil {
+		panic(err)
 	}
-	var prefix string
-	for _, sub := range re.Sub {
-		if sub.Op == syntax.OpLiteral {
-			break
+	b = b.Simplify()
+
+	if a.Equal(b) {
+		return aStr
+	}
+
+	if a.Op == syntax.OpConcat && b.Op == syntax.OpConcat {
+		if len(a.Sub) > len(b.Sub) {
+			a, b = b, a
 		}
-		prefix += sub.String()
+
+		var common string
+		for i, sub := range a.Sub {
+			if !sub.Equal(b.Sub[i]) {
+				return common
+			}
+			common += sub.String()
+		}
+		return common
 	}
-	if len(prefix) > 0 {
-		return prefix
-	}
-	return expr
+	return ""
 }
