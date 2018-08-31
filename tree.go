@@ -3,7 +3,9 @@ package router
 import (
 	"bytes"
 	"fmt"
+	"reflect"
 	"regexp"
+	"runtime"
 	"strings"
 )
 
@@ -65,9 +67,9 @@ func (n *node) addToChildren(path string, handlers []handleFunc) {
 		i := 0
 		for ; i < l && len(n.children[i].static) > 0; i++ {
 		}
-		children := append(make([]*node, 0, l+1), n.children[:l]...)
+		children := append(make([]*node, 0, l+1), n.children[:i]...)
 		children = append(children, child)
-		n.children = append(children, n.children[l:]...)
+		n.children = append(children, n.children[i:]...)
 	} else {
 		n.children = append(n.children, child)
 	}
@@ -114,8 +116,12 @@ func (n *node) string(indent string) string {
 	if n.dynamic != nil {
 		fields = append(fields, "dynamic: "+n.dynamic.String())
 	}
-	if n.handlers != nil {
-		fields = append(fields, fmt.Sprintf("handlers: %v", n.handlers))
+	if len(n.handlers) > 0 {
+		names := make([]string, 0, len(n.handlers))
+		for _, handler := range n.handlers {
+			names = append(names, runtime.FuncForPC(reflect.ValueOf(handler).Pointer()).Name())
+		}
+		fields = append(fields, fmt.Sprintf("handlers: [ %s ]", strings.Join(names, ", ")))
 	}
 	if len(n.children) > 0 {
 		var children bytes.Buffer

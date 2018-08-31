@@ -25,13 +25,60 @@ func Example_newNode_dynamic() {
 	// { dynamic: /users/\d+ }
 }
 
-func Example_node_addToChildren_1() {
-	n := newNode("/users", nil)
-	n.split("/")
+func Example_node_addToChildren_static1() {
+	n := newNode("/", nil)
+	n.addToChildren("users", nil)
 	fmt.Println(n)
 	// Output:
 	// { static: /, children: [
 	//   { static: users }
+	// ] }
+}
+
+func Example_node_addToChildren_static2() {
+	n := newNode("/u", nil)
+	n.children = []*node{
+		{dynamic: regexp.MustCompile("/")},
+	}
+	n.addToChildren("sers", nil)
+	fmt.Println(n)
+	// Output:
+	// { static: /u, children: [
+	//   { static: sers }
+	//   { dynamic: / }
+	// ] }
+}
+
+func Example_node_addToChildren_static3() {
+	n := newNode("/u", nil)
+	n.children = []*node{
+		{static: "nix"},
+		{dynamic: regexp.MustCompile("/1")},
+		{dynamic: regexp.MustCompile("/2")},
+	}
+	n.addToChildren("sers", nil)
+	fmt.Println(n)
+	// Output:
+	// { static: /u, children: [
+	//   { static: nix }
+	//   { static: sers }
+	//   { dynamic: /1 }
+	//   { dynamic: /2 }
+	// ] }
+}
+
+func Example_node_addToChildren_dynamic1() {
+	n := newNode("/u", nil)
+	n.children = []*node{
+		{dynamic: regexp.MustCompile("/")},
+	}
+	n.addToChildren("[0-9]+", nil)
+	fmt.Println(n)
+	// Output:
+	// { static: /u, children: [
+	//   { static: sers }
+	//   { dynamic: / }
+	//   { dynamic: [0-9]+ }
 	// ] }
 }
 
@@ -92,6 +139,23 @@ func Example_node_split_dynamic4() {
 	// Output:
 	// { static: /users/, children: [
 	//   { dynamic: [0-9]+ }
+	// ] }
+}
+
+func h0(*Context) {}
+func h1(*Context) {}
+func h2(*Context) {}
+
+func Example_node_add_1() {
+	root := newNode("/", []handleFunc{h0})
+	root.add("/users", []handleFunc{h1})
+	root.add("/users/([0-9]+)", []handleFunc{h2})
+	fmt.Println(root)
+	// Output:
+	// { static: /, handlers: [ github.com/lovego/router.h0 ], children: [
+	//   { static: users, handlers: [ github.com/lovego/router.h1 ], children: [
+	//     { dynamic: /([0-9]+), handlers: [ github.com/lovego/router.h2 ] }
+	//   ] }
 	// ] }
 }
 
