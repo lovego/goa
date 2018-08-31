@@ -16,11 +16,11 @@ type node struct {
 // 新建节点
 func newNode(path string, handlers []handleFunc) *node {
 	var n = &node{handlers: handlers}
-	_, allStatic := regexp.MustCompile(path).LiteralPrefix()
-	if allStatic {
+	re := regexp.MustCompile(path)
+	if _, allStatic := re.LiteralPrefix(); allStatic {
 		n.static = path
 	} else {
-		n.dynamic = regexp.MustCompile(path)
+		n.dynamic = re
 	}
 	return n
 }
@@ -90,18 +90,18 @@ func (n *node) split(path string) {
 		child.static = n.static[len(path):]
 		n.static = path
 	} else if n.dynamic != nil {
-		childPath := regexp.MustCompile(n.dynamic.String()[len(path):])
-		if _, allStatic := childPath.LiteralPrefix(); allStatic {
-			child.static = childPath.String()
+		childRe := regexp.MustCompile(n.dynamic.String()[len(path):])
+		if _, allStatic := childRe.LiteralPrefix(); allStatic {
+			child.static = childRe.String()
 		} else {
-			child.dynamic = childPath
+			child.dynamic = childRe
 		}
-		parentPath := regexp.MustCompile(path)
-		if _, allStatic := parentPath.LiteralPrefix(); allStatic {
-			n.static = parentPath.String()
+		parentRe := regexp.MustCompile(path)
+		if _, allStatic := parentRe.LiteralPrefix(); allStatic {
+			n.static = parentRe.String()
 			n.dynamic = nil
 		} else {
-			n.dynamic = parentPath
+			n.dynamic = parentRe
 		}
 	} else {
 		panic("both static and dynamic are empty.") // should not happen

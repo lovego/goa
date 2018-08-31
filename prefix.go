@@ -23,16 +23,17 @@ func regexpCommonPrefix(aStr, bStr string) string {
 	if err != nil {
 		panic(err)
 	}
-	a = a.Simplify()
 
 	b, err := syntax.Parse(bStr, syntax.Perl)
 	if err != nil {
 		panic(err)
 	}
-	b = b.Simplify()
 
-	if a.Equal(b) {
-		return aStr
+	if a.Equal(b) || len(b.Sub) > 0 && a.Equal(b.Sub[0]) {
+		return a.String()
+	}
+	if len(a.Sub) > 0 && a.Sub[0].Equal(b) {
+		return b.String()
 	}
 
 	if a.Op == syntax.OpConcat && b.Op == syntax.OpConcat {
