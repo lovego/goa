@@ -1,8 +1,27 @@
 package router
 
 import (
+	"regexp"
 	"regexp/syntax"
 )
+
+func (n *node) commonPrefix(path string) string {
+	static, allStatic := regexp.MustCompile(path).LiteralPrefix()
+	if len(n.static) > 0 {
+		if len(static) > 0 {
+			return stringCommonPrefix(n.static, static)
+		}
+	} else {
+		if allStatic {
+			if prefix, _ := n.dynamic.LiteralPrefix(); len(prefix) > 0 {
+				return stringCommonPrefix(prefix, static)
+			}
+		} else {
+			return regexpCommonPrefix(n.dynamic.String(), path)
+		}
+	}
+	return ""
+}
 
 // 字符串公共前缀
 func stringCommonPrefix(a, b string) string {
@@ -17,7 +36,7 @@ func stringCommonPrefix(a, b string) string {
 	return a
 }
 
-// 正则表达式公共前缀
+// 正则表达式公共前缀，a和b任意一个都不能为纯字符串
 func regexpCommonPrefix(aStr, bStr string) string {
 	a, err := syntax.Parse(aStr, syntax.Perl)
 	if err != nil {
@@ -37,18 +56,25 @@ func regexpCommonPrefix(aStr, bStr string) string {
 	}
 
 	if a.Op == syntax.OpConcat && b.Op == syntax.OpConcat {
-		if len(a.Sub) > len(b.Sub) {
-			a, b = b, a
-		}
-
-		var common string
-		for i, sub := range a.Sub {
-			if !sub.Equal(b.Sub[i]) {
-				return common
-			}
-			common += sub.String()
-		}
-		return common
+		return concatRegexpCommonPrefix(a, b)
 	}
 	return ""
+}
+
+func concatRegexpCommonPrefix(a, b *syntax.Regexp) string {
+	if len(a.Sub) > len(b.Sub) {
+		a, b = b, a
+	}
+
+	var common string
+	for i, sub := range a.Sub {
+		if sub.Equal(b.Sub[i]) {
+			common += sub.String()
+		} else if sub.Op == syntax.OpLiteral && b.Sub[i].Op == syntax.OpLiteral {
+			return common + stringCommonPrefix(sub.String(), b.Sub[i].String())
+		} else {
+			return common
+		}
+	}
+	return common
 }

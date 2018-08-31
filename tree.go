@@ -1,7 +1,10 @@
 package router
 
 import (
+	"bytes"
+	"fmt"
 	"regexp"
+	"strings"
 )
 
 type handleFunc func(*Context)
@@ -70,53 +73,57 @@ func (n *node) addToChildren(path string, handlers []handleFunc) {
 	}
 }
 
-func (n *node) commonPrefix(path string) string {
-	if len(n.static) > 0 {
-		if static, _ := regexp.MustCompile(path).LiteralPrefix(); len(static) > 0 {
-			return stringCommonPrefix(n.static, static)
-		}
-	} else if n.dynamic != nil {
-		return regexpCommonPrefix(n.dynamic.String(), path)
-	} else {
-		panic("both static and dynamic are empty.") // should not happen
-	}
-	return ""
-}
-
 // 分裂为父节点和子节点
 func (n *node) split(path string) {
-	var child = &node{}
+	var childPath string
 	if len(n.static) > 0 {
-		child.static = n.static[len(path):]
-		n.static = path
+		childPath = n.static[len(path):]
 	} else if n.dynamic != nil {
-		childRe := regexp.MustCompile(n.dynamic.String()[len(path):])
-		if _, allStatic := childRe.LiteralPrefix(); allStatic {
-			child.static = childRe.String()
-		} else {
-			child.dynamic = childRe
-		}
-		parentRe := regexp.MustCompile(path)
-		if _, allStatic := parentRe.LiteralPrefix(); allStatic {
-			n.static = parentRe.String()
-			n.dynamic = nil
-		} else {
-			n.dynamic = parentRe
-		}
+		childPath = n.dynamic.String()[len(path):]
 	} else {
 		panic("both static and dynamic are empty.") // should not happen
 	}
+	child := newNode(childPath, n.handlers)
+	child.children = n.children
 
-	if n.handlers != nil {
-		child.handlers = n.handlers
-		n.handlers = nil
+	re := regexp.MustCompile(path)
+	if _, allStatic := re.LiteralPrefix(); allStatic {
+		n.static = re.String()
+		n.dynamic = nil
+	} else {
+		n.static = ""
+		n.dynamic = re
 	}
-	if n.children != nil {
-		child.children = n.children
-	}
+	n.handlers = nil
 	n.children = []*node{child}
 }
 
 func (n *node) lookup(path string) handleFunc {
 	return nil
+}
+
+func (n *node) String() string {
+	return n.string("")
+}
+
+func (n *node) string(indent string) string {
+	var fields []string
+	if n.static != "" {
+		fields = append(fields, "static: "+n.static)
+	}
+	if n.dynamic != nil {
+		fields = append(fields, "dynamic: "+n.dynamic.String())
+	}
+	if n.handlers != nil {
+		fields = append(fields, fmt.Sprintf("handlers: %v", n.handlers))
+	}
+	if len(n.children) > 0 {
+		var children bytes.Buffer
+		for _, child := range n.children {
+			children.WriteString(child.string(indent+"  ") + "\n")
+		}
+		fields = append(fields, fmt.Sprintf("children: [\n%s%s]", children.String(), indent))
+	}
+
+	return indent + "{ " + strings.Join(fields, ", ") + " }"
 }

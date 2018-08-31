@@ -7,29 +7,92 @@ import (
 	"testing"
 )
 
-func ExampleNewNode_Static() {
-	printNode(newNode("/", nil))
-	printNode(newNode("/users", nil))
+func Example_newNode_static() {
+	fmt.Println(newNode("/", nil))
+	fmt.Println(newNode("/users", nil))
 	// Output:
-	// {static:/ dynamic:<nil> handlers:[] children:[]}
-	// {static:/users dynamic:<nil> handlers:[] children:[]}
+	// { static: / }
+	// { static: /users }
 }
 
-func ExampleNewNode_Dynamic() {
-	printNode(newNode("/[a-z]+", nil))
-	printNode(newNode("/users/[0-9]+", nil))
-	printNode(newNode(`/users/\d+`, nil)) // should not use like this.
+func Example_newNode_dynamic() {
+	fmt.Println(newNode("/[a-z]+", nil))
+	fmt.Println(newNode("/users/[0-9]+", nil))
+	fmt.Println(newNode(`/users/\d+`, nil)) // should not use like this.
 	// Output:
-	// {static: dynamic:/[a-z]+ handlers:[] children:[]}
-	// {static: dynamic:/users/[0-9]+ handlers:[] children:[]}
-	// {static: dynamic:/users/\d+ handlers:[] children:[]}
+	// { dynamic: /[a-z]+ }
+	// { dynamic: /users/[0-9]+ }
+	// { dynamic: /users/\d+ }
 }
 
-func printNode(n *node) {
-	fmt.Printf(
-		"{static:%s dynamic:%v handlers:%v children:%v}\n",
-		n.static, n.dynamic, n.handlers, n.children,
-	)
+func Example_node_addToChildren_1() {
+	n := newNode("/users", nil)
+	n.split("/")
+	fmt.Println(n)
+	// Output:
+	// { static: /, children: [
+	//   { static: users }
+	// ] }
+}
+
+func Example_node_split_static1() {
+	n := newNode("/users", nil)
+	n.split("/")
+	fmt.Println(n)
+	// Output:
+	// { static: /, children: [
+	//   { static: users }
+	// ] }
+}
+
+func Example_node_split_static2() {
+	n := newNode("/users/managers", nil)
+	n.split("/users/")
+	fmt.Println(n)
+	// Output:
+	// { static: /users/, children: [
+	//   { static: managers }
+	// ] }
+}
+
+func Example_node_split_dynamic1() {
+	n := newNode("/[a-z]+", nil)
+	n.split("/")
+	fmt.Println(n)
+	// Output:
+	// { static: /, children: [
+	//   { dynamic: [a-z]+ }
+	// ] }
+}
+
+func Example_node_split_dynamic2() {
+	n := newNode(`/users/[0-9]+`, nil)
+	n.split("/u")
+	fmt.Println(n)
+	// Output:
+	// { static: /u, children: [
+	//   { dynamic: sers/[0-9]+ }
+	// ] }
+}
+
+func Example_node_split_dynamic3() {
+	n := newNode(`/([a-z]+)/([0-9]+)`, nil)
+	n.split("/([a-z]+)/")
+	fmt.Println(n)
+	// Output:
+	// { dynamic: /([a-z]+)/, children: [
+	//   { dynamic: ([0-9]+) }
+	// ] }
+}
+
+func Example_node_split_dynamic4() {
+	n := newNode("/users/[0-9]+", nil)
+	n.split("/users/")
+	fmt.Println(n)
+	// Output:
+	// { static: /users/, children: [
+	//   { dynamic: [0-9]+ }
+	// ] }
 }
 
 func BenchmarkStringHasPrefix(b *testing.B) {
@@ -46,7 +109,7 @@ var testRegexp = regexp.MustCompile("^/company-skus")
 func BenchmarkRegexpMatch(b *testing.B) {
 	b.ReportAllocs()
 	for i := 0; i <= b.N; i++ {
-		if len(testRegexp.FindStringSubmatch("/company-skus/search")) == 0 {
+		if !testRegexp.MatchString("/company-skus/search") {
 			b.Error("not matched")
 		}
 	}
