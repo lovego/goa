@@ -21,13 +21,16 @@ type node struct {
 // 新建节点
 func newNode(path string, handlers []handleFunc) *node {
 	var n = &node{handlers: handlers}
-	re := regexp.MustCompile(path)
-	if _, allStatic := re.LiteralPrefix(); allStatic {
+	if _, complete := regexp.MustCompile(path).LiteralPrefix(); complete {
 		n.static = path
 	} else {
-		n.dynamic = re
+		n.dynamic = regexp.MustCompile("^" + path)
 	}
 	return n
+}
+
+func (n *node) lookup(path string) ([]string, []handleFunc) {
+	return nil, nil
 }
 
 // 添加到节点
@@ -38,7 +41,7 @@ func (n *node) add(path string, handlers []handleFunc) bool {
 	} else
 	// 公共前缀比当前节点路径短，则分裂
 	if len(commonPrefix) < len(n.static) ||
-		n.dynamic != nil && len(commonPrefix) < len(n.dynamic.String()) {
+		n.dynamic != nil && len(commonPrefix) < len(n.dynamic.String())-1 {
 		n.split(commonPrefix)
 	}
 	childPath := path[len(commonPrefix):]
@@ -81,27 +84,22 @@ func (n *node) split(path string) {
 	if len(n.static) > 0 {
 		childPath = n.static[len(path):]
 	} else if n.dynamic != nil {
-		childPath = n.dynamic.String()[len(path):]
+		childPath = n.dynamic.String()[len(path)+1:]
 	} else {
 		panic("both static and dynamic are empty.") // should not happen
 	}
 	child := newNode(childPath, n.handlers)
 	child.children = n.children
 
-	re := regexp.MustCompile(path)
-	if _, allStatic := re.LiteralPrefix(); allStatic {
-		n.static = re.String()
+	if _, complete := regexp.MustCompile(path).LiteralPrefix(); complete {
+		n.static = path
 		n.dynamic = nil
 	} else {
 		n.static = ""
-		n.dynamic = re
+		n.dynamic = regexp.MustCompile("^" + path)
 	}
 	n.handlers = nil
 	n.children = []*node{child}
-}
-
-func (n *node) lookup(path string) handleFunc {
-	return nil
 }
 
 func (n *node) String() string {

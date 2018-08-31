@@ -13,11 +13,11 @@ func (n *node) commonPrefix(path string) string {
 		}
 	} else {
 		if allStatic {
-			if prefix, _ := n.dynamic.LiteralPrefix(); len(prefix) > 0 {
+			if prefix, _ := regexp.MustCompile(n.dynamic.String()[1:]).LiteralPrefix(); len(prefix) > 0 {
 				return stringCommonPrefix(prefix, static)
 			}
 		} else {
-			return regexpCommonPrefix(n.dynamic.String(), path)
+			return regexpCommonPrefix(n.dynamic.String()[1:], path)
 		}
 	}
 	return ""

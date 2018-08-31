@@ -20,9 +20,9 @@ func Example_newNode_dynamic() {
 	fmt.Println(newNode("/users/[0-9]+", nil))
 	fmt.Println(newNode(`/users/\d+`, nil)) // should not use like this.
 	// Output:
-	// { dynamic: /[a-z]+ }
-	// { dynamic: /users/[0-9]+ }
-	// { dynamic: /users/\d+ }
+	// { dynamic: ^/[a-z]+ }
+	// { dynamic: ^/users/[0-9]+ }
+	// { dynamic: ^/users/\d+ }
 }
 
 func Example_node_addToChildren_static1() {
@@ -38,14 +38,14 @@ func Example_node_addToChildren_static1() {
 func Example_node_addToChildren_static2() {
 	n := newNode("/u", nil)
 	n.children = []*node{
-		{dynamic: regexp.MustCompile("/")},
+		{dynamic: regexp.MustCompile("^/")},
 	}
 	n.addToChildren("sers", nil)
 	fmt.Println(n)
 	// Output:
 	// { static: /u, children: [
 	//   { static: sers }
-	//   { dynamic: / }
+	//   { dynamic: ^/ }
 	// ] }
 }
 
@@ -53,8 +53,8 @@ func Example_node_addToChildren_static3() {
 	n := newNode("/u", nil)
 	n.children = []*node{
 		{static: "nix"},
-		{dynamic: regexp.MustCompile("/1")},
-		{dynamic: regexp.MustCompile("/2")},
+		{dynamic: regexp.MustCompile("^/1")},
+		{dynamic: regexp.MustCompile("^/2")},
 	}
 	n.addToChildren("sers", nil)
 	fmt.Println(n)
@@ -62,23 +62,24 @@ func Example_node_addToChildren_static3() {
 	// { static: /u, children: [
 	//   { static: nix }
 	//   { static: sers }
-	//   { dynamic: /1 }
-	//   { dynamic: /2 }
+	//   { dynamic: ^/1 }
+	//   { dynamic: ^/2 }
 	// ] }
 }
 
 func Example_node_addToChildren_dynamic1() {
 	n := newNode("/u", nil)
 	n.children = []*node{
-		{dynamic: regexp.MustCompile("/")},
+		{static: "sers"},
+		{dynamic: regexp.MustCompile("^/")},
 	}
 	n.addToChildren("[0-9]+", nil)
 	fmt.Println(n)
 	// Output:
 	// { static: /u, children: [
 	//   { static: sers }
-	//   { dynamic: / }
-	//   { dynamic: [0-9]+ }
+	//   { dynamic: ^/ }
+	//   { dynamic: ^[0-9]+ }
 	// ] }
 }
 
@@ -108,7 +109,7 @@ func Example_node_split_dynamic1() {
 	fmt.Println(n)
 	// Output:
 	// { static: /, children: [
-	//   { dynamic: [a-z]+ }
+	//   { dynamic: ^[a-z]+ }
 	// ] }
 }
 
@@ -118,7 +119,7 @@ func Example_node_split_dynamic2() {
 	fmt.Println(n)
 	// Output:
 	// { static: /u, children: [
-	//   { dynamic: sers/[0-9]+ }
+	//   { dynamic: ^sers/[0-9]+ }
 	// ] }
 }
 
@@ -127,8 +128,8 @@ func Example_node_split_dynamic3() {
 	n.split("/([a-z]+)/")
 	fmt.Println(n)
 	// Output:
-	// { dynamic: /([a-z]+)/, children: [
-	//   { dynamic: ([0-9]+) }
+	// { dynamic: ^/([a-z]+)/, children: [
+	//   { dynamic: ^([0-9]+) }
 	// ] }
 }
 
@@ -138,7 +139,7 @@ func Example_node_split_dynamic4() {
 	fmt.Println(n)
 	// Output:
 	// { static: /users/, children: [
-	//   { dynamic: [0-9]+ }
+	//   { dynamic: ^[0-9]+ }
 	// ] }
 }
 
@@ -163,12 +164,12 @@ func Example_node_add_1() {
 	//     { static: sers, handlers: [ github.com/lovego/router.h1 ], children: [
 	//       { static: /, children: [
 	//         { static: root, handlers: [ github.com/lovego/router.h4 ] }
-	//         { dynamic: ([0-9]+), handlers: [ github.com/lovego/router.h2 ] }
+	//         { dynamic: ^([0-9]+), handlers: [ github.com/lovego/router.h2 ] }
 	//       ] }
 	//     ] }
-	//     { dynamic: nix/([a-z]+), handlers: [ github.com/lovego/router.h3 ] }
+	//     { dynamic: ^nix/([a-z]+), handlers: [ github.com/lovego/router.h3 ] }
 	//   ] }
-	//   { dynamic: ([0-9]+), handlers: [ github.com/lovego/router.h5 ] }
+	//   { dynamic: ^([0-9]+), handlers: [ github.com/lovego/router.h5 ] }
 	// ] }
 }
 
