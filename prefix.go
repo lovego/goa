@@ -29,10 +29,10 @@ func regexpCommonPrefix(aStr, bStr string) string {
 		panic(err)
 	}
 
-	if a.Equal(b) || len(b.Sub) > 0 && a.Equal(b.Sub[0]) {
+	if a.Equal(b) || b.Op == syntax.OpConcat && len(b.Sub) > 0 && b.Sub[0].Equal(a) {
 		return a.String()
 	}
-	if len(a.Sub) > 0 && a.Sub[0].Equal(b) {
+	if a.Op == syntax.OpConcat && len(a.Sub) > 0 && a.Sub[0].Equal(b) {
 		return b.String()
 	}
 

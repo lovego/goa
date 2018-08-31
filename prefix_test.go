@@ -53,6 +53,11 @@ func ExampleRegexpCommonPrefix_Empty2() {
 	// Output:
 }
 
+func ExampleRegexpCommonPrefix_Empty3() {
+	fmt.Println(regexpCommonPrefix(`(\d+)`, `(\w+)`))
+	// Output:
+}
+
 func ExampleRegexpCommonPrefix_Same1() {
 	fmt.Println(regexpCommonPrefix(`/(\d+)`, `/(\d+)`))
 	// Output: /([0-9]+)
@@ -71,6 +76,11 @@ func ExampleRegexpCommonPrefix_LeftLonger1() {
 func ExampleRegexpCommonPrefix_LeftLonger2() {
 	fmt.Println(regexpCommonPrefix(`/users/(\d+)`, `/users/`))
 	// Output: /users/
+}
+
+func ExampleRegexpCommonPrefix_LeftLonger3() {
+	fmt.Println(regexpCommonPrefix(`/users/(\w+)/(\d+)`, `/users/(\w+)`))
+	// Output: /users/([0-9A-Z_a-z]+)
 }
 
 func ExampleRegexpCommonPrefix_RightLonger1() {
