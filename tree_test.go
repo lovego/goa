@@ -145,17 +145,30 @@ func Example_node_split_dynamic4() {
 func h0(*Context) {}
 func h1(*Context) {}
 func h2(*Context) {}
+func h3(*Context) {}
+func h4(*Context) {}
+func h5(*Context) {}
 
 func Example_node_add_1() {
 	root := newNode("/", []handleFunc{h0})
 	root.add("/users", []handleFunc{h1})
 	root.add("/users/([0-9]+)", []handleFunc{h2})
+	root.add("/unix/([a-z]+)", []handleFunc{h3})
+	root.add("/users/root", []handleFunc{h4})
+	root.add("/([0-9]+)", []handleFunc{h5})
 	fmt.Println(root)
 	// Output:
 	// { static: /, handlers: [ github.com/lovego/router.h0 ], children: [
-	//   { static: users, handlers: [ github.com/lovego/router.h1 ], children: [
-	//     { dynamic: /([0-9]+), handlers: [ github.com/lovego/router.h2 ] }
+	//   { static: u, children: [
+	//     { static: sers, handlers: [ github.com/lovego/router.h1 ], children: [
+	//       { static: /, children: [
+	//         { static: root, handlers: [ github.com/lovego/router.h4 ] }
+	//         { dynamic: ([0-9]+), handlers: [ github.com/lovego/router.h2 ] }
+	//       ] }
+	//     ] }
+	//     { dynamic: nix/([a-z]+), handlers: [ github.com/lovego/router.h3 ] }
 	//   ] }
+	//   { dynamic: ([0-9]+), handlers: [ github.com/lovego/router.h5 ] }
 	// ] }
 }
 
