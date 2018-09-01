@@ -3,7 +3,19 @@ package router
 import (
 	"regexp"
 	"regexp/syntax"
+	"strings"
 )
+
+func (n *node) lookupCommonPrefix(path string) (string, []string) {
+	if len(n.static) > 0 {
+		if strings.HasPrefix(path, n.static) {
+			return n.static, nil
+		}
+	} else if captures := n.dynamic.FindStringSubmatch(path); len(captures) > 0 {
+		return captures[0], captures[1:]
+	}
+	return "", nil
+}
 
 func (n *node) commonPrefix(path string) string {
 	static, allStatic := regexp.MustCompile(path).LiteralPrefix()

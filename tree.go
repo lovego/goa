@@ -30,44 +30,32 @@ func newNode(path string, handlers []handleFunc) *node {
 }
 
 func (n *node) lookup(path string) (bool, []string, []handleFunc) {
-	var commonPrefix string
-	var captures []string
-	if len(n.static) > 0 {
-		if strings.HasPrefix(path, n.static) {
-			commonPrefix = n.static
-		}
-	} else if captures = n.dynamic.FindStringSubmatch(path); len(captures) > 0 {
-		commonPrefix = captures[0]
-	}
-
+	commonPrefix, captures := n.lookupCommonPrefix(path)
 	if len(commonPrefix) == 0 {
 		return false, nil, nil
 	}
+
 	childPath := path[len(commonPrefix):]
-
 	if len(childPath) == 0 {
-		if len(captures) > 1 {
-			captures = captures[1:]
+		if len(n.handlers) > 0 {
+			return true, captures, n.handlers
 		}
-		return true, captures, n.handlers
-	}
-
-	for _, child := range n.children {
-		if hasCommonPrefix, childCaptures, handlers := child.lookup(childPath); hasCommonPrefix {
-			if len(handlers) > 0 {
-				if len(captures) > 1 {
-					captures = captures[1:]
-				}
-				if len(childCaptures) > 0 {
-					captures = append(captures, childCaptures...)
-				}
-				return true, captures, handlers
-			} else {
-				return true, nil, nil
-			}
+	} else if childCaptures, handlers := n.lookupChildren(childPath); len(handlers) > 0 {
+		if len(childCaptures) > 0 {
+			captures = append(captures, childCaptures...)
 		}
+		return true, captures, handlers
 	}
 	return true, nil, nil
+}
+
+func (n *node) lookupChildren(childPath string) ([]string, []handleFunc) {
+	for _, child := range n.children {
+		if ok, captures, handlers := child.lookup(childPath); ok {
+			return captures, handlers
+		}
+	}
+	return nil, nil
 }
 
 // 添加到节点
@@ -86,12 +74,12 @@ func (n *node) add(path string, handlers []handleFunc) bool {
 	if len(childPath) == 0 {
 		if n.handlers == nil {
 			n.handlers = handlers
-			return true
 		} else {
 			panic(`router path conflicts: ` + path)
 		}
+	} else {
+		n.addToChildren(childPath, handlers)
 	}
-	n.addToChildren(childPath, handlers)
 	return true
 }
 
