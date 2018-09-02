@@ -3,9 +3,7 @@ package router
 import (
 	"bytes"
 	"fmt"
-	"reflect"
 	"regexp"
-	"runtime"
 	"strings"
 )
 
@@ -15,17 +13,15 @@ const (
 	addResultConflict             = 2
 )
 
-type handleFunc func(*Context)
-
 type node struct {
 	static   string
 	dynamic  *regexp.Regexp
-	handlers []handleFunc
+	handlers handlersChain
 	children []*node
 }
 
 // 新建节点
-func newNode(path string, handlers []handleFunc) *node {
+func newNode(path string, handlers handlersChain) *node {
 	var n = &node{handlers: handlers}
 	if _, complete := regexp.MustCompile(path).LiteralPrefix(); complete {
 		n.static = path
@@ -35,7 +31,7 @@ func newNode(path string, handlers []handleFunc) *node {
 	return n
 }
 
-func (n *node) lookup(path string) (bool, []string, []handleFunc) {
+func (n *node) lookup(path string) (bool, []string, handlersChain) {
 	commonPrefix, captures := n.lookupCommonPrefix(path)
 	if len(commonPrefix) == 0 {
 		return false, nil, nil
@@ -55,7 +51,7 @@ func (n *node) lookup(path string) (bool, []string, []handleFunc) {
 	return true, nil, nil
 }
 
-func (n *node) lookupChildren(childPath string) ([]string, []handleFunc) {
+func (n *node) lookupChildren(childPath string) ([]string, handlersChain) {
 	for _, child := range n.children {
 		if ok, captures, handlers := child.lookup(childPath); ok {
 			return captures, handlers
@@ -65,7 +61,7 @@ func (n *node) lookupChildren(childPath string) ([]string, []handleFunc) {
 }
 
 // 添加到节点
-func (n *node) add(path string, handlers []handleFunc) uint8 {
+func (n *node) add(path string, handlers handlersChain) uint8 {
 	commonPrefix := n.commonPrefix(path)
 	if len(commonPrefix) == 0 {
 		return addResultNoCommonPrefix
@@ -88,7 +84,7 @@ func (n *node) add(path string, handlers []handleFunc) uint8 {
 	return n.addToChildren(childPath, handlers)
 }
 
-func (n *node) addToChildren(path string, handlers []handleFunc) uint8 {
+func (n *node) addToChildren(path string, handlers handlersChain) uint8 {
 	for _, child := range n.children {
 		if result := child.add(path, handlers); result != addResultNoCommonPrefix {
 			return result
@@ -144,11 +140,7 @@ func (n *node) string(indent string) string {
 		fields = append(fields, "dynamic: "+n.dynamic.String())
 	}
 	if len(n.handlers) > 0 {
-		names := make([]string, 0, len(n.handlers))
-		for _, handler := range n.handlers {
-			names = append(names, runtime.FuncForPC(reflect.ValueOf(handler).Pointer()).Name())
-		}
-		fields = append(fields, fmt.Sprintf("handlers: [ %s ]", strings.Join(names, ", ")))
+		fields = append(fields, "handlers: "+fmt.Sprint(n.handlers))
 	}
 	if len(n.children) > 0 {
 		var children bytes.Buffer

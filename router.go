@@ -6,11 +6,11 @@ import (
 )
 
 type Router struct {
-	middlewares []handleFunc
+	middlewares []handlerFunc
 	routes      map[string]*node
 }
 
-func (r *Router) Add(method, path string, handler handleFunc) {
+func (r *Router) Add(method, path string, handler handlerFunc) {
 
 }
 
