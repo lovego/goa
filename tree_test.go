@@ -1,4 +1,4 @@
-package router
+package goa
 
 import (
 	"fmt"
@@ -18,8 +18,8 @@ func Example_newNode_static() {
 	fmt.Println(newNode("/", handlersChain{h0}))
 	fmt.Println(newNode("/users", handlersChain{h1}))
 	// Output:
-	// { static: /, handlers: [github.com/lovego/router.h0] }
-	// { static: /users, handlers: [github.com/lovego/router.h1] }
+	// { static: /, handlers: [github.com/lovego/goa.h0] }
+	// { static: /users, handlers: [github.com/lovego/goa.h1] }
 }
 
 func Example_newNode_dynamic() {
@@ -27,9 +27,9 @@ func Example_newNode_dynamic() {
 	fmt.Println(newNode("/users/[0-9]+", handlersChain{h1}))
 	fmt.Println(newNode(`/users/\d+`, handlersChain{h2})) // should not use like this.
 	// Output:
-	// { dynamic: ^/[a-z]+, handlers: [github.com/lovego/router.h0] }
-	// { dynamic: ^/users/[0-9]+, handlers: [github.com/lovego/router.h1] }
-	// { dynamic: ^/users/\d+, handlers: [github.com/lovego/router.h2] }
+	// { dynamic: ^/[a-z]+, handlers: [github.com/lovego/goa.h0] }
+	// { dynamic: ^/users/[0-9]+, handlers: [github.com/lovego/goa.h1] }
+	// { dynamic: ^/users/\d+, handlers: [github.com/lovego/goa.h2] }
 }
 
 func Example_node_addToChildren_static1() {
@@ -37,8 +37,8 @@ func Example_node_addToChildren_static1() {
 	n.addToChildren("users", handlersChain{h1})
 	fmt.Println(n)
 	// Output:
-	// { static: /, handlers: [github.com/lovego/router.h0], children: [
-	//   { static: users, handlers: [github.com/lovego/router.h1] }
+	// { static: /, handlers: [github.com/lovego/goa.h0], children: [
+	//   { static: users, handlers: [github.com/lovego/goa.h1] }
 	// ] }
 }
 
@@ -50,8 +50,8 @@ func Example_node_addToChildren_static2() {
 	n.addToChildren("sers", handlersChain{h1})
 	fmt.Println(n)
 	// Output:
-	// { static: /u, handlers: [github.com/lovego/router.h0], children: [
-	//   { static: sers, handlers: [github.com/lovego/router.h1] }
+	// { static: /u, handlers: [github.com/lovego/goa.h0], children: [
+	//   { static: sers, handlers: [github.com/lovego/goa.h1] }
 	//   { dynamic: ^/ }
 	// ] }
 }
@@ -66,9 +66,9 @@ func Example_node_addToChildren_static3() {
 	n.addToChildren("sers", handlersChain{h1})
 	fmt.Println(n)
 	// Output:
-	// { static: /u, handlers: [github.com/lovego/router.h0], children: [
+	// { static: /u, handlers: [github.com/lovego/goa.h0], children: [
 	//   { static: nix }
-	//   { static: sers, handlers: [github.com/lovego/router.h1] }
+	//   { static: sers, handlers: [github.com/lovego/goa.h1] }
 	//   { dynamic: ^/1 }
 	//   { dynamic: ^/2 }
 	// ] }
@@ -83,10 +83,10 @@ func Example_node_addToChildren_dynamic1() {
 	n.addToChildren("[0-9]+", handlersChain{h1})
 	fmt.Println(n)
 	// Output:
-	// { static: /u, handlers: [github.com/lovego/router.h0], children: [
+	// { static: /u, handlers: [github.com/lovego/goa.h0], children: [
 	//   { static: sers }
 	//   { dynamic: ^/ }
-	//   { dynamic: ^[0-9]+, handlers: [github.com/lovego/router.h1] }
+	//   { dynamic: ^[0-9]+, handlers: [github.com/lovego/goa.h1] }
 	// ] }
 }
 
@@ -96,7 +96,7 @@ func Example_node_split_static1() {
 	fmt.Println(n)
 	// Output:
 	// { static: /, children: [
-	//   { static: users, handlers: [github.com/lovego/router.h0] }
+	//   { static: users, handlers: [github.com/lovego/goa.h0] }
 	// ] }
 }
 
@@ -106,7 +106,7 @@ func Example_node_split_static2() {
 	fmt.Println(n)
 	// Output:
 	// { static: /users/, children: [
-	//   { static: managers, handlers: [github.com/lovego/router.h0] }
+	//   { static: managers, handlers: [github.com/lovego/goa.h0] }
 	// ] }
 }
 
@@ -116,7 +116,7 @@ func Example_node_split_dynamic1() {
 	fmt.Println(n)
 	// Output:
 	// { static: /, children: [
-	//   { dynamic: ^[a-z]+, handlers: [github.com/lovego/router.h0] }
+	//   { dynamic: ^[a-z]+, handlers: [github.com/lovego/goa.h0] }
 	// ] }
 }
 
@@ -126,7 +126,7 @@ func Example_node_split_dynamic2() {
 	fmt.Println(n)
 	// Output:
 	// { static: /u, children: [
-	//   { dynamic: ^sers/[0-9]+, handlers: [github.com/lovego/router.h0] }
+	//   { dynamic: ^sers/[0-9]+, handlers: [github.com/lovego/goa.h0] }
 	// ] }
 }
 
@@ -136,7 +136,7 @@ func Example_node_split_dynamic3() {
 	fmt.Println(n)
 	// Output:
 	// { dynamic: ^/([a-z]+)/, children: [
-	//   { dynamic: ^([0-9]+), handlers: [github.com/lovego/router.h0] }
+	//   { dynamic: ^([0-9]+), handlers: [github.com/lovego/goa.h0] }
 	// ] }
 }
 
@@ -146,7 +146,7 @@ func Example_node_split_dynamic4() {
 	fmt.Println(n)
 	// Output:
 	// { static: /users/, children: [
-	//   { dynamic: ^[0-9]+, handlers: [github.com/lovego/router.h0] }
+	//   { dynamic: ^[0-9]+, handlers: [github.com/lovego/goa.h0] }
 	// ] }
 }
 
@@ -159,17 +159,17 @@ func Example_node_add_1() {
 	root.add("/([0-9]+)", handlersChain{h5})
 	fmt.Println(root)
 	// Output:
-	// { static: /, handlers: [github.com/lovego/router.h0], children: [
+	// { static: /, handlers: [github.com/lovego/goa.h0], children: [
 	//   { static: u, children: [
-	//     { static: sers, handlers: [github.com/lovego/router.h1], children: [
+	//     { static: sers, handlers: [github.com/lovego/goa.h1], children: [
 	//       { static: /, children: [
-	//         { static: root, handlers: [github.com/lovego/router.h4] }
-	//         { dynamic: ^([0-9]+), handlers: [github.com/lovego/router.h2] }
+	//         { static: root, handlers: [github.com/lovego/goa.h4] }
+	//         { dynamic: ^([0-9]+), handlers: [github.com/lovego/goa.h2] }
 	//       ] }
 	//     ] }
-	//     { dynamic: ^nix/([a-z]+), handlers: [github.com/lovego/router.h3] }
+	//     { dynamic: ^nix/([a-z]+), handlers: [github.com/lovego/goa.h3] }
 	//   ] }
-	//   { dynamic: ^([0-9]+), handlers: [github.com/lovego/router.h5] }
+	//   { dynamic: ^([0-9]+), handlers: [github.com/lovego/goa.h5] }
 	// ] }
 }
 
@@ -227,12 +227,12 @@ func Example_node_lookup_1() {
 	fmt.Println(root.lookup("/unix/linux/4.4.0a"))
 
 	// Output:
-	// true [github.com/lovego/router.h0] []
-	// true [github.com/lovego/router.h1] []
-	// true [github.com/lovego/router.h2] [123]
-	// true [github.com/lovego/router.h3] [linux 4.4.0]
-	// true [github.com/lovego/router.h4] []
-	// true [github.com/lovego/router.h5] [987]
+	// true [github.com/lovego/goa.h0] []
+	// true [github.com/lovego/goa.h1] []
+	// true [github.com/lovego/goa.h2] [123]
+	// true [github.com/lovego/goa.h3] [linux 4.4.0]
+	// true [github.com/lovego/goa.h4] []
+	// true [github.com/lovego/goa.h5] [987]
 	// false [] []
 	// true [] []
 	// true [] []

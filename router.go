@@ -1,4 +1,4 @@
-package router
+package goa
 
 import (
 	"net/http"
