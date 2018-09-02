@@ -2,15 +2,23 @@ package goa
 
 import (
 	"net/http"
+	"reflect"
 	"regexp/syntax"
+	"runtime"
 	"strings"
 )
 
 type Router struct {
 	basePath string
-	handlers handlersChain
+	handlers []handlerFunc
 	routes   map[string]*node
-	notFound handlersChain
+	notFound []handlerFunc
+}
+
+type handlerFunc func(*Context)
+
+func (h handlerFunc) String() string {
+	return runtime.FuncForPC(reflect.ValueOf(h).Pointer()).Name()
 }
 
 func New() *Router {
@@ -29,11 +37,11 @@ func (r *Router) Add(method, path string, handler handlerFunc) {
 	}
 }
 
-func (r *Router) getHandlers(handler handlerFunc) handlersChain {
+func (r *Router) getHandlers(handler handlerFunc) []handlerFunc {
 	if handler == nil {
 		panic("handler func should not be nil")
 	}
-	var handlers handlersChain
+	var handlers []handlerFunc
 	if len(r.handlers) > 0 {
 		handlers = append(handlers, r.handlers...)
 	}
@@ -49,7 +57,7 @@ func (r *Router) ServeHTTP(req *http.Request, rw http.ResponseWriter) {
 	ctx.Next()
 }
 
-func (r *Router) Lookup(method, path string) (handlersChain, []string) {
+func (r *Router) Lookup(method, path string) ([]handlerFunc, []string) {
 	if method == `HEAD` {
 		method = `GET`
 	}

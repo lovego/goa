@@ -16,12 +16,12 @@ const (
 type node struct {
 	static   string
 	dynamic  *regexp.Regexp
-	handlers handlersChain
+	handlers []handlerFunc
 	children []*node
 }
 
 // 新建节点
-func newNode(path string, handlers handlersChain) *node {
+func newNode(path string, handlers []handlerFunc) *node {
 	var n = &node{handlers: handlers}
 	if _, complete := regexp.MustCompile(path).LiteralPrefix(); complete {
 		n.static = path
@@ -32,7 +32,7 @@ func newNode(path string, handlers handlersChain) *node {
 }
 
 // 添加到节点
-func (n *node) add(path string, handlers handlersChain) uint8 {
+func (n *node) add(path string, handlers []handlerFunc) uint8 {
 	commonPrefix := n.commonPrefix(path)
 	if len(commonPrefix) == 0 {
 		return addResultNoCommonPrefix
@@ -55,7 +55,7 @@ func (n *node) add(path string, handlers handlersChain) uint8 {
 	return n.addToChildren(childPath, handlers)
 }
 
-func (n *node) addToChildren(path string, handlers handlersChain) uint8 {
+func (n *node) addToChildren(path string, handlers []handlerFunc) uint8 {
 	for _, child := range n.children {
 		if result := child.add(path, handlers); result != addResultNoCommonPrefix {
 			return result
@@ -98,7 +98,7 @@ func (n *node) split(path string) {
 	n.children = []*node{child}
 }
 
-func (n *node) lookup(path string) (bool, handlersChain, []string) {
+func (n *node) lookup(path string) (bool, []handlerFunc, []string) {
 	commonPrefix, captures := n.lookupCommonPrefix(path)
 	if len(commonPrefix) == 0 {
 		return false, nil, nil
@@ -118,7 +118,7 @@ func (n *node) lookup(path string) (bool, handlersChain, []string) {
 	return true, nil, nil
 }
 
-func (n *node) lookupChildren(childPath string) (handlersChain, []string) {
+func (n *node) lookupChildren(childPath string) ([]handlerFunc, []string) {
 	for _, child := range n.children {
 		if ok, handlers, captures := child.lookup(childPath); ok {
 			return handlers, captures

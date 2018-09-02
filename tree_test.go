@@ -15,17 +15,17 @@ func h4(*Context) {}
 func h5(*Context) {}
 
 func Example_newNode_static() {
-	fmt.Println(newNode("/", handlersChain{h0}))
-	fmt.Println(newNode("/users", handlersChain{h1}))
+	fmt.Println(newNode("/", []handlerFunc{h0}))
+	fmt.Println(newNode("/users", []handlerFunc{h1}))
 	// Output:
 	// { static: /, handlers: [github.com/lovego/goa.h0] }
 	// { static: /users, handlers: [github.com/lovego/goa.h1] }
 }
 
 func Example_newNode_dynamic() {
-	fmt.Println(newNode("/[a-z]+", handlersChain{h0}))
-	fmt.Println(newNode("/users/[0-9]+", handlersChain{h1}))
-	fmt.Println(newNode(`/users/\d+`, handlersChain{h2})) // should not use like this.
+	fmt.Println(newNode("/[a-z]+", []handlerFunc{h0}))
+	fmt.Println(newNode("/users/[0-9]+", []handlerFunc{h1}))
+	fmt.Println(newNode(`/users/\d+`, []handlerFunc{h2})) // should not use like this.
 	// Output:
 	// { dynamic: ^/[a-z]+, handlers: [github.com/lovego/goa.h0] }
 	// { dynamic: ^/users/[0-9]+, handlers: [github.com/lovego/goa.h1] }
@@ -33,8 +33,8 @@ func Example_newNode_dynamic() {
 }
 
 func Example_node_addToChildren_static1() {
-	n := newNode("/", handlersChain{h0})
-	n.addToChildren("users", handlersChain{h1})
+	n := newNode("/", []handlerFunc{h0})
+	n.addToChildren("users", []handlerFunc{h1})
 	fmt.Println(n)
 	// Output:
 	// { static: /, handlers: [github.com/lovego/goa.h0], children: [
@@ -43,11 +43,11 @@ func Example_node_addToChildren_static1() {
 }
 
 func Example_node_addToChildren_static2() {
-	n := newNode("/u", handlersChain{h0})
+	n := newNode("/u", []handlerFunc{h0})
 	n.children = []*node{
 		{dynamic: regexp.MustCompile("^/")},
 	}
-	n.addToChildren("sers", handlersChain{h1})
+	n.addToChildren("sers", []handlerFunc{h1})
 	fmt.Println(n)
 	// Output:
 	// { static: /u, handlers: [github.com/lovego/goa.h0], children: [
@@ -57,13 +57,13 @@ func Example_node_addToChildren_static2() {
 }
 
 func Example_node_addToChildren_static3() {
-	n := newNode("/u", handlersChain{h0})
+	n := newNode("/u", []handlerFunc{h0})
 	n.children = []*node{
 		{static: "nix"},
 		{dynamic: regexp.MustCompile("^/1")},
 		{dynamic: regexp.MustCompile("^/2")},
 	}
-	n.addToChildren("sers", handlersChain{h1})
+	n.addToChildren("sers", []handlerFunc{h1})
 	fmt.Println(n)
 	// Output:
 	// { static: /u, handlers: [github.com/lovego/goa.h0], children: [
@@ -75,12 +75,12 @@ func Example_node_addToChildren_static3() {
 }
 
 func Example_node_addToChildren_dynamic1() {
-	n := newNode("/u", handlersChain{h0})
+	n := newNode("/u", []handlerFunc{h0})
 	n.children = []*node{
 		{static: "sers"},
 		{dynamic: regexp.MustCompile("^/")},
 	}
-	n.addToChildren("[0-9]+", handlersChain{h1})
+	n.addToChildren("[0-9]+", []handlerFunc{h1})
 	fmt.Println(n)
 	// Output:
 	// { static: /u, handlers: [github.com/lovego/goa.h0], children: [
@@ -91,7 +91,7 @@ func Example_node_addToChildren_dynamic1() {
 }
 
 func Example_node_split_static1() {
-	n := newNode("/users", handlersChain{h0})
+	n := newNode("/users", []handlerFunc{h0})
 	n.split("/")
 	fmt.Println(n)
 	// Output:
@@ -101,7 +101,7 @@ func Example_node_split_static1() {
 }
 
 func Example_node_split_static2() {
-	n := newNode("/users/managers", handlersChain{h0})
+	n := newNode("/users/managers", []handlerFunc{h0})
 	n.split("/users/")
 	fmt.Println(n)
 	// Output:
@@ -111,7 +111,7 @@ func Example_node_split_static2() {
 }
 
 func Example_node_split_dynamic1() {
-	n := newNode("/[a-z]+", handlersChain{h0})
+	n := newNode("/[a-z]+", []handlerFunc{h0})
 	n.split("/")
 	fmt.Println(n)
 	// Output:
@@ -121,7 +121,7 @@ func Example_node_split_dynamic1() {
 }
 
 func Example_node_split_dynamic2() {
-	n := newNode(`/users/[0-9]+`, handlersChain{h0})
+	n := newNode(`/users/[0-9]+`, []handlerFunc{h0})
 	n.split("/u")
 	fmt.Println(n)
 	// Output:
@@ -131,7 +131,7 @@ func Example_node_split_dynamic2() {
 }
 
 func Example_node_split_dynamic3() {
-	n := newNode(`/([a-z]+)/([0-9]+)`, handlersChain{h0})
+	n := newNode(`/([a-z]+)/([0-9]+)`, []handlerFunc{h0})
 	n.split("/([a-z]+)/")
 	fmt.Println(n)
 	// Output:
@@ -141,7 +141,7 @@ func Example_node_split_dynamic3() {
 }
 
 func Example_node_split_dynamic4() {
-	n := newNode("/users/[0-9]+", handlersChain{h0})
+	n := newNode("/users/[0-9]+", []handlerFunc{h0})
 	n.split("/users/")
 	fmt.Println(n)
 	// Output:
@@ -151,12 +151,12 @@ func Example_node_split_dynamic4() {
 }
 
 func Example_node_add_1() {
-	root := newNode("/", handlersChain{h0})
-	root.add("/users", handlersChain{h1})
-	root.add("/users/([0-9]+)", handlersChain{h2})
-	root.add("/unix/([a-z]+)", handlersChain{h3})
-	root.add("/users/root", handlersChain{h4})
-	root.add("/([0-9]+)", handlersChain{h5})
+	root := newNode("/", []handlerFunc{h0})
+	root.add("/users", []handlerFunc{h1})
+	root.add("/users/([0-9]+)", []handlerFunc{h2})
+	root.add("/unix/([a-z]+)", []handlerFunc{h3})
+	root.add("/users/root", []handlerFunc{h4})
+	root.add("/([0-9]+)", []handlerFunc{h5})
 	fmt.Println(root)
 	// Output:
 	// { static: /, handlers: [github.com/lovego/goa.h0], children: [
@@ -174,48 +174,48 @@ func Example_node_add_1() {
 }
 
 func Example_node_add_conflict1() {
-	root := newNode("/", handlersChain{h0})
-	fmt.Println(root.add("/", handlersChain{h1}))
+	root := newNode("/", []handlerFunc{h0})
+	fmt.Println(root.add("/", []handlerFunc{h1}))
 	// Output: 2
 }
 
 func Example_node_add_conflict2() {
-	root := newNode("/", handlersChain{h0})
-	root = newNode("/users", handlersChain{h0})
-	fmt.Println(root.add("/users", handlersChain{h1}))
+	root := newNode("/", []handlerFunc{h0})
+	root = newNode("/users", []handlerFunc{h0})
+	fmt.Println(root.add("/users", []handlerFunc{h1}))
 	// Output: 2
 }
 
 func Example_node_add_conflict3() {
-	root := newNode("/users", handlersChain{h0})
-	root.add("/", handlersChain{h1})
-	fmt.Println(root.add("/users", handlersChain{h2}))
+	root := newNode("/users", []handlerFunc{h0})
+	root.add("/", []handlerFunc{h1})
+	fmt.Println(root.add("/users", []handlerFunc{h2}))
 	// Output: 2
 }
 
 func Example_node_add_conflict4() {
-	root := newNode("/users/active", handlersChain{h0})
-	root.add("/", handlersChain{h1})
-	root.add("/users", handlersChain{h2})
-	fmt.Println(root.add("/users/active", handlersChain{h3}))
+	root := newNode("/users/active", []handlerFunc{h0})
+	root.add("/", []handlerFunc{h1})
+	root.add("/users", []handlerFunc{h2})
+	fmt.Println(root.add("/users/active", []handlerFunc{h3}))
 	// Output: 2
 }
 
 func Example_node_add_conflict5() {
-	root := newNode("/users/([0-9]+)", handlersChain{h0})
-	root.add("/", handlersChain{h1})
-	root.add("/users", handlersChain{h2})
-	fmt.Println(root.add("/users/([0-9]+)", handlersChain{h3}))
+	root := newNode("/users/([0-9]+)", []handlerFunc{h0})
+	root.add("/", []handlerFunc{h1})
+	root.add("/users", []handlerFunc{h2})
+	fmt.Println(root.add("/users/([0-9]+)", []handlerFunc{h3}))
 	// Output: 2
 }
 
 func Example_node_lookup_1() {
-	root := newNode("/", handlersChain{h0})
-	root.add("/users", handlersChain{h1})
-	root.add("/users/([0-9]+)", handlersChain{h2})
-	root.add("/unix/([a-z]+)/([0-9.]+)", handlersChain{h3})
-	root.add("/users/root", handlersChain{h4})
-	root.add("/([0-9]+)", handlersChain{h5})
+	root := newNode("/", []handlerFunc{h0})
+	root.add("/users", []handlerFunc{h1})
+	root.add("/users/([0-9]+)", []handlerFunc{h2})
+	root.add("/unix/([a-z]+)/([0-9.]+)", []handlerFunc{h3})
+	root.add("/users/root", []handlerFunc{h4})
+	root.add("/([0-9]+)", []handlerFunc{h5})
 	fmt.Println(root.lookup("/"))
 	fmt.Println(root.lookup("/users"))
 	fmt.Println(root.lookup("/users/123"))
