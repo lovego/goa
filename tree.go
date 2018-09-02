@@ -9,6 +9,12 @@ import (
 	"strings"
 )
 
+const (
+	addResultNoCommonPrefix uint8 = 0
+	addResultSuccess              = 1
+	addResultConflict             = 2
+)
+
 type handleFunc func(*Context)
 
 type node struct {
@@ -59,10 +65,10 @@ func (n *node) lookupChildren(childPath string) ([]string, []handleFunc) {
 }
 
 // 添加到节点
-func (n *node) add(path string, handlers []handleFunc) bool {
+func (n *node) add(path string, handlers []handleFunc) uint8 {
 	commonPrefix := n.commonPrefix(path)
 	if len(commonPrefix) == 0 {
-		return false
+		return addResultNoCommonPrefix
 	} else
 	// 公共前缀比当前节点路径短，则分裂
 	if len(commonPrefix) < len(n.static) ||
@@ -74,19 +80,18 @@ func (n *node) add(path string, handlers []handleFunc) bool {
 	if len(childPath) == 0 {
 		if n.handlers == nil {
 			n.handlers = handlers
+			return addResultSuccess
 		} else {
-			panic(`router path conflicts: ` + path)
+			return addResultConflict
 		}
-	} else {
-		n.addToChildren(childPath, handlers)
 	}
-	return true
+	return n.addToChildren(childPath, handlers)
 }
 
-func (n *node) addToChildren(path string, handlers []handleFunc) {
+func (n *node) addToChildren(path string, handlers []handleFunc) uint8 {
 	for _, child := range n.children {
-		if child.add(path, handlers) {
-			return
+		if result := child.add(path, handlers); result != addResultNoCommonPrefix {
+			return result
 		}
 	}
 	child := newNode(path, handlers)
@@ -101,6 +106,7 @@ func (n *node) addToChildren(path string, handlers []handleFunc) {
 	} else {
 		n.children = append(n.children, child)
 	}
+	return addResultSuccess
 }
 
 // 分裂为父节点和子节点
@@ -108,10 +114,8 @@ func (n *node) split(path string) {
 	var childPath string
 	if len(n.static) > 0 {
 		childPath = n.static[len(path):]
-	} else if n.dynamic != nil {
-		childPath = n.dynamic.String()[len(path)+1:]
 	} else {
-		panic("both static and dynamic are empty.") // should not happen
+		childPath = n.dynamic.String()[len(path)+1:]
 	}
 	child := newNode(childPath, n.handlers)
 	child.children = n.children

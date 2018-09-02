@@ -7,148 +7,148 @@ import (
 	"testing"
 )
 
-func Example_newNode_static() {
-	fmt.Println(newNode("/", nil))
-	fmt.Println(newNode("/users", nil))
-	// Output:
-	// { static: / }
-	// { static: /users }
-}
-
-func Example_newNode_dynamic() {
-	fmt.Println(newNode("/[a-z]+", nil))
-	fmt.Println(newNode("/users/[0-9]+", nil))
-	fmt.Println(newNode(`/users/\d+`, nil)) // should not use like this.
-	// Output:
-	// { dynamic: ^/[a-z]+ }
-	// { dynamic: ^/users/[0-9]+ }
-	// { dynamic: ^/users/\d+ }
-}
-
-func Example_node_addToChildren_static1() {
-	n := newNode("/", nil)
-	n.addToChildren("users", nil)
-	fmt.Println(n)
-	// Output:
-	// { static: /, children: [
-	//   { static: users }
-	// ] }
-}
-
-func Example_node_addToChildren_static2() {
-	n := newNode("/u", nil)
-	n.children = []*node{
-		{dynamic: regexp.MustCompile("^/")},
-	}
-	n.addToChildren("sers", nil)
-	fmt.Println(n)
-	// Output:
-	// { static: /u, children: [
-	//   { static: sers }
-	//   { dynamic: ^/ }
-	// ] }
-}
-
-func Example_node_addToChildren_static3() {
-	n := newNode("/u", nil)
-	n.children = []*node{
-		{static: "nix"},
-		{dynamic: regexp.MustCompile("^/1")},
-		{dynamic: regexp.MustCompile("^/2")},
-	}
-	n.addToChildren("sers", nil)
-	fmt.Println(n)
-	// Output:
-	// { static: /u, children: [
-	//   { static: nix }
-	//   { static: sers }
-	//   { dynamic: ^/1 }
-	//   { dynamic: ^/2 }
-	// ] }
-}
-
-func Example_node_addToChildren_dynamic1() {
-	n := newNode("/u", nil)
-	n.children = []*node{
-		{static: "sers"},
-		{dynamic: regexp.MustCompile("^/")},
-	}
-	n.addToChildren("[0-9]+", nil)
-	fmt.Println(n)
-	// Output:
-	// { static: /u, children: [
-	//   { static: sers }
-	//   { dynamic: ^/ }
-	//   { dynamic: ^[0-9]+ }
-	// ] }
-}
-
-func Example_node_split_static1() {
-	n := newNode("/users", nil)
-	n.split("/")
-	fmt.Println(n)
-	// Output:
-	// { static: /, children: [
-	//   { static: users }
-	// ] }
-}
-
-func Example_node_split_static2() {
-	n := newNode("/users/managers", nil)
-	n.split("/users/")
-	fmt.Println(n)
-	// Output:
-	// { static: /users/, children: [
-	//   { static: managers }
-	// ] }
-}
-
-func Example_node_split_dynamic1() {
-	n := newNode("/[a-z]+", nil)
-	n.split("/")
-	fmt.Println(n)
-	// Output:
-	// { static: /, children: [
-	//   { dynamic: ^[a-z]+ }
-	// ] }
-}
-
-func Example_node_split_dynamic2() {
-	n := newNode(`/users/[0-9]+`, nil)
-	n.split("/u")
-	fmt.Println(n)
-	// Output:
-	// { static: /u, children: [
-	//   { dynamic: ^sers/[0-9]+ }
-	// ] }
-}
-
-func Example_node_split_dynamic3() {
-	n := newNode(`/([a-z]+)/([0-9]+)`, nil)
-	n.split("/([a-z]+)/")
-	fmt.Println(n)
-	// Output:
-	// { dynamic: ^/([a-z]+)/, children: [
-	//   { dynamic: ^([0-9]+) }
-	// ] }
-}
-
-func Example_node_split_dynamic4() {
-	n := newNode("/users/[0-9]+", nil)
-	n.split("/users/")
-	fmt.Println(n)
-	// Output:
-	// { static: /users/, children: [
-	//   { dynamic: ^[0-9]+ }
-	// ] }
-}
-
 func h0(*Context) {}
 func h1(*Context) {}
 func h2(*Context) {}
 func h3(*Context) {}
 func h4(*Context) {}
 func h5(*Context) {}
+
+func Example_newNode_static() {
+	fmt.Println(newNode("/", []handleFunc{h0}))
+	fmt.Println(newNode("/users", []handleFunc{h1}))
+	// Output:
+	// { static: /, handlers: [ github.com/lovego/router.h0 ] }
+	// { static: /users, handlers: [ github.com/lovego/router.h1 ] }
+}
+
+func Example_newNode_dynamic() {
+	fmt.Println(newNode("/[a-z]+", []handleFunc{h0}))
+	fmt.Println(newNode("/users/[0-9]+", []handleFunc{h1}))
+	fmt.Println(newNode(`/users/\d+`, []handleFunc{h2})) // should not use like this.
+	// Output:
+	// { dynamic: ^/[a-z]+, handlers: [ github.com/lovego/router.h0 ] }
+	// { dynamic: ^/users/[0-9]+, handlers: [ github.com/lovego/router.h1 ] }
+	// { dynamic: ^/users/\d+, handlers: [ github.com/lovego/router.h2 ] }
+}
+
+func Example_node_addToChildren_static1() {
+	n := newNode("/", []handleFunc{h0})
+	n.addToChildren("users", []handleFunc{h1})
+	fmt.Println(n)
+	// Output:
+	// { static: /, handlers: [ github.com/lovego/router.h0 ], children: [
+	//   { static: users, handlers: [ github.com/lovego/router.h1 ] }
+	// ] }
+}
+
+func Example_node_addToChildren_static2() {
+	n := newNode("/u", []handleFunc{h0})
+	n.children = []*node{
+		{dynamic: regexp.MustCompile("^/")},
+	}
+	n.addToChildren("sers", []handleFunc{h1})
+	fmt.Println(n)
+	// Output:
+	// { static: /u, handlers: [ github.com/lovego/router.h0 ], children: [
+	//   { static: sers, handlers: [ github.com/lovego/router.h1 ] }
+	//   { dynamic: ^/ }
+	// ] }
+}
+
+func Example_node_addToChildren_static3() {
+	n := newNode("/u", []handleFunc{h0})
+	n.children = []*node{
+		{static: "nix"},
+		{dynamic: regexp.MustCompile("^/1")},
+		{dynamic: regexp.MustCompile("^/2")},
+	}
+	n.addToChildren("sers", []handleFunc{h1})
+	fmt.Println(n)
+	// Output:
+	// { static: /u, handlers: [ github.com/lovego/router.h0 ], children: [
+	//   { static: nix }
+	//   { static: sers, handlers: [ github.com/lovego/router.h1 ] }
+	//   { dynamic: ^/1 }
+	//   { dynamic: ^/2 }
+	// ] }
+}
+
+func Example_node_addToChildren_dynamic1() {
+	n := newNode("/u", []handleFunc{h0})
+	n.children = []*node{
+		{static: "sers"},
+		{dynamic: regexp.MustCompile("^/")},
+	}
+	n.addToChildren("[0-9]+", []handleFunc{h1})
+	fmt.Println(n)
+	// Output:
+	// { static: /u, handlers: [ github.com/lovego/router.h0 ], children: [
+	//   { static: sers }
+	//   { dynamic: ^/ }
+	//   { dynamic: ^[0-9]+, handlers: [ github.com/lovego/router.h1 ] }
+	// ] }
+}
+
+func Example_node_split_static1() {
+	n := newNode("/users", []handleFunc{h0})
+	n.split("/")
+	fmt.Println(n)
+	// Output:
+	// { static: /, children: [
+	//   { static: users, handlers: [ github.com/lovego/router.h0 ] }
+	// ] }
+}
+
+func Example_node_split_static2() {
+	n := newNode("/users/managers", []handleFunc{h0})
+	n.split("/users/")
+	fmt.Println(n)
+	// Output:
+	// { static: /users/, children: [
+	//   { static: managers, handlers: [ github.com/lovego/router.h0 ] }
+	// ] }
+}
+
+func Example_node_split_dynamic1() {
+	n := newNode("/[a-z]+", []handleFunc{h0})
+	n.split("/")
+	fmt.Println(n)
+	// Output:
+	// { static: /, children: [
+	//   { dynamic: ^[a-z]+, handlers: [ github.com/lovego/router.h0 ] }
+	// ] }
+}
+
+func Example_node_split_dynamic2() {
+	n := newNode(`/users/[0-9]+`, []handleFunc{h0})
+	n.split("/u")
+	fmt.Println(n)
+	// Output:
+	// { static: /u, children: [
+	//   { dynamic: ^sers/[0-9]+, handlers: [ github.com/lovego/router.h0 ] }
+	// ] }
+}
+
+func Example_node_split_dynamic3() {
+	n := newNode(`/([a-z]+)/([0-9]+)`, []handleFunc{h0})
+	n.split("/([a-z]+)/")
+	fmt.Println(n)
+	// Output:
+	// { dynamic: ^/([a-z]+)/, children: [
+	//   { dynamic: ^([0-9]+), handlers: [ github.com/lovego/router.h0 ] }
+	// ] }
+}
+
+func Example_node_split_dynamic4() {
+	n := newNode("/users/[0-9]+", []handleFunc{h0})
+	n.split("/users/")
+	fmt.Println(n)
+	// Output:
+	// { static: /users/, children: [
+	//   { dynamic: ^[0-9]+, handlers: [ github.com/lovego/router.h0 ] }
+	// ] }
+}
 
 func Example_node_add_1() {
 	root := newNode("/", []handleFunc{h0})
@@ -171,6 +171,34 @@ func Example_node_add_1() {
 	//   ] }
 	//   { dynamic: ^([0-9]+), handlers: [ github.com/lovego/router.h5 ] }
 	// ] }
+}
+
+func Example_node_add_conflict1() {
+	root := newNode("/", []handleFunc{h0})
+	fmt.Println(root.add("/", []handleFunc{h1}))
+	// Output: 2
+}
+
+func Example_node_add_conflict2() {
+	root := newNode("/", []handleFunc{h0})
+	root = newNode("/users", []handleFunc{h0})
+	fmt.Println(root.add("/users", []handleFunc{h1}))
+	// Output: 2
+}
+
+func Example_node_add_conflict3() {
+	root := newNode("/users", []handleFunc{h0})
+	root.add("/", []handleFunc{h1})
+	fmt.Println(root.add("/users", []handleFunc{h2}))
+	// Output: 2
+}
+
+func Example_node_add_conflict4() {
+	root := newNode("/users/active", []handleFunc{h0})
+	root.add("/", []handleFunc{h1})
+	root.add("/users", []handleFunc{h2})
+	fmt.Println(root.add("/users/active", []handleFunc{h3}))
+	// Output: 2
 }
 
 func BenchmarkStringHasPrefix(b *testing.B) {
