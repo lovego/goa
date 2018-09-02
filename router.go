@@ -20,12 +20,13 @@ type Router struct {
 
 func New() *Router {
 	return &Router{
-		Group:    Group{routes: make(map[string]*node)},
-		notFound: defaultNotFound,
+		Group:        Group{routes: make(map[string]*node)},
+		notFound:     defaultNotFound,
+		fullNotFound: []handlerFunc{defaultNotFound},
 	}
 }
 
-func (r *Router) ServeHTTP(req *http.Request, rw http.ResponseWriter) {
+func (r *Router) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	handlers, params := r.Lookup(req.Method, req.URL.Path)
 	ctx := &Context{Request: req, ResponseWriter: rw, handlers: handlers, params: params, index: -1}
 	if len(handlers) == 0 {
@@ -34,11 +35,8 @@ func (r *Router) ServeHTTP(req *http.Request, rw http.ResponseWriter) {
 	ctx.Next()
 }
 
-func (r *Router) Use(handler handlerFunc) {
-	if handler == nil {
-		return
-	}
-	r.handlers = append(r.handlers, handler)
+func (r *Router) Use(handlers ...handlerFunc) {
+	r.handlers = append(r.handlers, handlers...)
 	r.fullNotFound = r.combineHandlers(r.notFound)
 }
 

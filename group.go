@@ -11,11 +11,8 @@ type Group struct {
 	routes   map[string]*node
 }
 
-func (g *Group) Use(handler handlerFunc) {
-	if handler == nil {
-		return
-	}
-	g.handlers = append(g.handlers, handler)
+func (g *Group) Use(handlers ...handlerFunc) {
+	g.handlers = append(g.handlers, handlers...)
 }
 
 func (g *Group) Add(method, path string, handler handlerFunc) {
