@@ -222,6 +222,9 @@ func Example_node_lookup_1() {
 	fmt.Println(root.lookup("/unix/linux/4.4.0"))
 	fmt.Println(root.lookup("/users/root"))
 	fmt.Println(root.lookup("/987"))
+	fmt.Println(root.lookup("404"))
+	fmt.Println(root.lookup("/users404"))
+	fmt.Println(root.lookup("/unix/linux/4.4.0a"))
 
 	// Output:
 	// true [] [github.com/lovego/router.h0]
@@ -230,6 +233,9 @@ func Example_node_lookup_1() {
 	// true [linux 4.4.0] [github.com/lovego/router.h3]
 	// true [] [github.com/lovego/router.h4]
 	// true [987] [github.com/lovego/router.h5]
+	// false [] []
+	// true [] []
+	// true [] []
 }
 
 func BenchmarkStringHasPrefix(b *testing.B) {
