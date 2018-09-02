@@ -21,7 +21,7 @@ type node struct {
 }
 
 // 新建节点
-func newNode(path string, handlers []handlerFunc) *node {
+func newNode(path string, static bool, handlers []handlerFunc) *node {
 	var n = &node{handlers: handlers}
 	if _, complete := regexp.MustCompile(path).LiteralPrefix(); complete {
 		n.static = path

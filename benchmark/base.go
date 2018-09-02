@@ -66,7 +66,7 @@ func runGoaRouterTestCase(b *testing.B, tc *goaRouterTestCase) {
 		for _, route := range tc.routes {
 			request.Method = route.method
 			request.URL.Path = route.path
-			tc.router.ServeHTTP(request, nil)
+			tc.router.ServeHTTP(nil, request)
 		}
 	}
 	if tc.hits != b.N*len(tc.routes) {
