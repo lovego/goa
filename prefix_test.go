@@ -138,3 +138,19 @@ func Example_regexpCommonPrefix_differentSuffix3() {
 	fmt.Println(regexpCommonPrefix("/([a-z]+)/members/([0-9]+)", "/([a-z]+)/managers/([0-9]+)"))
 	// Output: /([a-z]+)/m
 }
+
+func Example_regexpCommonPrefix_panic1() {
+	defer func() {
+		fmt.Println(recover())
+	}()
+	fmt.Println(regexpCommonPrefix("(", "/"))
+	// Output: error parsing regexp: missing closing ): `(`
+}
+
+func Example_regexpCommonPrefix_panic2() {
+	defer func() {
+		fmt.Println(recover())
+	}()
+	fmt.Println(regexpCommonPrefix("/", ")"))
+	// Output: error parsing regexp: unexpected ): `)`
+}
