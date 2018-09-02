@@ -12,3 +12,7 @@ func (h handlerFunc) String() string {
 }
 
 type handlersChain []handlerFunc
+
+func (hs handlersChain) Handle(ctx *Context) {
+
+}

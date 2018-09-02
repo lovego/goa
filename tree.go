@@ -98,7 +98,7 @@ func (n *node) split(path string) {
 	n.children = []*node{child}
 }
 
-func (n *node) lookup(path string) (bool, []string, handlersChain) {
+func (n *node) lookup(path string) (bool, handlersChain, []string) {
 	commonPrefix, captures := n.lookupCommonPrefix(path)
 	if len(commonPrefix) == 0 {
 		return false, nil, nil
@@ -107,21 +107,21 @@ func (n *node) lookup(path string) (bool, []string, handlersChain) {
 	childPath := path[len(commonPrefix):]
 	if len(childPath) == 0 {
 		if len(n.handlers) > 0 {
-			return true, captures, n.handlers
+			return true, n.handlers, captures
 		}
-	} else if childCaptures, handlers := n.lookupChildren(childPath); len(handlers) > 0 {
+	} else if handlers, childCaptures := n.lookupChildren(childPath); len(handlers) > 0 {
 		if len(childCaptures) > 0 {
 			captures = append(captures, childCaptures...)
 		}
-		return true, captures, handlers
+		return true, handlers, captures
 	}
 	return true, nil, nil
 }
 
-func (n *node) lookupChildren(childPath string) ([]string, handlersChain) {
+func (n *node) lookupChildren(childPath string) (handlersChain, []string) {
 	for _, child := range n.children {
-		if ok, captures, handlers := child.lookup(childPath); ok {
-			return captures, handlers
+		if ok, handlers, captures := child.lookup(childPath); ok {
+			return handlers, captures
 		}
 	}
 	return nil, nil

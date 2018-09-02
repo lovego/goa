@@ -227,12 +227,12 @@ func Example_node_lookup_1() {
 	fmt.Println(root.lookup("/unix/linux/4.4.0a"))
 
 	// Output:
-	// true [] [github.com/lovego/router.h0]
-	// true [] [github.com/lovego/router.h1]
-	// true [123] [github.com/lovego/router.h2]
-	// true [linux 4.4.0] [github.com/lovego/router.h3]
-	// true [] [github.com/lovego/router.h4]
-	// true [987] [github.com/lovego/router.h5]
+	// true [github.com/lovego/router.h0] []
+	// true [github.com/lovego/router.h1] []
+	// true [github.com/lovego/router.h2] [123]
+	// true [github.com/lovego/router.h3] [linux 4.4.0]
+	// true [github.com/lovego/router.h4] []
+	// true [github.com/lovego/router.h5] [987]
 	// false [] []
 	// true [] []
 	// true [] []

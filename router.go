@@ -7,9 +7,10 @@ import (
 )
 
 type Router struct {
+	basePath string
 	handlers handlersChain
-	base     string
 	routes   map[string]*node
+	notFound handlersChain
 }
 
 func New() *Router {
@@ -18,7 +19,7 @@ func New() *Router {
 
 func (r *Router) Add(method, path string, handler handlerFunc) {
 	method = strings.ToUpper(method)
-	path = cleanPath(path)
+	path = cleanPath(r.basePath + path)
 	handlers := r.getHandlers(handler)
 	rootNode := r.routes[method]
 	if rootNode == nil {
@@ -33,17 +34,31 @@ func (r *Router) getHandlers(handler handlerFunc) handlersChain {
 		panic("handler func should not be nil")
 	}
 	var handlers handlersChain
-	if len(r.base) > 1 && len(r.handlers) > 0 {
+	if len(r.handlers) > 0 {
 		handlers = append(handlers, r.handlers...)
 	}
 	return append(handlers, handler)
 }
 
 func (r *Router) ServeHTTP(req *http.Request, rw http.ResponseWriter) {
+	handlers, params := r.Lookup(req.Method, req.URL.Path)
+	ctx := &Context{Request: req, ResponseWriter: rw, handlers: handlers, params: params, index: -1}
+	if len(handlers) == 0 {
+		ctx.handlers = r.notFound
+	}
+	ctx.Next()
 }
 
-func (r *Router) Lookup(method, path string) handlersChain {
-	return nil
+func (r *Router) Lookup(method, path string) (handlersChain, []string) {
+	if method == `HEAD` {
+		method = `GET`
+	}
+	rootNode := r.routes[method]
+	if rootNode == nil {
+		return nil, nil
+	}
+	_, handlers, params := rootNode.lookup(strings.TrimRight(path, "/"))
+	return handlers, params
 }
 
 func cleanPath(path string) string {
