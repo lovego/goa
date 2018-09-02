@@ -153,6 +153,19 @@ func Example_node_split_dynamic4() {
 func Example_node_add_1() {
 	root := newNode("/", []handlerFunc{h0})
 	root.add("/users", []handlerFunc{h1})
+	root.add(`/users/(\d+)`, []handlerFunc{h2})
+	fmt.Println(root)
+	// Output:
+	// { static: /, handlers: [github.com/lovego/goa.h0], children: [
+	//   { static: users, handlers: [github.com/lovego/goa.h1], children: [
+	//     { dynamic: ^/(\d+), handlers: [github.com/lovego/goa.h2] }
+	//   ] }
+	// ] }
+}
+
+func Example_node_add_2() {
+	root := newNode("/", []handlerFunc{h0})
+	root.add("/users", []handlerFunc{h1})
 	root.add("/users/([0-9]+)", []handlerFunc{h2})
 	root.add("/unix/([a-z]+)", []handlerFunc{h3})
 	root.add("/users/root", []handlerFunc{h4})
@@ -253,6 +266,15 @@ func BenchmarkRegexpMatch(b *testing.B) {
 	b.ReportAllocs()
 	for i := 0; i <= b.N; i++ {
 		if !testRegexp.MatchString("/company-skus/search") {
+			b.Error("not matched")
+		}
+	}
+}
+
+func BenchmarkRegexpFindSubmatch(b *testing.B) {
+	b.ReportAllocs()
+	for i := 0; i <= b.N; i++ {
+		if len(testRegexp.FindStringSubmatch("/company-skus/search")) == 0 {
 			b.Error("not matched")
 		}
 	}

@@ -8,6 +8,12 @@ import (
 	"strings"
 )
 
+type handlerFunc func(*Context)
+
+func (h handlerFunc) String() string {
+	return runtime.FuncForPC(reflect.ValueOf(h).Pointer()).Name()
+}
+
 type Router struct {
 	basePath string
 	handlers []handlerFunc
@@ -15,17 +21,11 @@ type Router struct {
 	notFound []handlerFunc
 }
 
-type handlerFunc func(*Context)
-
-func (h handlerFunc) String() string {
-	return runtime.FuncForPC(reflect.ValueOf(h).Pointer()).Name()
-}
-
 func New() *Router {
 	return &Router{routes: make(map[string]*node)}
 }
 
-func (r *Router) Add(method, path string, handler handlerFunc) {
+func (r *Router) Add(method, path string, handler handlerFunc) *Router {
 	method = strings.ToUpper(method)
 	path = cleanPath(r.basePath + path)
 	handlers := r.getHandlers(handler)
@@ -35,6 +35,7 @@ func (r *Router) Add(method, path string, handler handlerFunc) {
 	} else if rootNode.add(path, handlers) == addResultConflict {
 		panic("router conflict: " + method + " " + path)
 	}
+	return r
 }
 
 func (r *Router) getHandlers(handler handlerFunc) []handlerFunc {
@@ -65,7 +66,10 @@ func (r *Router) Lookup(method, path string) ([]handlerFunc, []string) {
 	if rootNode == nil {
 		return nil, nil
 	}
-	_, handlers, params := rootNode.lookup(strings.TrimRight(path, "/"))
+	if len(path) > 1 && path[len(path)-1] == '/' {
+		path = path[:len(path)-1]
+	}
+	_, handlers, params := rootNode.lookup(path)
 	return handlers, params
 }
 
@@ -74,10 +78,32 @@ func cleanPath(path string) string {
 	if len(path) == 0 || path[0] != '/' {
 		panic(`router path must begin with "/": ` + path)
 	}
-	path = strings.TrimRight(path, "/")
+	if len(path) > 1 && path[len(path)-1] == '/' {
+		path = path[:len(path)-1]
+	}
 	re, err := syntax.Parse(path, syntax.Perl)
 	if err != nil {
 		panic(err)
 	}
 	return re.String()
+}
+
+func (r *Router) Get(path string, handler handlerFunc) *Router {
+	return r.Add("GET", path, handler)
+}
+
+func (r *Router) Post(path string, handler handlerFunc) *Router {
+	return r.Add("POST", path, handler)
+}
+
+func (r *Router) Put(path string, handler handlerFunc) *Router {
+	return r.Add("PUT", path, handler)
+}
+
+func (r *Router) Patch(path string, handler handlerFunc) *Router {
+	return r.Add("PATCH", path, handler)
+}
+
+func (r *Router) Delete(path string, handler handlerFunc) *Router {
+	return r.Add("DELETE", path, handler)
 }
