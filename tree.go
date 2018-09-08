@@ -23,7 +23,9 @@ type node struct {
 // 新建节点
 func newNode(path string, static bool, handlers []handlerFunc) *node {
 	var n = &node{handlers: handlers}
-	if _, complete := regexp.MustCompile(path).LiteralPrefix(); complete {
+	if static {
+		n.static = path
+	} else if _, complete := regexp.MustCompile(path).LiteralPrefix(); complete {
 		n.static = path
 	} else {
 		n.dynamic = regexp.MustCompile("^" + path)
@@ -32,8 +34,8 @@ func newNode(path string, static bool, handlers []handlerFunc) *node {
 }
 
 // 添加到节点
-func (n *node) add(path string, handlers []handlerFunc) uint8 {
-	commonPrefix := n.commonPrefix(path)
+func (n *node) add(path string, static bool, handlers []handlerFunc) uint8 {
+	commonPrefix := n.commonPrefix(path, static)
 	if len(commonPrefix) == 0 {
 		return addResultNoCommonPrefix
 	} else
@@ -52,16 +54,16 @@ func (n *node) add(path string, handlers []handlerFunc) uint8 {
 			return addResultConflict
 		}
 	}
-	return n.addToChildren(childPath, handlers)
+	return n.addToChildren(childPath, static, handlers)
 }
 
-func (n *node) addToChildren(path string, handlers []handlerFunc) uint8 {
+func (n *node) addToChildren(path string, static bool, handlers []handlerFunc) uint8 {
 	for _, child := range n.children {
-		if result := child.add(path, handlers); result != addResultNoCommonPrefix {
+		if result := child.add(path, static, handlers); result != addResultNoCommonPrefix {
 			return result
 		}
 	}
-	child := newNode(path, handlers)
+	child := newNode(path, static, handlers)
 	// 静态路径优先匹配，所以将静态子节点放在动态子节点前边
 	if l := len(n.children); l > 0 && len(child.static) > 0 && n.children[l-1].dynamic != nil {
 		i := 0
@@ -78,22 +80,21 @@ func (n *node) addToChildren(path string, handlers []handlerFunc) uint8 {
 
 // 分裂为父节点和子节点
 func (n *node) split(path string) {
-	var childPath string
+	var child *node
 	if len(n.static) > 0 {
-		childPath = n.static[len(path):]
+		child = newNode(n.static[len(path):], true, n.handlers)
+		n.static = path
 	} else {
-		childPath = n.dynamic.String()[len(path)+1:]
+		child = newNode(n.dynamic.String()[len(path)+1:], false, n.handlers)
+		if _, complete := regexp.MustCompile(path).LiteralPrefix(); complete {
+			n.static = path
+			n.dynamic = nil
+		} else {
+			n.dynamic = regexp.MustCompile("^" + path)
+		}
 	}
-	child := newNode(childPath, n.handlers)
 	child.children = n.children
 
-	if _, complete := regexp.MustCompile(path).LiteralPrefix(); complete {
-		n.static = path
-		n.dynamic = nil
-	} else {
-		n.static = ""
-		n.dynamic = regexp.MustCompile("^" + path)
-	}
 	n.handlers = nil
 	n.children = []*node{child}
 }

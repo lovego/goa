@@ -16,20 +16,20 @@ func Example_Router_1() {
 	router.Get("/users", func(ctx *Context) {
 		fmt.Println("list users")
 	})
-	router.Get(`/users/(\d+)`, func(ctx *Context) {
+	router.GetX(`/users/(\d+)`, func(ctx *Context) {
 		fmt.Printf("show user: %s\n", ctx.Param(0))
 	})
 
 	router.Post(`/users`, func(ctx *Context) {
 		fmt.Println("create a user")
 	})
-	router.Put(`/users/(\d+)`, func(ctx *Context) {
+	router.PutX(`/users/(\d+)`, func(ctx *Context) {
 		fmt.Printf("fully update user: %s\n", ctx.Param(0))
 	})
-	router.Patch(`/users/(\d+)`, func(ctx *Context) {
+	router.PatchX(`/users/(\d+)`, func(ctx *Context) {
 		fmt.Printf("partially update user: %s\n", ctx.Param(0))
 	})
-	router.Delete(`/users/(\d+)`, func(ctx *Context) {
+	router.DeleteX(`/users/(\d+)`, func(ctx *Context) {
 		fmt.Printf("delete user: %s\n", ctx.Param(0))
 	})
 

@@ -1,6 +1,8 @@
 package goa
 
 import (
+	"bytes"
+	"fmt"
 	"regexp/syntax"
 	"strings"
 )
@@ -15,7 +17,7 @@ func (g *Group) Use(handlers ...handlerFunc) {
 	g.handlers = append(g.handlers, handlers...)
 }
 
-func (g *Group) Add(method, path string, handler handlerFunc) {
+func (g *Group) Add(method, path string, static bool, handler handlerFunc) {
 	method = strings.ToUpper(method)
 	path = cleanPath(g.basePath + path)
 	if handler == nil {
@@ -25,8 +27,8 @@ func (g *Group) Add(method, path string, handler handlerFunc) {
 
 	rootNode := g.routes[method]
 	if rootNode == nil {
-		g.routes[method] = newNode(path, handlers)
-	} else if rootNode.add(path, handlers) == addResultConflict {
+		g.routes[method] = newNode(path, static, handlers)
+	} else if rootNode.add(path, static, handlers) == addResultConflict {
 		panic("router conflict: " + method + " " + path)
 	}
 }
@@ -60,23 +62,43 @@ func (g *Group) Lookup(method, path string) ([]handlerFunc, []string) {
 }
 
 func (g *Group) Get(path string, handler handlerFunc) {
-	g.Add("GET", path, handler)
+	g.Add("GET", path, true, handler)
 }
 
 func (g *Group) Post(path string, handler handlerFunc) {
-	g.Add("POST", path, handler)
+	g.Add("POST", path, true, handler)
 }
 
 func (g *Group) Put(path string, handler handlerFunc) {
-	g.Add("PUT", path, handler)
+	g.Add("PUT", path, true, handler)
 }
 
 func (g *Group) Patch(path string, handler handlerFunc) {
-	g.Add("PATCH", path, handler)
+	g.Add("PATCH", path, true, handler)
 }
 
 func (g *Group) Delete(path string, handler handlerFunc) {
-	g.Add("DELETE", path, handler)
+	g.Add("DELETE", path, true, handler)
+}
+
+func (g *Group) GetX(path string, handler handlerFunc) {
+	g.Add("GET", path, false, handler)
+}
+
+func (g *Group) PostX(path string, handler handlerFunc) {
+	g.Add("POST", path, false, handler)
+}
+
+func (g *Group) PutX(path string, handler handlerFunc) {
+	g.Add("PUT", path, false, handler)
+}
+
+func (g *Group) PatchX(path string, handler handlerFunc) {
+	g.Add("PATCH", path, false, handler)
+}
+
+func (g *Group) DeleteX(path string, handler handlerFunc) {
+	g.Add("DELETE", path, false, handler)
 }
 
 func cleanPath(path string) string {
@@ -92,4 +114,25 @@ func cleanPath(path string) string {
 		panic(err)
 	}
 	return re.String()
+}
+
+func (g *Group) String() string {
+	var buf bytes.Buffer
+	buf.WriteString("{\n")
+	if g.basePath != "" {
+		buf.WriteString("  basePath: " + g.basePath + "\n")
+	}
+	if len(g.handlers) > 0 {
+		buf.WriteString("  handlers: " + fmt.Sprint(g.handlers) + "\n")
+	}
+	if len(g.routes) > 0 {
+		buf.WriteString("  routes: {\n")
+		for method, routes := range g.routes {
+			buf.WriteString("    " + method + ":\n" + routes.string("    ") + "\n")
+		}
+		buf.WriteString("  }\n")
+	}
+	buf.WriteString("}\n")
+
+	return buf.String()
 }

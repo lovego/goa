@@ -5,12 +5,12 @@ import (
 )
 
 func Example_node_commonPrefix_static() {
-	fmt.Println(newNode("/", nil).commonPrefix("/"))
-	fmt.Println(newNode("users", nil).commonPrefix("members"))
-	fmt.Println(newNode("/users", nil).commonPrefix("/"))
-	fmt.Println(newNode("users", nil).commonPrefix("([0-9]+)"))
-	fmt.Println(newNode("/", nil).commonPrefix("/users"))
-	fmt.Println(newNode("users/managers", nil).commonPrefix("users/([0-9]+)"))
+	fmt.Println(newNode("/", true, nil).commonPrefix("/", true))
+	fmt.Println(newNode("users", true, nil).commonPrefix("members", true))
+	fmt.Println(newNode("/users", true, nil).commonPrefix("/", true))
+	fmt.Println(newNode("users", true, nil).commonPrefix("([0-9]+)", false))
+	fmt.Println(newNode("/", true, nil).commonPrefix("/users", true))
+	fmt.Println(newNode("users/managers", true, nil).commonPrefix("users/([0-9]+)", false))
 	// Output:
 	// /
 	//
@@ -21,11 +21,11 @@ func Example_node_commonPrefix_static() {
 }
 
 func Example_node_commonPrefix_dynamic() {
-	fmt.Println(newNode("/([a-z]+)", nil).commonPrefix("/"))
-	fmt.Println(newNode("users/([0-9]+)", nil).commonPrefix("members"))
-	fmt.Println(newNode("/([a-z]+)", nil).commonPrefix("/([a-z]+)/members"))
-	fmt.Println(newNode("users/([0-9]+)", nil).commonPrefix("users/([a-z]+)"))
-	fmt.Println(newNode("users/([0-9]+)", nil).commonPrefix("users/managers"))
+	fmt.Println(newNode("/([a-z]+)", false, nil).commonPrefix("/", false))
+	fmt.Println(newNode("users/([0-9]+)", false, nil).commonPrefix("members", false))
+	fmt.Println(newNode("/([a-z]+)", false, nil).commonPrefix("/([a-z]+)/members", false))
+	fmt.Println(newNode("users/([0-9]+)", false, nil).commonPrefix("users/([a-z]+)", false))
+	fmt.Println(newNode("users/([0-9]+)", false, nil).commonPrefix("users/managers", false))
 	// Output:
 	// /
 	//

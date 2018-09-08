@@ -17,16 +17,21 @@ func (n *node) lookupCommonPrefix(path string) (string, []string) {
 	return "", nil
 }
 
-func (n *node) commonPrefix(path string) string {
-	static, allStatic := regexp.MustCompile(path).LiteralPrefix()
+func (n *node) commonPrefix(path string, static bool) string {
+	var pathPrefix string
+	if !static {
+		pathPrefix, static = regexp.MustCompile(path).LiteralPrefix()
+	}
 	if len(n.static) > 0 {
-		if len(static) > 0 {
-			return stringCommonPrefix(n.static, static)
+		if static {
+			return stringCommonPrefix(n.static, path)
+		} else if len(pathPrefix) > 0 {
+			return stringCommonPrefix(n.static, pathPrefix)
 		}
 	} else {
-		if allStatic {
+		if static {
 			if prefix, _ := regexp.MustCompile(n.dynamic.String()[1:]).LiteralPrefix(); len(prefix) > 0 {
-				return stringCommonPrefix(prefix, static)
+				return stringCommonPrefix(prefix, path)
 			}
 		} else {
 			return regexpCommonPrefix(n.dynamic.String()[1:], path)
