@@ -3,6 +3,7 @@ package benchmark
 import (
 	"fmt"
 	"net/http"
+	"os"
 	"regexp"
 	"strings"
 	"testing"
@@ -37,13 +38,15 @@ func loadGoaRouterTestCase(routes []route) *goaRouterTestCase {
 		if strings.IndexByte(route.path, ':') > 0 {
 			path = paramRegexp.ReplaceAllString(path, `(:\w+)`)
 		} else {
-			path = strings.Replace(path, `.`, `\.`, -1)
+			path = regexp.QuoteMeta(path)
 		}
 		router.Add(route.method, path, func(*goa.Context) {
 			tc.hits++
 		})
 	}
-	fmt.Println(tc.router.Group.String())
+	if os.Getenv("debug") != "" {
+		fmt.Println(tc.router.Group.String())
+	}
 	return &tc
 }
 
