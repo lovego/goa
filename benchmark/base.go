@@ -81,6 +81,23 @@ func runGoaRouterTestCase(b *testing.B, tc *goaRouterTestCase) {
 	}
 }
 
+func runGoaRouterTestCase_Lookup(b *testing.B, tc *goaRouterTestCase) {
+	b.ReportAllocs()
+	tc.hits = 0
+
+	request, err := http.NewRequest("GET", "http://localhost/", nil)
+	if err != nil {
+		panic(err)
+	}
+	for i := 0; i < b.N; i++ {
+		for _, route := range tc.routes {
+			request.Method = route.method
+			request.URL.Path = route.path
+			tc.router.Lookup(route.method, route.path)
+		}
+	}
+}
+
 func runHttpRouterTestCase(b *testing.B, tc *httpRouterTestCase) {
 	b.ReportAllocs()
 	tc.hits = 0

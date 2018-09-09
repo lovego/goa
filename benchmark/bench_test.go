@@ -20,12 +20,20 @@ func BenchmarkGoaRouter_Static157(b *testing.B) {
 	runGoaRouterTestCase(b, goaRouterStatic)
 }
 
+func BenchmarkGoaRouter_Static157_Lookup(b *testing.B) {
+	runGoaRouterTestCase_Lookup(b, goaRouterStatic)
+}
+
 func BenchmarkHttpRouter_Static157(b *testing.B) {
 	runHttpRouterTestCase(b, httpRouterStatic)
 }
 
 func BenchmarkGoaRouter_Github203(b *testing.B) {
 	runGoaRouterTestCase(b, goaRouterGithub)
+}
+
+func BenchmarkGoaRouter_Github203_Lookup(b *testing.B) {
+	runGoaRouterTestCase_Lookup(b, goaRouterGithub)
 }
 
 func BenchmarkHttpRouter_Github203(b *testing.B) {
