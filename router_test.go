@@ -7,7 +7,7 @@ import (
 	"net/http/httptest"
 )
 
-func Example_Router_1() {
+func Example_basic() {
 	router := New()
 
 	router.Get("/", func(ctx *Context) {
@@ -71,7 +71,7 @@ func Example_Router_1() {
 	// 404 {"code":"404","message":"Not Found."}
 }
 
-func Example_Router_NotFound() {
+func ExampleRouter_NotFound() {
 	router := New()
 	router.Use(func(ctx *Context) {
 		fmt.Println("middleware 1 pre")

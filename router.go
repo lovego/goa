@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"reflect"
 	"runtime"
+
+	"github.com/lovego/regex_tree"
 )
 
 type handlerFunc func(*Context)
@@ -20,7 +22,7 @@ type Router struct {
 
 func New() *Router {
 	return &Router{
-		Group:        Group{routes: make(map[string]*node)},
+		Group:        Group{routes: make(map[string]*regex_tree.Node)},
 		notFound:     defaultNotFound,
 		fullNotFound: []handlerFunc{defaultNotFound},
 	}
@@ -37,12 +39,12 @@ func (r *Router) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 func (r *Router) Use(handlers ...handlerFunc) {
 	r.handlers = append(r.handlers, handlers...)
-	r.fullNotFound = r.combineHandlers(r.notFound)
+	r.fullNotFound = r.concatHandlers(r.notFound)
 }
 
 func (r *Router) NotFound(handler handlerFunc) {
 	r.notFound = handler
-	r.fullNotFound = r.combineHandlers(r.notFound)
+	r.fullNotFound = r.concatHandlers(r.notFound)
 }
 
 func defaultNotFound(ctx *Context) {

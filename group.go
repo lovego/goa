@@ -3,46 +3,117 @@ package goa
 import (
 	"bytes"
 	"fmt"
-	"regexp/syntax"
+	"regexp"
 	"strings"
+
+	"github.com/lovego/regex_tree"
 )
 
 type Group struct {
 	basePath string
 	handlers []handlerFunc
-	routes   map[string]*node
+	routes   map[string]*regex_tree.Node
+}
+
+func (g *Group) Group(path string, handlers ...handlerFunc) *Group {
+	return &Group{
+		basePath: g.concatPath(regexp.QuoteMeta(path)),
+		handlers: g.concatHandlers(handlers...),
+		routes:   g.routes,
+	}
+}
+
+func (g *Group) GroupX(path string, handlers ...handlerFunc) *Group {
+	return &Group{
+		basePath: g.concatPath(path),
+		handlers: g.concatHandlers(handlers...),
+		routes:   g.routes,
+	}
 }
 
 func (g *Group) Use(handlers ...handlerFunc) {
 	g.handlers = append(g.handlers, handlers...)
 }
 
-func (g *Group) Add(method, path string, static bool, handler handlerFunc) {
+func (g *Group) Get(path string, handler handlerFunc) {
+	g.Add("GET", regexp.QuoteMeta(path), handler)
+}
+
+func (g *Group) Post(path string, handler handlerFunc) {
+	g.Add("POST", regexp.QuoteMeta(path), handler)
+}
+
+func (g *Group) Put(path string, handler handlerFunc) {
+	g.Add("PUT", regexp.QuoteMeta(path), handler)
+}
+
+func (g *Group) Patch(path string, handler handlerFunc) {
+	g.Add("PATCH", regexp.QuoteMeta(path), handler)
+}
+
+func (g *Group) Delete(path string, handler handlerFunc) {
+	g.Add("DELETE", regexp.QuoteMeta(path), handler)
+}
+
+func (g *Group) GetX(path string, handler handlerFunc) {
+	g.Add("GET", path, handler)
+}
+
+func (g *Group) PostX(path string, handler handlerFunc) {
+	g.Add("POST", path, handler)
+}
+
+func (g *Group) PutX(path string, handler handlerFunc) {
+	g.Add("PUT", path, handler)
+}
+
+func (g *Group) PatchX(path string, handler handlerFunc) {
+	g.Add("PATCH", path, handler)
+}
+
+func (g *Group) DeleteX(path string, handler handlerFunc) {
+	g.Add("DELETE", path, handler)
+}
+
+func (g *Group) Add(method, path string, handler handlerFunc) {
 	method = strings.ToUpper(method)
-	path = cleanPath(g.basePath + path)
+	path = g.concatPath(path)
+	// remove trailing slash
+	if len(path) > 1 && path[len(path)-1] == '/' {
+		path = path[:len(path)-1]
+	}
 	if handler == nil {
 		return
 	}
-	handlers := g.combineHandlers(handler)
+	handlers := g.concatHandlers(handler)
 
 	rootNode := g.routes[method]
 	if rootNode == nil {
-		g.routes[method] = newNode(path, static, handlers)
-	} else if rootNode.add(path, static, handlers) == addResultConflict {
-		panic("router conflict: " + method + " " + path)
+		rootNode, err := regex_tree.New(path, handlers)
+		if err != nil {
+			panic(err)
+		}
+		g.routes[method] = rootNode
+	} else if err := rootNode.Add(path, handlers); err != nil {
+		panic(err)
 	}
 }
 
-func (g *Group) combineHandlers(handler handlerFunc) []handlerFunc {
-	size := len(g.handlers)
-	if handler != nil {
-		size++
+func (g Group) concatPath(path string) string {
+	path = g.basePath + path
+	if len(path) == 0 {
+		panic(`router path should not be empty.`)
 	}
-	result := make([]handlerFunc, size)
+	if path[0] != '/' {
+		panic(`router path should begin with "/".`)
+	}
+	return path
+}
+
+func (g Group) concatHandlers(handlers ...handlerFunc) []handlerFunc {
+	result := make([]handlerFunc, len(g.handlers)+len(handlers))
 	copy(result, g.handlers)
-	if handler != nil {
-		result[size-1] = handler
-	}
+	copy(result[len(g.handlers):], handlers)
 	return result
 }
 
@@ -57,63 +128,11 @@ func (g *Group) Lookup(method, path string) ([]handlerFunc, []string) {
 	if len(path) > 1 && path[len(path)-1] == '/' {
 		path = path[:len(path)-1]
 	}
-	_, handlers, params := rootNode.lookup(path)
-	return handlers, params
-}
-
-func (g *Group) Get(path string, handler handlerFunc) {
-	g.Add("GET", path, true, handler)
-}
-
-func (g *Group) Post(path string, handler handlerFunc) {
-	g.Add("POST", path, true, handler)
-}
-
-func (g *Group) Put(path string, handler handlerFunc) {
-	g.Add("PUT", path, true, handler)
-}
-
-func (g *Group) Patch(path string, handler handlerFunc) {
-	g.Add("PATCH", path, true, handler)
-}
-
-func (g *Group) Delete(path string, handler handlerFunc) {
-	g.Add("DELETE", path, true, handler)
-}
-
-func (g *Group) GetX(path string, handler handlerFunc) {
-	g.Add("GET", path, false, handler)
-}
-
-func (g *Group) PostX(path string, handler handlerFunc) {
-	g.Add("POST", path, false, handler)
-}
-
-func (g *Group) PutX(path string, handler handlerFunc) {
-	g.Add("PUT", path, false, handler)
-}
-
-func (g *Group) PatchX(path string, handler handlerFunc) {
-	g.Add("PATCH", path, false, handler)
-}
-
-func (g *Group) DeleteX(path string, handler handlerFunc) {
-	g.Add("DELETE", path, false, handler)
-}
-
-func cleanPath(path string) string {
-	// 所有路径，无论静态还是动态，都必须以"/"开头
-	if len(path) == 0 || path[0] != '/' {
-		panic(`router path must begin with "/": ` + path)
+	handlers, params := rootNode.Lookup(path)
+	if handlers != nil {
+		return handlers.([]handlerFunc), params
 	}
-	if len(path) > 1 && path[len(path)-1] == '/' {
-		path = path[:len(path)-1]
-	}
-	re, err := syntax.Parse(path, syntax.Perl)
-	if err != nil {
-		panic(err)
-	}
-	return re.String()
+	return nil, nil
 }
 
 func (g *Group) String() string {
@@ -128,7 +147,7 @@ func (g *Group) String() string {
 	if len(g.routes) > 0 {
 		buf.WriteString("  routes: {\n")
 		for method, routes := range g.routes {
-			buf.WriteString("    " + method + ":\n" + routes.string("    ") + "\n")
+			buf.WriteString("    " + method + ":\n" + routes.StringIndent("    ") + "\n")
 		}
 		buf.WriteString("  }\n")
 	}

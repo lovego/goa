@@ -4,36 +4,23 @@ import (
 	"fmt"
 )
 
-func Example_cleanPath_1() {
+func ExampleGroup_Add_conflict() {
+}
+
+func ExampleGroup_concatPath_error() {
 	defer func() {
 		fmt.Println(recover())
 	}()
-	fmt.Println(cleanPath(""))
-	// Output: router path must begin with "/":
+	fmt.Println(Group{}.concatPath("abc"))
+	// Output: router path should begin with "/".
 }
 
-func Example_cleanPath_2() {
-	defer func() {
-		fmt.Println(recover())
-	}()
-	fmt.Println(cleanPath("abc"))
-	// Output: router path must begin with "/": abc
-}
-
-func Example_cleanPath_3() {
-	defer func() {
-		fmt.Println(recover())
-	}()
-	fmt.Println(cleanPath("/("))
-	// Output: error parsing regexp: missing closing ): `/(`
-}
-
-func Example_cleanPath_4() {
-	fmt.Println(cleanPath("/"))
-	fmt.Println(cleanPath("/users/"))
-	fmt.Println(cleanPath(`/users/(\d+)`))
+func ExampleGroup_concatPath_basic() {
+	fmt.Println(Group{}.concatPath("/"))
+	fmt.Println(Group{}.concatPath("/users/"))
+	fmt.Println(Group{basePath: "/admin"}.concatPath(`/users/(\d+)`))
 	// Output:
 	// /
-	// /users
-	// /users/([0-9]+)
+	// /users/
+	// /admin/users/(\d+)
 }
