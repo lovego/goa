@@ -11,11 +11,11 @@ import (
 
 type Group struct {
 	basePath string
-	handlers []handlerFunc
+	handlers []HandlerFunc
 	routes   map[string]*regex_tree.Node
 }
 
-func (g *Group) Group(path string, handlers ...handlerFunc) *Group {
+func (g *Group) Group(path string, handlers ...HandlerFunc) *Group {
 	return &Group{
 		basePath: g.concatPath(regexp.QuoteMeta(path)),
 		handlers: g.concatHandlers(handlers...),
@@ -23,7 +23,7 @@ func (g *Group) Group(path string, handlers ...handlerFunc) *Group {
 	}
 }
 
-func (g *Group) GroupX(path string, handlers ...handlerFunc) *Group {
+func (g *Group) GroupX(path string, handlers ...HandlerFunc) *Group {
 	return &Group{
 		basePath: g.concatPath(path),
 		handlers: g.concatHandlers(handlers...),
@@ -31,51 +31,51 @@ func (g *Group) GroupX(path string, handlers ...handlerFunc) *Group {
 	}
 }
 
-func (g *Group) Use(handlers ...handlerFunc) {
+func (g *Group) Use(handlers ...HandlerFunc) {
 	g.handlers = append(g.handlers, handlers...)
 }
 
-func (g *Group) Get(path string, handler handlerFunc) {
+func (g *Group) Get(path string, handler HandlerFunc) {
 	g.Add("GET", regexp.QuoteMeta(path), handler)
 }
 
-func (g *Group) Post(path string, handler handlerFunc) {
+func (g *Group) Post(path string, handler HandlerFunc) {
 	g.Add("POST", regexp.QuoteMeta(path), handler)
 }
 
-func (g *Group) Put(path string, handler handlerFunc) {
+func (g *Group) Put(path string, handler HandlerFunc) {
 	g.Add("PUT", regexp.QuoteMeta(path), handler)
 }
 
-func (g *Group) Patch(path string, handler handlerFunc) {
+func (g *Group) Patch(path string, handler HandlerFunc) {
 	g.Add("PATCH", regexp.QuoteMeta(path), handler)
 }
 
-func (g *Group) Delete(path string, handler handlerFunc) {
+func (g *Group) Delete(path string, handler HandlerFunc) {
 	g.Add("DELETE", regexp.QuoteMeta(path), handler)
 }
 
-func (g *Group) GetX(path string, handler handlerFunc) {
+func (g *Group) GetX(path string, handler HandlerFunc) {
 	g.Add("GET", path, handler)
 }
 
-func (g *Group) PostX(path string, handler handlerFunc) {
+func (g *Group) PostX(path string, handler HandlerFunc) {
 	g.Add("POST", path, handler)
 }
 
-func (g *Group) PutX(path string, handler handlerFunc) {
+func (g *Group) PutX(path string, handler HandlerFunc) {
 	g.Add("PUT", path, handler)
 }
 
-func (g *Group) PatchX(path string, handler handlerFunc) {
+func (g *Group) PatchX(path string, handler HandlerFunc) {
 	g.Add("PATCH", path, handler)
 }
 
-func (g *Group) DeleteX(path string, handler handlerFunc) {
+func (g *Group) DeleteX(path string, handler HandlerFunc) {
 	g.Add("DELETE", path, handler)
 }
 
-func (g *Group) Add(method, path string, handler handlerFunc) {
+func (g *Group) Add(method, path string, handler HandlerFunc) {
 	method = strings.ToUpper(method)
 	path = g.concatPath(path)
 	// remove trailing slash
@@ -110,14 +110,14 @@ func (g Group) concatPath(path string) string {
 	return path
 }
 
-func (g Group) concatHandlers(handlers ...handlerFunc) []handlerFunc {
-	result := make([]handlerFunc, len(g.handlers)+len(handlers))
+func (g Group) concatHandlers(handlers ...HandlerFunc) []HandlerFunc {
+	result := make([]HandlerFunc, len(g.handlers)+len(handlers))
 	copy(result, g.handlers)
 	copy(result[len(g.handlers):], handlers)
 	return result
 }
 
-func (g *Group) Lookup(method, path string) ([]handlerFunc, []string) {
+func (g *Group) Lookup(method, path string) ([]HandlerFunc, []string) {
 	if method == `HEAD` {
 		method = `GET`
 	}
@@ -130,7 +130,7 @@ func (g *Group) Lookup(method, path string) ([]handlerFunc, []string) {
 	}
 	handlers, params := rootNode.Lookup(path)
 	if handlers != nil {
-		return handlers.([]handlerFunc), params
+		return handlers.([]HandlerFunc), params
 	}
 	return nil, nil
 }

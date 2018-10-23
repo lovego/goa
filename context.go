@@ -4,23 +4,25 @@ import (
 	"bufio"
 	"bytes"
 	"errors"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
 	"reflect"
+	"strings"
 )
 
 type Context struct {
 	*http.Request
 	http.ResponseWriter
-	handlers []handlerFunc
+	handlers []HandlerFunc
 	params   []string
 	index    int
 
-	data   map[string]interface{}
-	errors []error
+	data map[string]interface{}
+	err  error
 }
 
 func (c *Context) Param(i int) string {
@@ -38,20 +40,16 @@ func (c *Context) Next() {
 	c.handlers[c.index](c)
 }
 
-func (c *Context) Scheme() string {
-	if proto := c.Request.Header.Get("X-Forwarded-Proto"); proto != `` {
-		return proto
+func (c *Context) Set(key string, value interface{}) {
+	c.data[key] = value
+}
+
+func (c *Context) Get(key string) interface{} {
+	value, ok := c.data[key]
+	if ok {
+		return value
 	}
-	return `http`
-}
-
-func (c *Context) Url() string {
-	return c.Scheme() + `://` + c.Request.Host + c.Request.RequestURI
-}
-
-func (c *Context) Redirect(path string) {
-	c.ResponseWriter.Header().Set("Location", path)
-	c.ResponseWriter.WriteHeader(302)
+	panic(fmt.Sprintf("context get :%s not exists", key))
 }
 
 func (c *Context) Status() int64 {
@@ -125,4 +123,34 @@ func readAndClone(reader io.ReadCloser) ([]byte, io.ReadCloser) {
 		return nil, nil
 	}
 	return body, ioutil.NopCloser(bytes.NewBuffer(body))
+}
+
+func (c *Context) Scheme() string {
+	if proto := c.Request.Header.Get("X-Forwarded-Proto"); proto != `` {
+		return proto
+	}
+	return `http`
+}
+
+func (c *Context) Url() string {
+	return c.Scheme() + `://` + c.Request.Host + c.Request.RequestURI
+}
+
+func (c *Context) Redirect(path string) {
+	c.ResponseWriter.Header().Set("Location", path)
+	c.ResponseWriter.WriteHeader(302)
+}
+
+func (ctx *Context) ClientAddr() string {
+	if addrs := ctx.Request.Header.Get("X-Forwarded-For"); addrs != `` {
+		addr := strings.SplitN(addrs, `, `, 2)[0]
+		if addr != `unknown` {
+			return addr
+		}
+	}
+	if addr := ctx.Request.Header.Get("X-Real-IP"); addr != `` && addr != `unknown` {
+		return addr
+	}
+	host, _, _ := net.SplitHostPort(ctx.RemoteAddr)
+	return host
 }

@@ -6,17 +6,19 @@ import (
 	"runtime"
 
 	"github.com/lovego/regex_tree"
+    "github.com/lovego/tracer"
+    "time"
 )
 
-type handlerFunc func(*Context)
+type HandlerFunc func(*Context)
 
-func (h handlerFunc) String() string {
+func (h HandlerFunc) String() string {
 	return runtime.FuncForPC(reflect.ValueOf(h).Pointer()).Name()
 }
 
 type Router struct {
 	Group
-	notFound     handlerFunc
+	notFound     HandlerFunc
 }
 
 func New() *Router {
@@ -28,7 +30,10 @@ func New() *Router {
 
 func (r *Router) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	handlers, params := r.Lookup(req.Method, req.URL.Path)
-	ctx := &Context{Request: req, ResponseWriter: rw, handlers: handlers, params: params, index: -1}
+	ctx := &Context{ResponseWriter: rw, handlers: handlers, params: params, index: -1}
+    span := &tracer.Span{At: time.Now()}
+	tracerCtx := tracer.Context(req.Context(), span)
+	ctx.Request = req.WithContext(tracerCtx)
 	if len(handlers) == 0 {
 	    r.notFound(ctx)
 	    return
@@ -36,11 +41,11 @@ func (r *Router) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	ctx.Next()
 }
 
-func (r *Router) Use(handlers ...handlerFunc) {
+func (r *Router) Use(handlers ...HandlerFunc) {
 	r.handlers = append(r.handlers, handlers...)
 }
 
-func (r *Router) NotFound(handler handlerFunc) {
+func (r *Router) NotFound(handler HandlerFunc) {
 	r.notFound = handler
 }
 
