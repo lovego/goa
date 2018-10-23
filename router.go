@@ -24,10 +24,9 @@ type Router struct {
 
 func New() *Router {
 	return &Router{
-		Group:    Group{routes: make(map[string]*regex_tree.Node)},
-		notFound: defaultNotFound,
-        fullNotFound: []HandlerFunc{defaultNotFound},
-    }
+		Group:        Group{routes: make(map[string]*regex_tree.Node)},
+		notFound:     defaultNotFound,
+		fullNotFound: []HandlerFunc{defaultNotFound},
 	}
 }
 
@@ -38,7 +37,7 @@ func (r *Router) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	tracerCtx := tracer.Context(req.Context(), span)
 	ctx.Request = req.WithContext(tracerCtx)
 	if len(handlers) == 0 {
-	    ctx.handlers = r.fullNotFound
+		ctx.handlers = r.fullNotFound
 	}
 	ctx.Next()
 }
