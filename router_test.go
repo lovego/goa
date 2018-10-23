@@ -78,14 +78,14 @@ func ExampleRouter_NotFound() {
 		ctx.Next()
 		fmt.Println("middleware 1 post")
 	})
-	router.NotFound(func(*Context) {
-		fmt.Println("not found")
-	})
 	router.Use(func(ctx *Context) {
 		fmt.Println("middleware 2 pre")
 		ctx.Next()
 		fmt.Println("middleware 2 post")
 	})
+	router.Get("/", func(ctx *Context){
+	    fmt.Println("you got it")
+    })
 	request, err := http.NewRequest("GET", "http://localhost/", nil)
 	if err != nil {
 		panic(err)
@@ -94,7 +94,7 @@ func ExampleRouter_NotFound() {
 	// Output:
 	// middleware 1 pre
 	// middleware 2 pre
-	// not found
+	// you got it
 	// middleware 2 post
 	// middleware 1 post
 }

@@ -19,13 +19,15 @@ func (h HandlerFunc) String() string {
 
 type Router struct {
 	Group
-	notFound HandlerFunc
+	notFound     HandlerFunc
+	fullNotFound []HandlerFunc
 }
 
 func New() *Router {
 	return &Router{
-		Group:    Group{routes: make(map[string]*regex_tree.Node)},
-		notFound: defaultNotFound,
+		Group:        Group{routes: make(map[string]*regex_tree.Node)},
+		notFound:     defaultNotFound,
+		fullNotFound: []HandlerFunc{defaultNotFound},
 	}
 }
 
@@ -36,18 +38,19 @@ func (r *Router) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	tracerCtx := tracer.Context(req.Context(), span)
 	ctx.Request = req.WithContext(tracerCtx)
 	if len(handlers) == 0 {
-		r.notFound(ctx)
-		return
+		ctx.handlers = r.fullNotFound
 	}
 	ctx.Next()
 }
 
 func (r *Router) Use(handlers ...HandlerFunc) {
 	r.handlers = append(r.handlers, handlers...)
+	r.fullNotFound = r.concatHandlers(r.notFound)
 }
 
 func (r *Router) NotFound(handler HandlerFunc) {
 	r.notFound = handler
+	r.fullNotFound = r.concatHandlers(r.notFound)
 }
 
 func defaultNotFound(ctx *Context) {
