@@ -94,23 +94,23 @@ func Record(ctx *goa.Context){
     if debug {
         span.SetDebug(true)
     }
-    var err error
     defer func() {
         panicErr := recover()
         if panicErr != nil {
             handleServerError(ctx)
         }
         f := logger.WithSpan(span)
-            logFields(f, ctx, debug)
+        logFields(f, ctx, debug)
 
         if panicErr != nil {
             f.Recovery(panicErr)
-        } else if err != nil {
+        } else if err := ctx.GetError();err != nil {
             f.Error(err)
         } else {
             f.Info(nil)
         }
     }()
     ctx.Next()
-    err = ctx.GetError()
+    logger.Record(true, ctx.Next, nil, nil)
+
 }
