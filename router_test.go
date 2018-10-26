@@ -7,30 +7,45 @@ import (
 	"net/http/httptest"
 )
 
-func Example_basic() {
+func ExampleRouter() {
 	router := New()
 
 	router.Get("/", func(ctx *Context) {
 		fmt.Println("root")
 	})
-	router.Get("/users", func(ctx *Context) {
+	users := router.Group("/users")
+
+	users.Get("/", func(ctx *Context) {
 		fmt.Println("list users")
 	})
-	router.GetX(`/users/(\d+)`, func(ctx *Context) {
+	users.GetX(`/(\d+)`, func(ctx *Context) {
 		fmt.Printf("show user: %s\n", ctx.Param(0))
 	})
 
-	router.Post(`/users`, func(ctx *Context) {
+	users.Post(`/`, func(ctx *Context) {
 		fmt.Println("create a user")
 	})
-	router.PutX(`/users/(\d+)`, func(ctx *Context) {
+	users.PostX(`/postx`, func(ctx *Context) {
+	})
+
+	users = users.GroupX(`/(\d+)`)
+
+	users.Put(`/`, func(ctx *Context) {
 		fmt.Printf("fully update user: %s\n", ctx.Param(0))
 	})
-	router.PatchX(`/users/(\d+)`, func(ctx *Context) {
+	users.PutX(`/putx`, func(ctx *Context) {
+	})
+
+	users.Patch(`/`, func(ctx *Context) {
 		fmt.Printf("partially update user: %s\n", ctx.Param(0))
 	})
-	router.DeleteX(`/users/(\d+)`, func(ctx *Context) {
+	users.PatchX(`/patchx`, func(ctx *Context) {
+	})
+
+	users.Delete(`/`, func(ctx *Context) {
 		fmt.Printf("delete user: %s\n", ctx.Param(0))
+	})
+	users.DeleteX(`/deletex`, func(ctx *Context) {
 	})
 
 	request, err := http.NewRequest("GET", "http://localhost/", nil)
@@ -50,15 +65,6 @@ func Example_basic() {
 		request.URL.Path = route[1]
 		router.ServeHTTP(nil, request)
 	}
-	rw := httptest.NewRecorder()
-	request.URL.Path = "/404"
-	router.ServeHTTP(rw, request)
-	response := rw.Result()
-	if body, err := ioutil.ReadAll(response.Body); err != nil {
-		fmt.Println(err)
-	} else {
-		fmt.Println(response.StatusCode, string(body))
-	}
 
 	// Output:
 	// root
@@ -68,10 +74,9 @@ func Example_basic() {
 	// fully update user: 101
 	// partially update user: 101
 	// delete user: 101
-	// 404 {"code":"404","message":"Not Found."}
 }
 
-func ExampleRouter_NotFound() {
+func ExampleRouter_Use() {
 	router := New()
 	router.Use(func(ctx *Context) {
 		fmt.Println("middleware 1 pre")
@@ -83,9 +88,10 @@ func ExampleRouter_NotFound() {
 		ctx.Next()
 		fmt.Println("middleware 2 post")
 	})
-	router.Get("/", func(ctx *Context){
-	    fmt.Println("you got it")
-    })
+	router.Get("/", func(ctx *Context) {
+		fmt.Println("root")
+	})
+
 	request, err := http.NewRequest("GET", "http://localhost/", nil)
 	if err != nil {
 		panic(err)
@@ -94,7 +100,48 @@ func ExampleRouter_NotFound() {
 	// Output:
 	// middleware 1 pre
 	// middleware 2 pre
-	// you got it
+	// root
 	// middleware 2 post
 	// middleware 1 post
+}
+
+func ExampleRouter_NotFound() {
+	router := New()
+	router.Use(func(ctx *Context) {
+		fmt.Println("middleware")
+		ctx.Next()
+	})
+	router.Get("/", func(ctx *Context) {
+		fmt.Println("root")
+	})
+
+	request, err := http.NewRequest("GET", "http://localhost/404", nil)
+	if err != nil {
+		panic(err)
+	}
+	rw := httptest.NewRecorder()
+	router.ServeHTTP(rw, request)
+
+	response := rw.Result()
+	if body, err := ioutil.ReadAll(response.Body); err != nil {
+		fmt.Println(err)
+	} else {
+		fmt.Println(response.StatusCode, string(body))
+	}
+
+	router.NotFound(func(ctx *Context) {
+		fmt.Println("404 not found")
+	})
+	router.ServeHTTP(nil, request)
+
+	request.URL.Path = "/"
+	router.ServeHTTP(nil, request)
+
+	// Output:
+	// middleware
+	// 404 {"code":"404","message":"Not Found."}
+	// middleware
+	// 404 not found
+	// middleware
+	// root
 }

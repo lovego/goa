@@ -17,7 +17,7 @@ type Context struct {
 }
 
 func (c *Context) Param(i int) string {
-	if i <= len(c.params) {
+	if i < len(c.params) {
 		return c.params[i]
 	}
 	return ""

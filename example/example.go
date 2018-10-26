@@ -18,5 +18,14 @@ func main() {
 		ctx.Data("hello, world", nil)
 	})
 
+	router.Get("/users", func(ctx *goa.Context) {
+		ctx.Data("users list", nil)
+	})
+
+	// the "X" suffix indicates regular expression
+	router.GetX(`/users/(\d+)`, func(ctx *goa.Context) {
+		ctx.Data("user: "+ctx.Param(0), nil)
+	})
+
 	server.ListenAndServe(router)
 }

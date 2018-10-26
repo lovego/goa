@@ -15,14 +15,14 @@ func (h HandlerFunc) String() string {
 }
 
 type Router struct {
-	Group
+	RouterGroup
 	notFound     HandlerFunc
 	fullNotFound []HandlerFunc
 }
 
 func New() *Router {
 	return &Router{
-		Group:        Group{routes: make(map[string]*regex_tree.Node)},
+		RouterGroup:  RouterGroup{routes: make(map[string]*regex_tree.Node)},
 		notFound:     defaultNotFound,
 		fullNotFound: []HandlerFunc{defaultNotFound},
 	}
