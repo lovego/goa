@@ -5,6 +5,7 @@ go:
   - "1.10"
   - "1.11"
 install:
+  - go get -t ./...
   - go get github.com/mattn/goveralls
 script:
   - go test -v -covermode=count -coverprofile=coverage.out .

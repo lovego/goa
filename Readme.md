@@ -1,5 +1,5 @@
 # goa
-a golang http router inspired by `httprouter` and `gin`, but added regexp support.
+a golang http router with regexp support, inspired by `httprouter` and `gin`.
 
 [![Build Status](https://travis-ci.org/lovego/goa.svg?branch=master)](https://travis-ci.org/lovego/goa)
 [![Coverage Status](https://img.shields.io/coveralls/github/lovego/goa/master.svg)](https://coveralls.io/github/lovego/goa?branch=master)
