@@ -5,10 +5,7 @@ import (
 	"reflect"
 	"runtime"
 
-	"time"
-
 	"github.com/lovego/regex_tree"
-	"github.com/lovego/tracer"
 )
 
 type HandlerFunc func(*Context)
@@ -33,10 +30,7 @@ func New() *Router {
 
 func (r *Router) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	handlers, params := r.Lookup(req.Method, req.URL.Path)
-	ctx := &Context{ResponseWriter: rw, handlers: handlers, params: params, index: -1}
-	span := &tracer.Span{At: time.Now()}
-	tracerCtx := tracer.Context(req.Context(), span)
-	ctx.Request = req.WithContext(tracerCtx)
+	ctx := &Context{Request: req, ResponseWriter: rw, handlers: handlers, params: params, index: -1}
 	if len(handlers) == 0 {
 		ctx.handlers = r.fullNotFound
 	}

@@ -1,73 +1,82 @@
 package middlewares
 
 import (
+	"context"
 	"encoding/json"
-	"io"
-	"log"
 	"net/http"
-	"os"
-	"path/filepath"
 
-	"github.com/lovego/config"
-	"github.com/lovego/fs"
 	"github.com/lovego/goa"
 	loggerPkg "github.com/lovego/logger"
-	"github.com/lovego/slice"
 	"github.com/lovego/tracer"
-	"io/ioutil"
 )
 
-var logBody = true
-var logger = getLogger()
-var logBodyMethods = []string{http.MethodPost, http.MethodDelete, http.MethodPut}
-
-func getLogger() *loggerPkg.Logger {
-	logger := loggerPkg.New(getLogWriter())
-	logger.SetAlarm(config.Alarm())
-	logger.SetMachineName()
-	return logger
+type Logger struct {
+	Logger        *loggerPkg.Logger
+	PanicHandler  func(*goa.Context)
+	ShouldLogBody func(*goa.Context) bool
 }
 
-func getLogWriter() io.Writer {
-	if config.DevMode() {
-		return os.Stdout
+func NewLogger(logger *loggerPkg.Logger) *Logger {
+	return &Logger{
+		Logger:        logger,
+		PanicHandler:  defaultPanicHandler,
+		ShouldLogBody: defaultShouldLogBody,
 	}
-	file, err := fs.NewLogFile(filepath.Join(config.Root(), `log`, `app.log`))
-	if err != nil {
-		log.Fatal(err)
-	}
-	return file
 }
 
-func logFields(f *loggerPkg.Fields, ctx *goa.Context, debug bool) {
+func (l *Logger) Middleware(ctx *goa.Context) {
+	debug := ctx.URL.Query()["_debug"] != nil
+	l.Logger.RecordWithContext(ctx.Context(), func(tracerCtx context.Context) error {
+		if debug {
+			tracer.GetSpan(tracerCtx).SetDebug(true)
+		}
+		ctx.Set("context", tracerCtx)
+		ctx.Next()
+		return ctx.GetError()
+	}, func() {
+		if l.PanicHandler != nil {
+			l.PanicHandler(ctx)
+		}
+	}, func(fields *loggerPkg.Fields) {
+		l.setFields(fields, ctx, debug)
+	})
+
+}
+
+func (l *Logger) setFields(f *loggerPkg.Fields, ctx *goa.Context, debug bool) {
 	req := ctx.Request
-	res := ctx.Response
 	f.With("host", req.Host)
 	f.With("method", req.Method)
 	f.With("path", req.URL.Path)
 	f.With("rawQuery", req.URL.RawQuery)
 	f.With("query", req.URL.Query())
-	f.With("status", res.Status)
+	f.With("status", ctx.Status())
 	f.With("reqBodySize", req.ContentLength)
-	f.With("resBodySize", res.ContentLength)
-	// 	f.With("proto", req.Proto)
+	f.With("resBodySize", ctx.ResponseBodySize())
 	f.With("ip", ctx.ClientAddr())
 	f.With("agent", req.UserAgent())
 	f.With("refer", req.Referer())
-	sess := GetSession(ctx)
-	if sess != nil {
+	if sess := ctx.Get("session"); sess != nil {
 		f.With("session", sess)
 	}
-	reqBody, err1 := ioutil.ReadAll(req.Body)
-	rspBody, err2 := ioutil.ReadAll(res.Body)
-	if logBody && slice.ContainsString(logBodyMethods, req.Method) || debug {
-		if err1 != nil {
-			f.With("reqBody", tryUnmarshal(reqBody))
-		}
-		if err2 != nil {
-			f.With("resBody", tryUnmarshal(rspBody))
-		}
+	if debug || l.ShouldLogBody != nil && l.ShouldLogBody(ctx) {
+		f.With("reqBody", tryUnmarshal(ctx.RequestBody()))
+		f.With("resBody", tryUnmarshal(ctx.ResponseBody()))
 	}
+}
+
+func defaultPanicHandler(ctx *goa.Context) {
+	ctx.WriteHeader(500)
+	if ctx.ResponseBodySize() <= 0 {
+		ctx.Json(map[string]string{"code": "server-err", "message": "Fatal Server Error."})
+	}
+}
+
+func defaultShouldLogBody(ctx *goa.Context) bool {
+	method := ctx.Request.Method
+	return method == http.MethodPost ||
+		method == http.MethodDelete ||
+		method == http.MethodPut
 }
 
 func tryUnmarshal(b []byte) interface{} {
@@ -78,37 +87,4 @@ func tryUnmarshal(b []byte) interface{} {
 	} else {
 		return string(b)
 	}
-}
-
-func handleServerError(ctx *goa.Context) {
-	ctx.WriteHeader(500)
-	if ctx.Response.ContentLength <= 0 {
-		ctx.Json(map[string]string{"code": "server-err", "message": "Fatal Server Error."})
-	}
-}
-
-func Record(ctx *goa.Context) {
-	debug := ctx.URL.Query()["_debug"] != nil
-	span := tracer.GetSpan(ctx.Context())
-	if debug {
-		span.SetDebug(true)
-	}
-	defer func() {
-		panicErr := recover()
-		if panicErr != nil {
-			handleServerError(ctx)
-		}
-		f := logger.WithSpan(span)
-		logFields(f, ctx, debug)
-
-		if panicErr != nil {
-			f.Recovery(panicErr)
-		} else if err := ctx.GetError(); err != nil {
-			f.Error(err)
-		} else {
-			f.Info(nil)
-		}
-	}()
-	ctx.Next()
-
 }

@@ -19,6 +19,15 @@ func (c *Context) Status() int64 {
 	}
 }
 
+func (c *Context) ResponseBodySize() int64 {
+	s := reflect.ValueOf(c.ResponseWriter).Elem().FieldByName(`written`)
+	if s.IsValid() {
+		return s.Int()
+	} else {
+		return 0
+	}
+}
+
 func (c *Context) Write(content []byte) (int, error) {
 	if c.data == nil {
 		c.data = make(map[string]interface{})

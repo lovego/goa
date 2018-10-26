@@ -1,46 +1,44 @@
-# GOA web framework
-一个功能强大的web框架
+# goa
+a golang http router inspired by `httprouter` and `gin`, but added regexp support.
 
-### 特性
-- 正则路由
-- 路由分组
-- 支持中间件
+[![Build Status](https://travis-ci.org/lovego/goa.svg?branch=master)](https://travis-ci.org/lovego/goa)
+[![Coverage Status](https://img.shields.io/coveralls/github/lovego/goa/master.svg)](https://coveralls.io/github/lovego/goa?branch=master)
+[![Go Report Card](https://goreportcard.com/badge/github.com/lovego/goa?1)](https://goreportcard.com/report/github.com/lovego/goa)
+[![GoDoc](https://godoc.org/github.com/lovego/goa?status.svg)](https://godoc.org/github.com/lovego/goa)
 
-### 默认中间件
-- 基于cookie的session会话
-- 记录pending_request
-- 强大的日志记录与报警功能
+## default middlewares
+- logging with error alarm
+- the processing requests
 
-### 注意事项
-当静态路由与动态路由冲突时，静态路由会优先被查找。
+## attentions
+- static route is always matched before regexp route.
+- call `ctx.Next()` in middleware to pass control to the next midlleware or route,
+  if you don't call `ctx.Next()` no remaining midlleware or route will be executed.
+- generally don't use midlleware after routes,
+  because generally the routes don't call `ctx.Next()`.
 
-当路由Use中间件时，确保所有中间件handler在业务handler前面。
+## usage
+```go
+package main
 
-编写中间件时，如果不调用ctx.Next()，则表示不执行接下来的所有handlers。
+import (
+	"os"
 
-preRequest部分代码请放在ctx.Next()前，afterResponse部分代码放在ctx.Next()后面。
+	"github.com/lovego/goa"
+	"github.com/lovego/goa/middlewares"
+	"github.com/lovego/goa/server"
+	"github.com/lovego/logger"
+)
 
-### 代码示例
+func main() {
+	router := goa.New()
+	router.Use(middlewares.NewLogger(logger.New(os.Stdout)).Middleware)
+	router.Use(middlewares.Ps)
 
-```
-	router := New()
-	router.Use(func(ctx *Context) {
-		fmt.Println("middleware 1 pre")
-		ctx.Next()
-		fmt.Println("middleware 1 post")
+	router.Get("/", func(ctx *goa.Context) {
+		ctx.Data("hello, world", nil)
 	})
-	router.Use(func(ctx *Context) {
-		fmt.Println("middleware 2 pre")
-		ctx.Next()
-		fmt.Println("middleware 2 post")
-	})
-	router.Get("/", func(ctx *Context){
-	    fmt.Println("you got it")
-    })
-	request, err := http.NewRequest("GET", "http://localhost/", nil)
-	if err != nil {
-		panic(err)
-	}
-	router.ServeHTTP(nil, request)
 
+	server.ListenAndServe(router)
+}
 ```
