@@ -8,7 +8,7 @@ import (
 type Context struct {
 	*http.Request
 	http.ResponseWriter
-	handlers []HandlerFunc
+	handlers HandlerFuncs
 	params   []string
 	index    int
 

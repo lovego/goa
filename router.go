@@ -1,6 +1,8 @@
 package goa
 
 import (
+	"bytes"
+	"fmt"
 	"net/http"
 	"reflect"
 	"runtime"
@@ -14,17 +16,36 @@ func (h HandlerFunc) String() string {
 	return runtime.FuncForPC(reflect.ValueOf(h).Pointer()).Name()
 }
 
+type HandlerFuncs []HandlerFunc
+
+func (hs HandlerFuncs) String() string {
+	return hs.StringIndent("")
+}
+
+func (hs HandlerFuncs) StringIndent(indent string) string {
+	if len(hs) == 0 {
+		return "[ ]"
+	}
+	var buf bytes.Buffer
+	buf.WriteString("[\n")
+	for _, h := range hs {
+		buf.WriteString(indent + "  " + fmt.Sprint(h) + "\n")
+	}
+	buf.WriteString(indent + "]")
+	return buf.String()
+}
+
 type Router struct {
 	RouterGroup
 	notFound     HandlerFunc
-	fullNotFound []HandlerFunc
+	fullNotFound HandlerFuncs
 }
 
 func New() *Router {
 	return &Router{
 		RouterGroup:  RouterGroup{routes: make(map[string]*regex_tree.Node)},
 		notFound:     defaultNotFound,
-		fullNotFound: []HandlerFunc{defaultNotFound},
+		fullNotFound: HandlerFuncs{defaultNotFound},
 	}
 }
 
@@ -52,4 +73,15 @@ func defaultNotFound(ctx *Context) {
 		ctx.ResponseWriter.WriteHeader(404)
 		ctx.ResponseWriter.Write([]byte(`{"code":"404","message":"Not Found."}`))
 	}
+}
+
+func (r *Router) String() string {
+	var buf bytes.Buffer
+	buf.WriteString("{\n")
+	buf.WriteString(r.RoutesString())
+	if r.notFound != nil {
+		buf.WriteString("  notFound: " + r.notFound.String() + "\n")
+	}
+	buf.WriteString("}\n")
+	return buf.String()
 }

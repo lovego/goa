@@ -2,8 +2,8 @@ package goa
 
 import (
 	"bytes"
-	"fmt"
 	"regexp"
+	"sort"
 	"strings"
 
 	"github.com/lovego/regex_tree"
@@ -11,7 +11,7 @@ import (
 
 type RouterGroup struct {
 	basePath string
-	handlers []HandlerFunc
+	handlers HandlerFuncs
 	routes   map[string]*regex_tree.Node
 }
 
@@ -110,14 +110,14 @@ func (g RouterGroup) concatPath(path string) string {
 	return path
 }
 
-func (g RouterGroup) concatHandlers(handlers ...HandlerFunc) []HandlerFunc {
-	result := make([]HandlerFunc, len(g.handlers)+len(handlers))
+func (g RouterGroup) concatHandlers(handlers ...HandlerFunc) HandlerFuncs {
+	result := make(HandlerFuncs, len(g.handlers)+len(handlers))
 	copy(result, g.handlers)
 	copy(result[len(g.handlers):], handlers)
 	return result
 }
 
-func (g *RouterGroup) Lookup(method, path string) ([]HandlerFunc, []string) {
+func (g *RouterGroup) Lookup(method, path string) (HandlerFuncs, []string) {
 	if method == `HEAD` {
 		method = `GET`
 	}
@@ -130,7 +130,7 @@ func (g *RouterGroup) Lookup(method, path string) ([]HandlerFunc, []string) {
 	}
 	handlers, params := rootNode.Lookup(path)
 	if handlers != nil {
-		return handlers.([]HandlerFunc), params
+		return handlers.(HandlerFuncs), params
 	}
 	return nil, nil
 }
@@ -141,17 +141,27 @@ func (g *RouterGroup) String() string {
 	if g.basePath != "" {
 		buf.WriteString("  basePath: " + g.basePath + "\n")
 	}
+	buf.WriteString(g.RoutesString())
+	buf.WriteString("}\n")
+	return buf.String()
+}
+
+func (g *RouterGroup) RoutesString() string {
+	var buf bytes.Buffer
 	if len(g.handlers) > 0 {
-		buf.WriteString("  handlers: " + fmt.Sprint(g.handlers) + "\n")
+		buf.WriteString("  handlers: " + g.handlers.StringIndent("  ") + "\n")
 	}
 	if len(g.routes) > 0 {
 		buf.WriteString("  routes: {\n")
-		for method, routes := range g.routes {
-			buf.WriteString("    " + method + ":\n" + routes.StringIndent("    ") + "\n")
+		methods := make([]string, 0, len(g.routes))
+		for method := range g.routes {
+			methods = append(methods, method)
+		}
+		sort.Strings(methods)
+		for _, method := range methods {
+			buf.WriteString("    " + method + ":\n" + g.routes[method].StringIndent("    ") + "\n")
 		}
 		buf.WriteString("  }\n")
 	}
-	buf.WriteString("}\n")
-
 	return buf.String()
 }

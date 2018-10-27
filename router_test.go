@@ -145,3 +145,79 @@ func ExampleRouter_NotFound() {
 	// middleware
 	// root
 }
+
+func ExampleRouter_String() {
+	router := New()
+	router.Use(func(ctx *Context) {
+		ctx.Next()
+	})
+
+	router.Get("/", func(ctx *Context) {
+		fmt.Println("root")
+	})
+	users := router.Group("/users")
+
+	users.Get("/", func(ctx *Context) {
+		fmt.Println("list users")
+	})
+	users.GetX(`/(\d+)`, func(ctx *Context) {
+		fmt.Printf("show user: %s\n", ctx.Param(0))
+	})
+
+	users.Post(`/`, func(ctx *Context) {
+		fmt.Println("create a user")
+	})
+	users.PostX(`/postx`, func(ctx *Context) {
+	})
+
+	fmt.Println(router)
+
+	// Output:
+	// {
+	//   handlers: [
+	//     github.com/lovego/goa.ExampleRouter_String.func1
+	//   ]
+	//   routes: {
+	//     GET:
+	//     { static: /, data: [
+	//       github.com/lovego/goa.ExampleRouter_String.func1
+	//       github.com/lovego/goa.ExampleRouter_String.func2
+	//     ], children: [
+	//       { static: users, data: [
+	//         github.com/lovego/goa.ExampleRouter_String.func1
+	//         github.com/lovego/goa.ExampleRouter_String.func3
+	//       ], children: [
+	//         { dynamic: ^/([0-9]+), data: [
+	//           github.com/lovego/goa.ExampleRouter_String.func1
+	//           github.com/lovego/goa.ExampleRouter_String.func4
+	//         ] }
+	//       ] }
+	//     ] }
+	//     POST:
+	//     { static: /users, data: [
+	//       github.com/lovego/goa.ExampleRouter_String.func1
+	//       github.com/lovego/goa.ExampleRouter_String.func5
+	//     ], children: [
+	//       { static: /postx, data: [
+	//         github.com/lovego/goa.ExampleRouter_String.func1
+	//         github.com/lovego/goa.ExampleRouter_String.func6
+	//       ] }
+	//     ] }
+	//   }
+	//   notFound: github.com/lovego/goa.defaultNotFound
+	// }
+}
+
+func ExampleHandlerFuncs_String() {
+	var hs HandlerFuncs
+	fmt.Println(hs)
+	hs = HandlerFuncs{
+		func(*Context) {},
+	}
+	fmt.Println(hs)
+	// Output:
+	// [ ]
+	// [
+	//   github.com/lovego/goa.ExampleHandlerFuncs_String.func1
+	// ]
+}
