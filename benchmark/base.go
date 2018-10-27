@@ -45,7 +45,7 @@ func loadGoaRouterTestCase(routes []route) *goaRouterTestCase {
 		})
 	}
 	if os.Getenv("debug") != "" {
-		fmt.Println(tc.router.Group.String())
+		fmt.Println(tc.router.RouterGroup.String())
 	}
 	return &tc
 }
