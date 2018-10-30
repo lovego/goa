@@ -24,7 +24,7 @@ func NewLogger(logger *loggerPkg.Logger) *Logger {
 	}
 }
 
-func (l *Logger) Middleware(c *goa.Context) {
+func (l *Logger) Record(c *goa.Context) {
 	debug := c.URL.Query()["_debug"] != nil
 	l.Logger.RecordWithContext(c.Context(), func(tracerCtx context.Context) error {
 		if debug {
