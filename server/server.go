@@ -49,9 +49,9 @@ func (s Server) gracefulShutdown() {
 	if runtime.GOOS != "linux" {
 		return
 	}
-	ctx, cancel := context.WithDeadline(context.Background(), time.Now().Add(7*time.Second))
+	c, cancel := context.WithDeadline(context.Background(), time.Now().Add(7*time.Second))
 	defer cancel()
-	if err := s.Server.Shutdown(ctx); err == nil {
+	if err := s.Server.Shutdown(c); err == nil {
 		log.Println(`shutdown`)
 	} else {
 		log.Printf("shutdown error: %v", err)

@@ -19,18 +19,18 @@ type psType struct {
 }
 
 // Ps records the processing requests.
-func Ps(ctx *goa.Context) {
-	request := ctx.Request
+func Ps(c *goa.Context) {
+	request := c.Request
 	var startTime time.Time
-	if span := tracer.GetSpan(ctx.Context()); span != nil {
+	if span := tracer.GetSpan(c.Context()); span != nil {
 		startTime = span.At
 	} else {
 		startTime = time.Now()
 	}
-	psData.Add(request.Method, ctx.URL.Path, startTime)
+	psData.Add(request.Method, c.URL.Path, startTime)
 	defer psData.Remove(request.Method, request.URL.Path, startTime)
 
-	ctx.Next()
+	c.Next()
 }
 
 func (ps *psType) ToJson() []byte {

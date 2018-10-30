@@ -51,11 +51,11 @@ func New() *Router {
 
 func (r *Router) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	handlers, params := r.Lookup(req.Method, req.URL.Path)
-	ctx := &Context{Request: req, ResponseWriter: rw, handlers: handlers, params: params, index: -1}
+	c := &Context{Request: req, ResponseWriter: rw, handlers: handlers, params: params, index: -1}
 	if len(handlers) == 0 {
-		ctx.handlers = r.fullNotFound
+		c.handlers = r.fullNotFound
 	}
-	ctx.Next()
+	c.Next()
 }
 
 func (r *Router) Use(handlers ...HandlerFunc) {
@@ -68,10 +68,10 @@ func (r *Router) NotFound(handler HandlerFunc) {
 	r.fullNotFound = r.concatHandlers(r.notFound)
 }
 
-func defaultNotFound(ctx *Context) {
-	if ctx.ResponseWriter != nil {
-		ctx.ResponseWriter.WriteHeader(404)
-		ctx.ResponseWriter.Write([]byte(`{"code":"404","message":"Not Found."}`))
+func defaultNotFound(c *Context) {
+	if c.ResponseWriter != nil {
+		c.ResponseWriter.WriteHeader(404)
+		c.ResponseWriter.Write([]byte(`{"code":"404","message":"Not Found."}`))
 	}
 }
 

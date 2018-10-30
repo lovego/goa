@@ -35,47 +35,47 @@ func (g *RouterGroup) Use(handlers ...HandlerFunc) {
 	g.handlers = append(g.handlers, handlers...)
 }
 
-func (g *RouterGroup) Get(path string, handler HandlerFunc) {
-	g.Add("GET", regexp.QuoteMeta(path), handler)
+func (g *RouterGroup) Get(path string, handler HandlerFunc) *RouterGroup {
+	return g.Add("GET", regexp.QuoteMeta(path), handler)
 }
 
-func (g *RouterGroup) Post(path string, handler HandlerFunc) {
-	g.Add("POST", regexp.QuoteMeta(path), handler)
+func (g *RouterGroup) Post(path string, handler HandlerFunc) *RouterGroup {
+	return g.Add("POST", regexp.QuoteMeta(path), handler)
 }
 
-func (g *RouterGroup) Put(path string, handler HandlerFunc) {
-	g.Add("PUT", regexp.QuoteMeta(path), handler)
+func (g *RouterGroup) Put(path string, handler HandlerFunc) *RouterGroup {
+	return g.Add("PUT", regexp.QuoteMeta(path), handler)
 }
 
-func (g *RouterGroup) Patch(path string, handler HandlerFunc) {
-	g.Add("PATCH", regexp.QuoteMeta(path), handler)
+func (g *RouterGroup) Patch(path string, handler HandlerFunc) *RouterGroup {
+	return g.Add("PATCH", regexp.QuoteMeta(path), handler)
 }
 
-func (g *RouterGroup) Delete(path string, handler HandlerFunc) {
-	g.Add("DELETE", regexp.QuoteMeta(path), handler)
+func (g *RouterGroup) Delete(path string, handler HandlerFunc) *RouterGroup {
+	return g.Add("DELETE", regexp.QuoteMeta(path), handler)
 }
 
-func (g *RouterGroup) GetX(path string, handler HandlerFunc) {
-	g.Add("GET", path, handler)
+func (g *RouterGroup) GetX(path string, handler HandlerFunc) *RouterGroup {
+	return g.Add("GET", path, handler)
 }
 
-func (g *RouterGroup) PostX(path string, handler HandlerFunc) {
-	g.Add("POST", path, handler)
+func (g *RouterGroup) PostX(path string, handler HandlerFunc) *RouterGroup {
+	return g.Add("POST", path, handler)
 }
 
-func (g *RouterGroup) PutX(path string, handler HandlerFunc) {
-	g.Add("PUT", path, handler)
+func (g *RouterGroup) PutX(path string, handler HandlerFunc) *RouterGroup {
+	return g.Add("PUT", path, handler)
 }
 
-func (g *RouterGroup) PatchX(path string, handler HandlerFunc) {
-	g.Add("PATCH", path, handler)
+func (g *RouterGroup) PatchX(path string, handler HandlerFunc) *RouterGroup {
+	return g.Add("PATCH", path, handler)
 }
 
-func (g *RouterGroup) DeleteX(path string, handler HandlerFunc) {
-	g.Add("DELETE", path, handler)
+func (g *RouterGroup) DeleteX(path string, handler HandlerFunc) *RouterGroup {
+	return g.Add("DELETE", path, handler)
 }
 
-func (g *RouterGroup) Add(method, path string, handler HandlerFunc) {
+func (g *RouterGroup) Add(method, path string, handler HandlerFunc) *RouterGroup {
 	method = strings.ToUpper(method)
 	path = g.concatPath(path)
 	// remove trailing slash
@@ -83,7 +83,7 @@ func (g *RouterGroup) Add(method, path string, handler HandlerFunc) {
 		path = path[:len(path)-1]
 	}
 	if handler == nil {
-		return
+		return g
 	}
 	handlers := g.concatHandlers(handler)
 
@@ -97,6 +97,7 @@ func (g *RouterGroup) Add(method, path string, handler HandlerFunc) {
 	} else if err := rootNode.Add(path, handlers); err != nil {
 		panic(err)
 	}
+	return g
 }
 
 func (g RouterGroup) concatPath(path string) string {

@@ -12,10 +12,10 @@ a golang http router with regexp support, inspired by `httprouter` and `gin`.
 
 ## attentions
 - static route is always matched before regexp route.
-- call `ctx.Next()` in middleware to pass control to the next midlleware or route,
-  if you don't call `ctx.Next()` no remaining midlleware or route will be executed.
+- call `c.Next()` in middleware to pass control to the next midlleware or route,
+  if you don't call `c.Next()` no remaining midlleware or route will be executed.
 - generally don't use midlleware after routes,
-  because generally the routes don't call `ctx.Next()`.
+  because generally the routes don't call `c.Next()`.
 
 ## usage
 ```go
@@ -35,17 +35,17 @@ func main() {
 	router.Use(middlewares.NewLogger(logger.New(os.Stdout)).Middleware)
 	router.Use(middlewares.Ps)
 
-	router.Get("/", func(ctx *goa.Context) {
-		ctx.Data("hello, world", nil)
+	router.Get("/", func(c *goa.Context) {
+		c.Data("hello, world", nil)
 	})
 
-	router.Get("/users", func(ctx *goa.Context) {
-		ctx.Data("users list", nil)
+	router.Get("/users", func(c *goa.Context) {
+		c.Data("users list", nil)
 	})
 
 	// the "X" suffix indicates regular expression
-	router.GetX(`/users/(\d+)`, func(ctx *goa.Context) {
-		ctx.Data("user: "+ctx.Param(0), nil)
+	router.GetX(`/users/(\d+)`, func(c *goa.Context) {
+		c.Data("user: "+c.Param(0), nil)
 	})
 
 	server.ListenAndServe(router)

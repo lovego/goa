@@ -8,27 +8,23 @@ import (
 	"runtime/pprof"
 	"strconv"
 
-	"github.com/lovego/xiaomei"
-	"github.com/lovego/xiaomei/router"
+	"github.com/lovego/goa"
 )
 
 const pprofPath = `/_pprof`
 
-var logBody = true
-
-func Setup(router *router.Router) {
-	router.Root().
-		// 存活检测
-		Get(`/_alive`, func(req *xiaomei.Request, res *xiaomei.Response) {
-			res.Write([]byte(`ok`))
-		}).
-		// 性能分析
-		Group(pprofPath).Get(`/`, pprofIndex).GetX(`/(.+)`, pprofGet)
+func Setup(router *goa.Router) {
+	// 存活检测
+	router.Get(`/_alive`, func(c *goa.Context) {
+		c.Write([]byte(`ok`))
+	})
+	// 性能分析
+	router.Group(pprofPath).Get(`/`, pprofIndex).GetX(`/(.+)`, pprofGet)
 }
 
 var pprofIndexHtml []byte
 
-func pprofIndex(req *xiaomei.Request, res *xiaomei.Response) {
+func pprofIndex(c *goa.Context) {
 	if pprofIndexHtml == nil {
 		var tmpl = template.Must(template.New(``).Parse(`<html>
 <head>
@@ -55,20 +51,21 @@ profiles:<br>
 		}
 		pprofIndexHtml = buf.Bytes()
 	}
-	res.Write(pprofIndexHtml)
+	c.Write(pprofIndexHtml)
 }
 
-func pprofGet(req *xiaomei.Request, res *xiaomei.Response, params []string) {
-	res.Header().Set("Content-Type", "text/plain; charset=utf-8")
-	p := pprof.Lookup(params[1])
+func pprofGet(c *goa.Context) {
+	c.ResponseWriter.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	name := c.Param(0)
+	p := pprof.Lookup(name)
 	if p == nil {
-		res.WriteHeader(404)
-		fmt.Fprintf(res, "Unknown profile: %s\n", params[1])
+		c.WriteHeader(404)
+		fmt.Fprintf(c, "Unknown profile: %s\n", name)
 		return
 	}
-	if params[1] == "heap" && req.FormValue("gc") != `` {
+	if name == "heap" && c.FormValue("gc") != `` {
 		runtime.GC()
 	}
-	debug, _ := strconv.Atoi(req.FormValue("debug"))
-	p.WriteTo(res, debug)
+	debug, _ := strconv.Atoi(c.FormValue("debug"))
+	p.WriteTo(c, debug)
 }

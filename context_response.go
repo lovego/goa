@@ -53,35 +53,35 @@ func (c *Context) ResponseBody() []byte {
 	return nil
 }
 
-func (ctx *Context) Json(data interface{}) {
+func (c *Context) Json(data interface{}) {
 	bytes, err := json.Marshal(data)
 	if err == nil {
-		ctx.ResponseWriter.Header().Set(`Content-Type`, `application/json; charset=utf-8`)
-		ctx.Write(bytes)
+		c.ResponseWriter.Header().Set(`Content-Type`, `application/json; charset=utf-8`)
+		c.Write(bytes)
 	} else {
 		log.Panic(err)
 	}
 }
 
-func (ctx *Context) Json2(data interface{}, err error) {
+func (c *Context) Json2(data interface{}, err error) {
 	if err != nil {
-		ctx.SetError(err)
+		c.SetError(err)
 	}
-	ctx.Json(data)
+	c.Json(data)
 }
 
-func (ctx *Context) Ok(message string) {
+func (c *Context) Ok(message string) {
 	result := make(map[string]interface{})
 	result["code"] = "ok"
 	result["message"] = message
-	ctx.Json(result)
+	c.Json(result)
 }
 
-func (ctx *Context) Data(data interface{}, err error) {
-	ctx.DataWithKey(data, err, `data`)
+func (c *Context) Data(data interface{}, err error) {
+	c.DataWithKey(data, err, `data`)
 }
 
-func (ctx *Context) DataWithKey(data interface{}, err error, key string) {
+func (c *Context) DataWithKey(data interface{}, err error, key string) {
 	result := make(map[string]interface{})
 	if err == nil {
 		result[`code`] = `ok`
@@ -96,13 +96,13 @@ func (ctx *Context) DataWithKey(data interface{}, err error, key string) {
 			if e, ok := err.(interface {
 				Err() error
 			}); ok && e.Err() != nil {
-				ctx.SetError(err)
+				c.SetError(err)
 			}
 		} else {
-			ctx.WriteHeader(500)
+			c.WriteHeader(500)
 			result[`code`] = `server-err`
 			result[`message`] = `Server Error.`
-			ctx.SetError(err)
+			c.SetError(err)
 		}
 	}
 
@@ -115,7 +115,7 @@ func (ctx *Context) DataWithKey(data interface{}, err error, key string) {
 			result[key] = erro.Data()
 		}
 	}
-	ctx.Json(result)
+	c.Json(result)
 }
 
 func (c *Context) Redirect(path string) {

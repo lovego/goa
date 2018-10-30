@@ -24,56 +24,56 @@ func NewLogger(logger *loggerPkg.Logger) *Logger {
 	}
 }
 
-func (l *Logger) Middleware(ctx *goa.Context) {
-	debug := ctx.URL.Query()["_debug"] != nil
-	l.Logger.RecordWithContext(ctx.Context(), func(tracerCtx context.Context) error {
+func (l *Logger) Middleware(c *goa.Context) {
+	debug := c.URL.Query()["_debug"] != nil
+	l.Logger.RecordWithContext(c.Context(), func(tracerCtx context.Context) error {
 		if debug {
 			tracer.GetSpan(tracerCtx).SetDebug(true)
 		}
-		ctx.Set("context", tracerCtx)
-		ctx.Next()
-		return ctx.GetError()
+		c.Set("context", tracerCtx)
+		c.Next()
+		return c.GetError()
 	}, func() {
 		if l.PanicHandler != nil {
-			l.PanicHandler(ctx)
+			l.PanicHandler(c)
 		}
 	}, func(fields *loggerPkg.Fields) {
-		l.setFields(fields, ctx, debug)
+		l.setFields(fields, c, debug)
 	})
 
 }
 
-func (l *Logger) setFields(f *loggerPkg.Fields, ctx *goa.Context, debug bool) {
-	req := ctx.Request
+func (l *Logger) setFields(f *loggerPkg.Fields, c *goa.Context, debug bool) {
+	req := c.Request
 	f.With("host", req.Host)
 	f.With("method", req.Method)
 	f.With("path", req.URL.Path)
 	f.With("rawQuery", req.URL.RawQuery)
 	f.With("query", req.URL.Query())
-	f.With("status", ctx.Status())
+	f.With("status", c.Status())
 	f.With("reqBodySize", req.ContentLength)
-	f.With("resBodySize", ctx.ResponseBodySize())
-	f.With("ip", ctx.ClientAddr())
+	f.With("resBodySize", c.ResponseBodySize())
+	f.With("ip", c.ClientAddr())
 	f.With("agent", req.UserAgent())
 	f.With("refer", req.Referer())
-	if sess := ctx.Get("session"); sess != nil {
+	if sess := c.Get("session"); sess != nil {
 		f.With("session", sess)
 	}
-	if debug || l.ShouldLogBody != nil && l.ShouldLogBody(ctx) {
-		f.With("reqBody", tryUnmarshal(ctx.RequestBody()))
-		f.With("resBody", tryUnmarshal(ctx.ResponseBody()))
+	if debug || l.ShouldLogBody != nil && l.ShouldLogBody(c) {
+		f.With("reqBody", tryUnmarshal(c.RequestBody()))
+		f.With("resBody", tryUnmarshal(c.ResponseBody()))
 	}
 }
 
-func defaultPanicHandler(ctx *goa.Context) {
-	ctx.WriteHeader(500)
-	if ctx.ResponseBodySize() <= 0 {
-		ctx.Json(map[string]string{"code": "server-err", "message": "Fatal Server Error."})
+func defaultPanicHandler(c *goa.Context) {
+	c.WriteHeader(500)
+	if c.ResponseBodySize() <= 0 {
+		c.Json(map[string]string{"code": "server-err", "message": "Fatal Server Error."})
 	}
 }
 
-func defaultShouldLogBody(ctx *goa.Context) bool {
-	method := ctx.Request.Method
+func defaultShouldLogBody(c *goa.Context) bool {
+	method := c.Request.Method
 	return method == http.MethodPost ||
 		method == http.MethodDelete ||
 		method == http.MethodPut

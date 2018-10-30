@@ -46,16 +46,16 @@ func (c *Context) Url() string {
 	return c.Scheme() + `://` + c.Request.Host + c.Request.RequestURI
 }
 
-func (ctx *Context) ClientAddr() string {
-	if addrs := ctx.Request.Header.Get("X-Forwarded-For"); addrs != `` {
+func (c *Context) ClientAddr() string {
+	if addrs := c.Request.Header.Get("X-Forwarded-For"); addrs != `` {
 		addr := strings.SplitN(addrs, `, `, 2)[0]
 		if addr != `unknown` {
 			return addr
 		}
 	}
-	if addr := ctx.Request.Header.Get("X-Real-IP"); addr != `` && addr != `unknown` {
+	if addr := c.Request.Header.Get("X-Real-IP"); addr != `` && addr != `unknown` {
 		return addr
 	}
-	host, _, _ := net.SplitHostPort(ctx.RemoteAddr)
+	host, _, _ := net.SplitHostPort(c.RemoteAddr)
 	return host
 }

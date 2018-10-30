@@ -33,8 +33,8 @@ func (c *Context) Next() {
 
 func (c *Context) Context() context.Context {
 	if data := c.Get("context"); data != nil {
-		if ctx, ok := data.(context.Context); ok {
-			return ctx
+		if c, ok := data.(context.Context); ok {
+			return c
 		}
 	}
 	return c.Request.Context()
@@ -57,10 +57,10 @@ func (c *Context) Set(key string, value interface{}) {
 	c.data[key] = value
 }
 
-func (ctx *Context) SetError(err error) {
-	ctx.err = err
+func (c *Context) SetError(err error) {
+	c.err = err
 }
 
-func (ctx *Context) GetError() error {
-	return ctx.err
+func (c *Context) GetError() error {
+	return c.err
 }

@@ -10,42 +10,42 @@ import (
 func ExampleRouter() {
 	router := New()
 
-	router.Get("/", func(ctx *Context) {
+	router.Get("/", func(c *Context) {
 		fmt.Println("root")
 	})
 	users := router.Group("/users")
 
-	users.Get("/", func(ctx *Context) {
+	users.Get("/", func(c *Context) {
 		fmt.Println("list users")
 	})
-	users.GetX(`/(\d+)`, func(ctx *Context) {
-		fmt.Printf("show user: %s\n", ctx.Param(0))
+	users.GetX(`/(\d+)`, func(c *Context) {
+		fmt.Printf("show user: %s\n", c.Param(0))
 	})
 
-	users.Post(`/`, func(ctx *Context) {
+	users.Post(`/`, func(c *Context) {
 		fmt.Println("create a user")
 	})
-	users.PostX(`/postx`, func(ctx *Context) {
+	users.PostX(`/postx`, func(c *Context) {
 	})
 
 	users = users.GroupX(`/(\d+)`)
 
-	users.Put(`/`, func(ctx *Context) {
-		fmt.Printf("fully update user: %s\n", ctx.Param(0))
+	users.Put(`/`, func(c *Context) {
+		fmt.Printf("fully update user: %s\n", c.Param(0))
 	})
-	users.PutX(`/putx`, func(ctx *Context) {
-	})
-
-	users.Patch(`/`, func(ctx *Context) {
-		fmt.Printf("partially update user: %s\n", ctx.Param(0))
-	})
-	users.PatchX(`/patchx`, func(ctx *Context) {
+	users.PutX(`/putx`, func(c *Context) {
 	})
 
-	users.Delete(`/`, func(ctx *Context) {
-		fmt.Printf("delete user: %s\n", ctx.Param(0))
+	users.Patch(`/`, func(c *Context) {
+		fmt.Printf("partially update user: %s\n", c.Param(0))
 	})
-	users.DeleteX(`/deletex`, func(ctx *Context) {
+	users.PatchX(`/patchx`, func(c *Context) {
+	})
+
+	users.Delete(`/`, func(c *Context) {
+		fmt.Printf("delete user: %s\n", c.Param(0))
+	})
+	users.DeleteX(`/deletex`, func(c *Context) {
 	})
 
 	request, err := http.NewRequest("GET", "http://localhost/", nil)
@@ -78,17 +78,17 @@ func ExampleRouter() {
 
 func ExampleRouter_Use() {
 	router := New()
-	router.Use(func(ctx *Context) {
+	router.Use(func(c *Context) {
 		fmt.Println("middleware 1 pre")
-		ctx.Next()
+		c.Next()
 		fmt.Println("middleware 1 post")
 	})
-	router.Use(func(ctx *Context) {
+	router.Use(func(c *Context) {
 		fmt.Println("middleware 2 pre")
-		ctx.Next()
+		c.Next()
 		fmt.Println("middleware 2 post")
 	})
-	router.Get("/", func(ctx *Context) {
+	router.Get("/", func(c *Context) {
 		fmt.Println("root")
 	})
 
@@ -107,11 +107,11 @@ func ExampleRouter_Use() {
 
 func ExampleRouter_NotFound() {
 	router := New()
-	router.Use(func(ctx *Context) {
+	router.Use(func(c *Context) {
 		fmt.Println("middleware")
-		ctx.Next()
+		c.Next()
 	})
-	router.Get("/", func(ctx *Context) {
+	router.Get("/", func(c *Context) {
 		fmt.Println("root")
 	})
 
@@ -129,7 +129,7 @@ func ExampleRouter_NotFound() {
 		fmt.Println(response.StatusCode, string(body))
 	}
 
-	router.NotFound(func(ctx *Context) {
+	router.NotFound(func(c *Context) {
 		fmt.Println("404 not found")
 	})
 	router.ServeHTTP(nil, request)
@@ -148,26 +148,26 @@ func ExampleRouter_NotFound() {
 
 func ExampleRouter_String() {
 	router := New()
-	router.Use(func(ctx *Context) {
-		ctx.Next()
+	router.Use(func(c *Context) {
+		c.Next()
 	})
 
-	router.Get("/", func(ctx *Context) {
+	router.Get("/", func(c *Context) {
 		fmt.Println("root")
 	})
 	users := router.Group("/users")
 
-	users.Get("/", func(ctx *Context) {
+	users.Get("/", func(c *Context) {
 		fmt.Println("list users")
 	})
-	users.GetX(`/(\d+)`, func(ctx *Context) {
-		fmt.Printf("show user: %s\n", ctx.Param(0))
+	users.GetX(`/(\d+)`, func(c *Context) {
+		fmt.Printf("show user: %s\n", c.Param(0))
 	})
 
-	users.Post(`/`, func(ctx *Context) {
+	users.Post(`/`, func(c *Context) {
 		fmt.Println("create a user")
 	})
-	users.PostX(`/postx`, func(ctx *Context) {
+	users.PostX(`/postx`, func(c *Context) {
 	})
 
 	fmt.Println(router)

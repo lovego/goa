@@ -14,17 +14,17 @@ func main() {
 	router.Use(middlewares.NewLogger(logger.New(os.Stdout)).Middleware)
 	router.Use(middlewares.Ps)
 
-	router.Get("/", func(ctx *goa.Context) {
-		ctx.Data("hello, world", nil)
+	router.Get("/", func(c *goa.Context) {
+		c.Data("hello, world", nil)
 	})
 
-	router.Get("/users", func(ctx *goa.Context) {
-		ctx.Data("users list", nil)
+	router.Get("/users", func(c *goa.Context) {
+		c.Data("users list", nil)
 	})
 
 	// the "X" suffix indicates regular expression
-	router.GetX(`/users/(\d+)`, func(ctx *goa.Context) {
-		ctx.Data("user: "+ctx.Param(0), nil)
+	router.GetX(`/users/(\d+)`, func(c *goa.Context) {
+		c.Data("user: "+c.Param(0), nil)
 	})
 
 	server.ListenAndServe(router)
