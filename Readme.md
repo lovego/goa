@@ -32,7 +32,7 @@ import (
 
 func main() {
 	router := goa.New()
-	router.Use(middlewares.NewLogger(logger.New(os.Stdout)).Middleware)
+	router.Use(middlewares.NewLogger(logger.New(os.Stdout)).Record)
 	router.Use(middlewares.Ps)
 
 	router.Get("/", func(c *goa.Context) {
