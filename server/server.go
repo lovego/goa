@@ -14,12 +14,6 @@ import (
 	"github.com/fatih/color"
 )
 
-func init() {
-	if n := runtime.NumCPU() - 1; n >= 1 {
-		runtime.GOMAXPROCS(n)
-	}
-}
-
 type Server struct {
 	*http.Server
 }
