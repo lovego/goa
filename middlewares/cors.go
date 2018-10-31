@@ -6,6 +6,7 @@ import (
 	"github.com/lovego/goa"
 )
 
+// crosss origin resource share
 type CORS struct {
 	allow func(origin string) bool
 }

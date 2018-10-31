@@ -1,4 +1,4 @@
-package server
+package utilroutes
 
 import (
 	"bytes"
@@ -11,15 +11,13 @@ import (
 	"github.com/lovego/goa"
 )
 
-const pprofPath = `/_pprof`
-
 func Setup(router *goa.Router) {
 	// 存活检测
 	router.Get(`/_alive`, func(c *goa.Context) {
 		c.Write([]byte(`ok`))
 	})
 	// 性能分析
-	router.Group(pprofPath).Get(`/`, pprofIndex).GetX(`/(.+)`, pprofGet)
+	router.Group(`/_pprof`).Get(`/`, pprofIndex).GetX(`/(.+)`, pprofGet)
 }
 
 var pprofIndexHtml []byte
@@ -36,11 +34,11 @@ pprof<br>
 profiles:<br>
 <table>
 {{range .}}
-<tr><td align=right>{{.Count}}<td><a href="` + pprofPath + `/{{.Name}}?debug=1">{{.Name}}</a>
+<tr><td align=right>{{.Count}}<td><a href="/_pprof/{{.Name}}?debug=1">{{.Name}}</a>
 {{end}}
 </table>
 <br>
-<a href="` + pprofPath + `/goroutine?debug=2">full goroutine stack dump</a><br>
+<a href="/_pprof/goroutine?debug=2">full goroutine stack dump</a><br>
 </body>
 </html>
 `))

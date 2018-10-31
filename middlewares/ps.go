@@ -2,6 +2,7 @@ package middlewares
 
 import (
 	"encoding/json"
+	"fmt"
 	"sync"
 	"time"
 
@@ -18,8 +19,16 @@ type psType struct {
 	m map[string]map[string]int
 }
 
-// Ps records the processing requests.
-func Ps(c *goa.Context) {
+// SetupProcessingList setup middleware and route to list all the requests in processing.
+func SetupProcessingList(router *goa.Router) {
+	router.Use(processingList)
+	router.Get(`/_ps`, func(c *goa.Context) {
+		c.Write(psData.ToJson())
+	})
+}
+
+// processingList list all the requests in processing.
+func processingList(c *goa.Context) {
 	request := c.Request
 	var startTime time.Time
 	if span := tracer.GetSpan(c.Context()); span != nil {
@@ -38,7 +47,7 @@ func (ps *psType) ToJson() []byte {
 	defer ps.RUnlock()
 	bytes, err := json.Marshal(ps.m)
 	if err != nil {
-		panic(err)
+		return []byte(fmt.Sprint(err))
 	}
 	return bytes
 }
