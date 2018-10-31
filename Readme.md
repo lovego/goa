@@ -40,6 +40,7 @@ func main() {
 	router.Use(middlewares.NewLogger(logger.New(os.Stdout)).Record)
 	middlewares.SetupProcessingList(router)
 	router.Use(middlewares.NewCORS(allowOrigin).Check)
+
 	utilroutes.Setup(router)
 
 	router.Get("/", func(c *goa.Context) {
