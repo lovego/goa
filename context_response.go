@@ -32,10 +32,10 @@ func (c *Context) Write(content []byte) (int, error) {
 	if c.data == nil {
 		c.data = make(map[string]interface{})
 	}
-	if data, ok := c.data["responseBody"]; ok {
+	if data, ok := c.data[rspBodyKey]; ok {
 		if body, ok := data.([]byte); ok {
 			body = append(body, content...)
-			c.data["responseBody"] = body
+			c.data[rspBodyKey] = body
 		}
 	}
 	return c.ResponseWriter.Write(content)
@@ -45,7 +45,7 @@ func (c *Context) ResponseBody() []byte {
 	if c.data == nil {
 		c.data = make(map[string]interface{})
 	}
-	if data, ok := c.data["responseBody"]; ok {
+	if data, ok := c.data[rspBodyKey]; ok {
 		if body, ok := data.([]byte); ok {
 			return body
 		}

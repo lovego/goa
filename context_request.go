@@ -13,14 +13,14 @@ func (c *Context) RequestBody() []byte {
 	if c.data == nil {
 		c.data = make(map[string]interface{})
 	}
-	if data, ok := c.data["requestBody"]; ok {
+	if data, ok := c.data[reqBodyKey]; ok {
 		if body, ok := data.([]byte); ok {
 			return body
 		}
 		return nil
 	}
 	body, bodyReader := readAndClone(c.Request.Body)
-	c.data["requestBody"] = body
+	c.data[reqBodyKey] = body
 	c.Request.Body = bodyReader
 
 	return body

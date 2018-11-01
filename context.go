@@ -5,6 +5,9 @@ import (
 	"net/http"
 )
 
+const reqBodyKey = "requestBody"
+const rspBodyKey = "responseBody"
+
 type Context struct {
 	*http.Request
 	http.ResponseWriter
