@@ -1,50 +1,65 @@
 package goa
 
 import (
-    "testing"
-    "context"
-    "fmt"
-    "bytes"
-    "net/http"
-    "io/ioutil"
+	"context"
+	"errors"
+	"fmt"
+	"net/http/httptest"
 )
 
-func TestContext(t *testing.T){
-    c := &Context{index: -1}
-    bgd := context.Background()
-    c.Set("context", context.WithValue(bgd, "custom", 1))
-    ctx := c.Context()
-    value := ctx.Value("custom")
-    if value == nil{
-        t.Fail()
-    }
-    if v, ok:=  value.(int);!ok{
-        t.Fail()
-    }else if v != 1{
-        t.Fail()
-    }
-}
-
 func ExampleContext_Param() {
-    c := &Context{params:[]string{"123", "sdf"}}
-    fmt.Println(c.Param(0), "-")
-    fmt.Println(c.Param(1), "-")
-    fmt.Println(c.Param(2), "-")
-    // Output:
-    // 123 -
-    // sdf -
-    //  -
+	c := &Context{params: []string{"123", "sdf"}}
+	fmt.Println(c.Param(0), "-")
+	fmt.Println(c.Param(1), "-")
+	fmt.Println(c.Param(2), "-")
+	// Output:
+	// 123 -
+	// sdf -
+	//  -
 }
 
-func ExampleContext_RequestBody() {
-    buf := []byte("hello world!")
-    c := &Context{Request: &http.Request{Body:ioutil.NopCloser(bytes.NewBuffer(buf))}}
-    body := c.RequestBody()
-    fmt.Println(string(body))
-    fmt.Println(string(c.RequestBody()))
-    fmt.Println(string(c.data[reqBodyKey].([]byte)))
-    // Output:
-    // hello world!
-    // hello world!
-    // hello world!
+func ExampleContext_Next() {
+	c := &Context{}
+	c.Next()
+	c.Next()
+
+	// Output:
+}
+
+func ExampleContext_Context() {
+	c := &Context{Request: httptest.NewRequest("GET", "/", nil)}
+	fmt.Println(c.Context())
+	c.Set("context", context.WithValue(context.Background(), "custom", 1))
+	fmt.Println(c.Context())
+	// Output:
+	// context.Background
+	// context.Background.WithValue("custom", 1)
+}
+
+func ExampleContext_Get() {
+	c := &Context{}
+	fmt.Println(c.Get("a"))
+	c.Set("a", "韩梅梅")
+	fmt.Println(c.Get("a"))
+	// Output:
+	// <nil>
+	// 韩梅梅
+}
+
+func ExampleContext_Set() {
+	c := &Context{}
+	c.Set("a", "韩梅梅")
+	fmt.Println(c.Get("a"))
+	// Output:
+	// 韩梅梅
+}
+
+func ExampleContext_GetError_SetError() {
+	c := &Context{}
+	fmt.Println(c.GetError())
+	c.SetError(errors.New("the-error"))
+	fmt.Println(c.GetError())
+	// Output:
+	// <nil>
+	// the-error
 }

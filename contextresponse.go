@@ -10,6 +10,8 @@ import (
 	"reflect"
 )
 
+const rspBodyKey = "responseBody"
+
 func (c *Context) Status() int64 {
 	status := reflect.ValueOf(c.ResponseWriter).Elem().FieldByName(`status`)
 	if status.IsValid() {

@@ -48,7 +48,7 @@ func (s Server) gracefulShutdown() {
 	if err := s.Server.Shutdown(c); err == nil {
 		log.Println(`shutdown`)
 	} else {
-		log.Printf("shutdown error: %v", err)
+		log.Println("shutdown error: ", err)
 	}
 }
 

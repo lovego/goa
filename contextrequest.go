@@ -2,37 +2,31 @@ package goa
 
 import (
 	"bytes"
-	"io"
 	"io/ioutil"
-	"log"
 	"net"
 	"strings"
 )
 
-func (c *Context) RequestBody() []byte {
+const reqBodyKey = "requestBody"
+
+func (c *Context) RequestBody() ([]byte, error) {
 	if c.data == nil {
 		c.data = make(map[string]interface{})
 	}
 	if data, ok := c.data[reqBodyKey]; ok {
 		if body, ok := data.([]byte); ok {
-			return body
+			return body, nil
 		}
-		return nil
-	}
-	body, bodyReader := readAndClone(c.Request.Body)
-	c.data[reqBodyKey] = body
-	c.Request.Body = bodyReader
-
-	return body
-}
-
-func readAndClone(reader io.ReadCloser) ([]byte, io.ReadCloser) {
-	body, err := ioutil.ReadAll(reader)
-	if err != nil {
-		log.Printf("read http request body error: %v", err)
 		return nil, nil
 	}
-	return body, ioutil.NopCloser(bytes.NewBuffer(body))
+	body, err := ioutil.ReadAll(c.Request.Body)
+	if err != nil {
+		return nil, err
+	}
+	c.data[reqBodyKey] = body
+	c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(body))
+
+	return body, nil
 }
 
 func (c *Context) Scheme() string {
@@ -43,7 +37,7 @@ func (c *Context) Scheme() string {
 }
 
 func (c *Context) Url() string {
-	return c.Scheme() + `://` + c.Request.Host + c.Request.RequestURI
+	return c.Scheme() + `://` + c.Request.Host + c.Request.URL.RequestURI()
 }
 
 func (c *Context) ClientAddr() string {
