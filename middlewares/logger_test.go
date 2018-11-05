@@ -1,43 +1,80 @@
 package middlewares
 
 import (
-    "fmt"
-    "net/http"
-    "github.com/lovego/goa"
-    "github.com/lovego/logger"
-    "github.com/lovego/goa/server"
-    "time"
-    "bytes"
-    "testing"
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"log"
+	"net"
+	"net/http"
+	"net/http/httptest"
+	"sort"
+	"time"
+
+	"github.com/lovego/goa"
+	"github.com/lovego/logger"
 )
 
-func TestRecord(t *testing.T) {
-    router := goa.New()
-    buf := make([]byte, 10000)
-    buff := bytes.NewBuffer(buf)
-    l := NewLogger(logger.New(buff))
-    router.Use(func(c *goa.Context) {
-        fmt.Println("middleware 1 pre")
-        c.Next()
-        fmt.Println("middleware 1 post")
-    })
-    router.Use(l.Record)
-    router.Get("/", func(c *goa.Context) {
-        fmt.Println("ok")
-        c.Ok("ok")
-    })
-    s := server.Server{&http.Server{Addr:"localhost:9999", Handler:router}}
-    go func() {
-        err := s.Server.ListenAndServe()
-        if err != nil{
-            fmt.Println(err.Error())
-        }
-    }()
-    time.Sleep(2*time.Second)
-    _, err := http.Get("http://localhost:9999?query=123")
-    if err != nil{
-        fmt.Println(err.Error())
-        return
-    }
-    fmt.Println(string(buff.String()))
+func ExampleRecord() {
+	buf := bytes.NewBuffer(nil)
+	router := goa.New()
+	router.Use(NewLogger(logger.New(buf)).Record)
+	router.Get("/", func(c *goa.Context) {
+		c.Ok("ok")
+	})
+	ts := httptest.NewUnstartedServer(router)
+	l, err := net.Listen("tcp", "127.0.0.1:3000")
+	if err != nil {
+		log.Panic(err)
+	}
+	ts.Listener = l
+	ts.Start()
+	defer ts.Close()
+
+	if _, err := http.Get(ts.URL + "?a=b&c=d"); err != nil {
+		log.Panic(err)
+	}
+	var m = make(map[string]interface{})
+	if err := json.Unmarshal(buf.Bytes(), &m); err != nil {
+		log.Panic(err)
+	}
+
+	at, duration := m["at"], m["duration"]
+	if _, err := time.Parse(time.RFC3339Nano, at.(string)); err != nil {
+		log.Panic(err)
+	}
+	if d := duration.(float64); d <= 0 || d >= 1 {
+		log.Panic(d)
+	}
+	delete(m, "at")
+	delete(m, "duration")
+
+	for _, row := range sortMap(m) {
+		if v, ok := row[1].(string); !ok || v != "" {
+			fmt.Printf("%s: %v\n", row[0], row[1])
+		}
+	}
+
+	// Output:
+	// agent: Go-http-client/1.1
+	// host: 127.0.0.1:3000
+	// ip: 127.0.0.1
+	// level: info
+	// method: GET
+	// path: /
+	// query: map[a:[b] c:[d]]
+	// rawQuery: a=b&c=d
+	// reqBodySize: 0
+	// resBodySize: 28
+	// status: 200
+}
+
+func sortMap(m map[string]interface{}) (results [][2]interface{}) {
+	for k, v := range m {
+		results = append(results, [2]interface{}{k, v})
+	}
+	sort.Slice(results, func(i, j int) bool {
+		return results[i][0].(string) < results[j][0].(string)
+	})
+	return
 }
