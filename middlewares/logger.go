@@ -60,11 +60,14 @@ func (l *Logger) setFields(f *loggerPkg.Fields, c *goa.Context, debug bool) {
 		f.With("session", sess)
 	}
 	if debug || l.ShouldLogBody != nil && l.ShouldLogBody(c) {
-	    reqBody, err := c.RequestBody()
-	    if err != nil{
-	        reqBody = []byte(err.Error())
-        }
-		f.With("reqBody", tryUnmarshal(reqBody))
+		reqBody, err := c.RequestBody()
+		if err != nil {
+			if c.GetError() == nil {
+				c.SetError(err)
+			}
+		} else {
+			f.With("reqBody", tryUnmarshal(reqBody))
+		}
 		f.With("resBody", tryUnmarshal(c.ResponseBody()))
 	}
 }

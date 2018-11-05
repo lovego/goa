@@ -34,11 +34,13 @@ func (c *Context) Write(content []byte) (int, error) {
 	if c.data == nil {
 		c.data = make(map[string]interface{})
 	}
-	if data, ok := c.data[rspBodyKey]; ok {
-		if body, ok := data.([]byte); ok {
-			body = append(body, content...)
-			c.data[rspBodyKey] = body
-		}
+	data := c.data[rspBodyKey]
+	if data == nil {
+		body := append([]byte{}, content...)
+		c.data[rspBodyKey] = body
+	} else if body, ok := data.([]byte); ok {
+		body = append(body, content...)
+		c.data[rspBodyKey] = body
 	}
 	return c.ResponseWriter.Write(content)
 }
