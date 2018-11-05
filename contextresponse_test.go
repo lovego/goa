@@ -9,6 +9,9 @@ import (
 )
 
 func ExampleContext_Status() {
+	c := &Context{ResponseWriter: httptest.NewRecorder()}
+	fmt.Println(c.Status())
+
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		c := &Context{ResponseWriter: w}
 		fmt.Println(c.Status())
@@ -26,24 +29,26 @@ func ExampleContext_Status() {
 
 	// Output:
 	// 0
+	// 0
 	// 200
 	// 200
 }
 
 func ExampleContext_ResponseBody() {
+	c := &Context{ResponseWriter: httptest.NewRecorder()}
+	fmt.Println("empty" + string(c.ResponseBody()))
+
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		c := &Context{ResponseWriter: w}
-		fmt.Println(c.ResponseBodySize())
+		fmt.Println("empty" + string(c.ResponseBody()))
 
 		c.Write([]byte("1"))
-		fmt.Println(c.ResponseBodySize())
+		fmt.Println(string(c.ResponseBody()))
 
 		c.ResponseWriter.Write([]byte("23"))
-		fmt.Println(c.ResponseBodySize())
+		fmt.Println(string(c.ResponseBody()))
 
 		c.Write([]byte("456"))
-		fmt.Println(c.ResponseBodySize())
-
 		fmt.Println(string(c.ResponseBody()))
 	}))
 
@@ -58,10 +63,40 @@ func ExampleContext_ResponseBody() {
 	fmt.Println(string(body))
 
 	// Output:
+	// empty
+	// empty
+	// 1
+	// 1
+	// 1456
+	// 123456
+}
+
+func ExampleContext_ResponseBodySize() {
+	c := &Context{ResponseWriter: httptest.NewRecorder()}
+	fmt.Println(c.ResponseBodySize())
+
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		c := &Context{ResponseWriter: w}
+		fmt.Println(c.ResponseBodySize())
+
+		c.Write([]byte("1"))
+		fmt.Println(c.ResponseBodySize())
+
+		c.ResponseWriter.Write([]byte("23"))
+		fmt.Println(c.ResponseBodySize())
+
+		c.Write([]byte("456"))
+		fmt.Println(c.ResponseBodySize())
+	}))
+	_, err := http.Get(ts.URL)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Output:
+	// 0
 	// 0
 	// 1
 	// 3
 	// 6
-	// 1456
-	// 123456
 }
