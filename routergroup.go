@@ -2,6 +2,7 @@ package goa
 
 import (
 	"bytes"
+	"log"
 	"regexp"
 	"sort"
 	"strings"
@@ -91,11 +92,11 @@ func (g *RouterGroup) Add(method, path string, handler HandlerFunc) *RouterGroup
 	if rootNode == nil {
 		rootNode, err := regex_tree.New(path, handlers)
 		if err != nil {
-			panic(err)
+			log.Panic(err)
 		}
 		g.routes[method] = rootNode
 	} else if err := rootNode.Add(path, handlers); err != nil {
-		panic(err)
+		log.Panic(err)
 	}
 	return g
 }
@@ -103,10 +104,10 @@ func (g *RouterGroup) Add(method, path string, handler HandlerFunc) *RouterGroup
 func (g RouterGroup) concatPath(path string) string {
 	path = g.basePath + path
 	if len(path) == 0 {
-		panic(`router path should not be empty.`)
+		log.Panic(`router path should not be empty.`)
 	}
 	if path[0] != '/' {
-		panic(`router path should begin with "/".`)
+		log.Panic(`router path should begin with "/".`)
 	}
 	return path
 }

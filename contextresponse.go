@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"encoding/json"
 	"errors"
-	"log"
 	"net"
 	"net/http"
 	"reflect"
@@ -57,28 +56,33 @@ func (c *Context) ResponseBody() []byte {
 	return nil
 }
 
-func (c *Context) Json(data interface{}) {
-	bytes, err := json.Marshal(data)
-	if err == nil {
-		c.ResponseWriter.Header().Set(`Content-Type`, `application/json; charset=utf-8`)
-		c.Write(bytes)
-	} else {
-		log.Panic(err)
+func (c *Context) JsonWithCode(data interface{}, code int) {
+	c.ResponseWriter.Header().Set(`Content-Type`, `application/json; charset=utf-8`)
+	c.WriteHeader(code)
+	encoder := json.NewEncoder(c)
+	encoder.SetEscapeHTML(false)
+	if err := encoder.Encode(data); err != nil {
+		c.SetError(err)
+		c.JsonWithCode(map[string]string{"code": "json-marshal-error", "message": err.Error()}, code)
 	}
+}
+
+func (c *Context) Json(data interface{}) {
+	c.JsonWithCode(data, http.StatusOK)
 }
 
 func (c *Context) Json2(data interface{}, err error) {
 	if err != nil {
 		c.SetError(err)
 	}
-	c.Json(data)
+	c.JsonWithCode(data, http.StatusOK)
 }
 
 func (c *Context) Ok(message string) {
 	result := make(map[string]interface{})
 	result["code"] = "ok"
 	result["message"] = message
-	c.Json(result)
+	c.JsonWithCode(result, http.StatusOK)
 }
 
 func (c *Context) Data(data interface{}, err error) {
@@ -86,6 +90,7 @@ func (c *Context) Data(data interface{}, err error) {
 }
 
 func (c *Context) DataWithKey(data interface{}, err error, key string) {
+	statusCode := http.StatusOK
 	result := make(map[string]interface{})
 	if err == nil {
 		result[`code`] = `ok`
@@ -98,12 +103,12 @@ func (c *Context) DataWithKey(data interface{}, err error, key string) {
 			result[`code`] = erro.Code()
 			result[`message`] = erro.Message()
 			if e, ok := err.(interface {
-				Err() error
-			}); ok && e.Err() != nil {
-				c.SetError(err)
+				GetError() error
+			}); ok && e.GetError() != nil {
+				c.SetError(e.GetError())
 			}
 		} else {
-			c.WriteHeader(500)
+			statusCode = http.StatusInternalServerError
 			result[`code`] = `server-err`
 			result[`message`] = `Server Error.`
 			c.SetError(err)
@@ -119,11 +124,11 @@ func (c *Context) DataWithKey(data interface{}, err error, key string) {
 			result[key] = erro.Data()
 		}
 	}
-	c.Json(result)
+	c.JsonWithCode(result, statusCode)
 }
 
-func (c *Context) Redirect(path string) {
-	c.ResponseWriter.Header().Set("Location", path)
+func (c *Context) Redirect(url string) {
+	c.ResponseWriter.Header().Set("Location", url)
 	c.ResponseWriter.WriteHeader(302)
 }
 
@@ -131,7 +136,7 @@ func (c *Context) Hijack() (net.Conn, *bufio.ReadWriter, error) {
 	if hijacker, ok := c.ResponseWriter.(http.Hijacker); ok {
 		return hijacker.Hijack()
 	}
-	return nil, nil, errors.New("the ResponseWriter doesn't support the Hijacker interface")
+	return nil, nil, errors.New("the ResponseWriter doesn't support hijacking.")
 }
 
 func (c *Context) Flush() {

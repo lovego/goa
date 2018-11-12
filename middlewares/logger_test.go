@@ -65,7 +65,7 @@ func ExampleRecord() {
 	// query: map[a:[b] c:[d]]
 	// rawQuery: a=b&c=d
 	// reqBodySize: 0
-	// resBodySize: 28
+	// resBodySize: 29
 	// status: 200
 }
 

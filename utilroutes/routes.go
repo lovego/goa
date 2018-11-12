@@ -45,7 +45,7 @@ profiles:<br>
 		profiles := pprof.Profiles()
 		var buf bytes.Buffer
 		if err := tmpl.Execute(&buf, profiles); err != nil {
-			panic(err)
+			c.Write([]byte(err.Error()))
 		}
 		pprofIndexHtml = buf.Bytes()
 	}
