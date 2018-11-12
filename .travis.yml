@@ -8,5 +8,6 @@ install:
   - go get -t ./...
   - go get github.com/mattn/goveralls
 script:
-  - go test -v -covermode=count -coverprofile=coverage.out .
+  - shopt -s extglob
+  - go test -v -covermode=count -coverprofile=coverage.out . ./!(benchmark|example)/
   - $HOME/gopath/bin/goveralls -coverprofile=coverage.out -service=travis-ci
