@@ -70,8 +70,8 @@ func (r *Router) NotFound(handler HandlerFunc) {
 
 func defaultNotFound(c *Context) {
 	if c.ResponseWriter != nil {
-		c.ResponseWriter.WriteHeader(404)
-		c.ResponseWriter.Write([]byte(`{"code":"404","message":"Not Found."}`))
+		c.WriteHeader(404)
+		c.Write([]byte(`{"code":"404","message":"Not Found."}`))
 	}
 }
 
