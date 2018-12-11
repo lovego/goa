@@ -8,11 +8,12 @@ import (
 
 // crosss origin resource share
 type CORS struct {
-	allow func(origin string) bool
+	allow     func(origin string) bool
+	SetHeader func(http.Header)
 }
 
 func NewCORS(allow func(origin string) bool) CORS {
-	return CORS{allow}
+	return CORS{allow: allow}
 }
 
 func (cors CORS) Check(c *goa.Context) {
@@ -31,6 +32,9 @@ func (cors CORS) Check(c *goa.Context) {
 			header.Set(`Access-Control-Max-Age`, `86400`)
 			header.Set(`Access-Control-Allow-Methods`, `GET, POST, PUT, DELETE`)
 			header.Set(`Access-Control-Allow-Headers`, `X-Requested-With, Content-Type, withCredentials`)
+			if cors.SetHeader != nil {
+				cors.SetHeader(header)
+			}
 			return
 		}
 	}
