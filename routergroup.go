@@ -44,6 +44,11 @@ func (g *RouterGroup) Post(path string, handler HandlerFunc) *RouterGroup {
 	return g.Add("POST", regexp.QuoteMeta(path), handler)
 }
 
+func (g *RouterGroup) GetPost(path string, handler HandlerFunc) *RouterGroup {
+	g.Add("GET", regexp.QuoteMeta(path), handler)
+	return g.Add("POST", regexp.QuoteMeta(path), handler)
+}
+
 func (g *RouterGroup) Put(path string, handler HandlerFunc) *RouterGroup {
 	return g.Add("PUT", regexp.QuoteMeta(path), handler)
 }
@@ -61,6 +66,11 @@ func (g *RouterGroup) GetX(path string, handler HandlerFunc) *RouterGroup {
 }
 
 func (g *RouterGroup) PostX(path string, handler HandlerFunc) *RouterGroup {
+	return g.Add("POST", path, handler)
+}
+
+func (g *RouterGroup) GetPostX(path string, handler HandlerFunc) *RouterGroup {
+	g.Add("GET", path, handler)
 	return g.Add("POST", path, handler)
 }
 
