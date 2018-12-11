@@ -75,6 +75,36 @@ func ExampleRouter() {
 	// partially update user: 101
 	// delete user: 101
 }
+func ExampleRouter_GetPost() {
+	router := New()
+	router.GetPost("/GetPost", func(c *Context) {
+		fmt.Println("GetPost")
+	})
+	router.GetPostX("/GetPostX", func(c *Context) {
+		fmt.Println("GetPostX")
+	})
+
+	request, err := http.NewRequest("GET", "http://localhost/", nil)
+	if err != nil {
+		panic(err)
+	}
+	for _, route := range [][2]string{
+		{"GET", "/GetPost"},
+		{"POST", "/GetPost"},
+		{"GET", "/GetPostX"},
+		{"POST", "/GetPostX"},
+	} {
+		request.Method = route[0]
+		request.URL.Path = route[1]
+		router.ServeHTTP(nil, request)
+	}
+
+	// Output:
+	// GetPost
+	// GetPost
+	// GetPostX
+	// GetPostX
+}
 
 func ExampleRouter_Use() {
 	router := New()
