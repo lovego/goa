@@ -49,7 +49,7 @@ func (l *Logger) setFields(f *loggerPkg.Fields, c *goa.Context, debug bool) {
 	f.With("method", req.Method)
 	f.With("path", req.URL.Path)
 	f.With("rawQuery", req.URL.RawQuery)
-	f.With("query", req.URL.Query())
+	// f.With("query", req.URL.Query())
 	f.With("status", c.Status())
 	f.With("reqBodySize", req.ContentLength)
 	f.With("resBodySize", c.ResponseBodySize())
@@ -66,16 +66,17 @@ func (l *Logger) setFields(f *loggerPkg.Fields, c *goa.Context, debug bool) {
 				c.SetError(err)
 			}
 		} else {
-			f.With("reqBody", tryUnmarshal(reqBody))
+			f.With("reqBody", string(reqBody))
 		}
-		f.With("resBody", tryUnmarshal(c.ResponseBody()))
+		f.With("resBody", string(c.ResponseBody()))
 	}
 }
 
 func defaultPanicHandler(c *goa.Context) {
-	c.WriteHeader(500)
 	if c.ResponseBodySize() <= 0 {
-		c.Json(map[string]string{"code": "server-err", "message": "Fatal Server Error."})
+		c.JsonWithCode(map[string]string{"code": "server-err", "message": "Fatal Server Error."}, 500)
+	} else {
+		c.WriteHeader(500)
 	}
 }
 

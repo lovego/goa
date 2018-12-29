@@ -36,12 +36,11 @@ func ExampleLogger() {
 	// level: "info"
 	// method: "POST"
 	// path: "/"
-	// query: {"a":["b"],"c":["d"]}
 	// rawQuery: "a=b&c=d"
 	// refer: ""
 	// reqBody: "[0,1,2]"
 	// reqBodySize: 7
-	// resBody: {"code":"ok","message":"good"}
+	// resBody: "{\"code\":\"ok\",\"message\":\"good\"}\n"
 	// resBodySize: 31
 	// session: "session-data"
 	// status: 200
@@ -66,12 +65,11 @@ func ExampleLogger_debug() {
 	// level: "info"
 	// method: "POST"
 	// path: "/"
-	// query: {"_debug":[""],"a":["b"],"c":["d"]}
 	// rawQuery: "a=b&c=d&_debug"
 	// refer: ""
 	// reqBody: "[0,1,2]"
 	// reqBodySize: 7
-	// resBody: {"code":"ok","message":"good"}
+	// resBody: "{\"code\":\"ok\",\"message\":\"good\"}\n"
 	// resBodySize: 31
 	// session: "session-data"
 	// status: 200
@@ -93,12 +91,11 @@ func ExampleLogger_panic() {
 	// method: "GET"
 	// msg: "crash"
 	// path: "/panic"
-	// query: {"_debug":[""]}
 	// rawQuery: "_debug"
 	// refer: ""
 	// reqBody: ""
 	// reqBodySize: 0
-	// resBody: {"code":"server-err","message":"Fatal Server Error."}
+	// resBody: "{\"code\":\"server-err\",\"message\":\"Fatal Server Error.\"}\n"
 	// resBodySize: 54
 	// status: 500
 	// stack:  github.com/lovego/goa/middlewares.startTestServer.func2
