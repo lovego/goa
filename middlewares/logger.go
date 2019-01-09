@@ -11,16 +11,18 @@ import (
 )
 
 type Logger struct {
-	Logger        *loggerPkg.Logger
-	PanicHandler  func(*goa.Context)
-	ShouldLogBody func(*goa.Context) bool
+	Logger           *loggerPkg.Logger
+	PanicHandler     func(*goa.Context)
+	ShouldLogReqBody func(*goa.Context) bool
+	ShouldLogResBody func(*goa.Context) bool
 }
 
 func NewLogger(logger *loggerPkg.Logger) *Logger {
 	return &Logger{
-		Logger:        logger,
-		PanicHandler:  defaultPanicHandler,
-		ShouldLogBody: defaultShouldLogBody,
+		Logger:           logger,
+		PanicHandler:     defaultPanicHandler,
+		ShouldLogReqBody: defaultShouldLogBody,
+		ShouldLogResBody: defaultShouldLogBody,
 	}
 }
 
@@ -59,7 +61,7 @@ func (l *Logger) setFields(f *loggerPkg.Fields, c *goa.Context, debug bool) {
 	if sess := c.Get("session"); sess != nil {
 		f.With("session", sess)
 	}
-	if debug || l.ShouldLogBody != nil && l.ShouldLogBody(c) {
+	if debug || l.ShouldLogReqBody != nil && l.ShouldLogReqBody(c) {
 		reqBody, err := c.RequestBody()
 		if err != nil {
 			if c.GetError() == nil {
@@ -68,6 +70,8 @@ func (l *Logger) setFields(f *loggerPkg.Fields, c *goa.Context, debug bool) {
 		} else {
 			f.With("reqBody", string(reqBody))
 		}
+	}
+	if debug || l.ShouldLogResBody != nil && l.ShouldLogResBody(c) {
 		f.With("resBody", string(c.ResponseBody()))
 	}
 }
