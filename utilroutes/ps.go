@@ -1,4 +1,4 @@
-package middlewares
+package utilroutes
 
 import (
 	"encoding/json"
@@ -19,8 +19,8 @@ type psType struct {
 	m map[string]map[string]int
 }
 
-// SetupProcessingList setup middleware and route to list all the requests in processing.
-func SetupProcessingList(router *goa.Router) {
+// Ps setup middleware and route to list all the requests in processing.
+func Ps(router *goa.Router) {
 	router.Use(processingList)
 	router.Get(`/_ps`, func(c *goa.Context) {
 		c.Write(psData.ToJson())
