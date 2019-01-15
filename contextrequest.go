@@ -21,6 +21,7 @@ func (c *Context) RequestBody() ([]byte, error) {
 	}
 	body, err := ioutil.ReadAll(c.Request.Body)
 	if err != nil {
+		c.SetError(err)
 		return nil, err
 	}
 	c.data[reqBodyKey] = body
