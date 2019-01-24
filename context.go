@@ -16,6 +16,8 @@ type Context struct {
 	err  error
 }
 
+// Param returns captured subpatterns.
+// index begin at 0, so pass 0 to get the first captured subpatterns.
 func (c *Context) Param(i int) string {
 	if i < len(c.params) {
 		return c.params[i]
