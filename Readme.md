@@ -38,9 +38,7 @@ func main() {
 	router := goa.New()
 	// logger should be the first, to handle panic and log all requests
 	router.Use(middlewares.NewLogger(logger.New(os.Stdout)).Record)
-	middlewares.SetupProcessingList(router)
 	router.Use(middlewares.NewCORS(allowOrigin).Check)
-
 	utilroutes.Setup(router)
 
 	router.Get("/", func(c *goa.Context) {

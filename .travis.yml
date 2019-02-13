@@ -16,3 +16,6 @@ script:
     else
       go test -v . ./!(benchmark|example)/
     fi
+notifications:
+  email:
+    applejava@qq.com
