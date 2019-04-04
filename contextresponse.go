@@ -63,7 +63,7 @@ func (c *Context) JsonWithCode(data interface{}, code int) {
 	encoder.SetEscapeHTML(false)
 	if err := encoder.Encode(data); err != nil {
 		c.SetError(err)
-		c.JsonWithCode(map[string]string{"code": "json-marshal-error", "message": err.Error()}, code)
+		c.Write([]byte(`{"code":"json-marshal-error","message":"json marshal error"}`))
 	}
 }
 

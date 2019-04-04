@@ -134,8 +134,7 @@ func ExampleContext_Json_error() {
 	// Output:
 	// 200
 	// map[Content-Type:[application/json; charset=utf-8]]
-	// {"code":"json-marshal-error","message":"json: unsupported type: func()"}
-	//  <nil>
+	// {"code":"json-marshal-error","message":"json marshal error"} <nil>
 }
 
 func ExampleContext_Json2() {
