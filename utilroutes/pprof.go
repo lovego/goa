@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"html/template"
+	hprof "net/http/pprof"
 	"runtime"
 	"runtime/pprof"
 	"strconv"
@@ -29,8 +30,13 @@ pprof<br>
 <br>
 profiles:<br>
 <table>
+<tr> <td></td> <td><a href="/_pprof/profile">cpu profile</a></td> </tr>
+<tr> <td></td> <td><a href="/_pprof/trace">trace</a></td> </tr>
 {{range .}}
-<tr><td align=right>{{.Count}}<td><a href="/_pprof/{{.Name}}?debug=1">{{.Name}}</a>
+<tr>
+<td align=right>{{.Count}}</td>
+<td><a href="/_pprof/{{.Name}}?debug=1">{{.Name}}</a></td>
+</tr>
 {{end}}
 </table>
 <br>
@@ -49,8 +55,17 @@ profiles:<br>
 }
 
 func pprofGet(c *goa.Context) {
-	c.ResponseWriter.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	name := c.Param(0)
+	switch name {
+	case "profile":
+		hprof.Profile(c.ResponseWriter, c.Request)
+		return
+	case "trace":
+		hprof.Trace(c.ResponseWriter, c.Request)
+		return
+	}
+
+	c.ResponseWriter.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	p := pprof.Lookup(name)
 	if p == nil {
 		c.WriteHeader(404)
