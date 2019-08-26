@@ -30,7 +30,7 @@ func (l *Logger) Record(c *goa.Context) {
 	debug := c.URL.Query()["_debug"] != nil
 	l.Logger.RecordWithContext(c.Context(), func(tracerCtx context.Context) error {
 		if debug {
-			tracer.GetSpan(tracerCtx).SetDebug(true)
+			tracerCtx = tracer.SetDebug(tracerCtx)
 		}
 		c.Set("context", tracerCtx)
 		c.Next()

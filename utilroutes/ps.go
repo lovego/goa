@@ -31,8 +31,8 @@ func Ps(router *goa.Router) {
 func processingList(c *goa.Context) {
 	request := c.Request
 	var startTime time.Time
-	if span := tracer.GetSpan(c.Context()); span != nil {
-		startTime = span.At
+	if t := tracer.Get(c.Context()); t != nil {
+		startTime = t.At
 	} else {
 		startTime = time.Now()
 	}
