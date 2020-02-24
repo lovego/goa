@@ -54,3 +54,7 @@ func (c *Context) ClientAddr() string {
 	host, _, _ := net.SplitHostPort(c.RemoteAddr)
 	return host
 }
+
+func (c *Context) RequestId() string {
+	return c.Request.Header.Get("X-Request-Id")
+}

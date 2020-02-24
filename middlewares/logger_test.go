@@ -40,6 +40,7 @@ func ExampleLogger() {
 	// refer: ""
 	// reqBody: "[0,1,2]"
 	// reqBodySize: 7
+	// requestId: ""
 	// resBody: "{\"code\":\"ok\",\"message\":\"good\"}\n"
 	// resBodySize: 31
 	// session: "session-data"
@@ -69,6 +70,7 @@ func ExampleLogger_debug() {
 	// refer: ""
 	// reqBody: "[0,1,2]"
 	// reqBodySize: 7
+	// requestId: ""
 	// resBody: "{\"code\":\"ok\",\"message\":\"good\"}\n"
 	// resBodySize: 31
 	// session: "session-data"
@@ -95,6 +97,7 @@ func ExampleLogger_panic() {
 	// refer: ""
 	// reqBody: ""
 	// reqBodySize: 0
+	// requestId: ""
 	// resBody: "{\"code\":\"server-err\",\"message\":\"Fatal Server Error.\"}\n"
 	// resBodySize: 54
 	// status: 500

@@ -47,6 +47,7 @@ func (l *Logger) Record(c *goa.Context) {
 
 func (l *Logger) setFields(f *loggerPkg.Fields, c *goa.Context, debug bool) {
 	req := c.Request
+	f.With("requestId", c.RequestId())
 	f.With("host", req.Host)
 	f.With("method", req.Method)
 	f.With("path", req.URL.Path)
