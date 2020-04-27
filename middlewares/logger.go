@@ -88,8 +88,9 @@ func defaultPanicHandler(c *goa.Context) {
 func defaultShouldLogBody(c *goa.Context) bool {
 	method := c.Request.Method
 	return method == http.MethodPost ||
-		method == http.MethodDelete ||
-		method == http.MethodPut
+		method == http.MethodPatch ||
+		method == http.MethodPut ||
+		method == http.MethodDelete
 }
 
 func tryUnmarshal(b []byte) interface{} {
