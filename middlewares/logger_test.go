@@ -146,6 +146,7 @@ func printLog(buf *bytes.Buffer) {
 	delete(m, "at")
 	delete(m, "duration")
 	delete(m, "stack")
+	delete(m, "machineName")
 
 	for _, row := range sortMap(m) {
 		fmt.Printf("%s: %s\n", row[0], row[1])

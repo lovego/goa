@@ -28,7 +28,7 @@ func main() {
 			c.Data(userList())
 		}).
 		// the "X" suffix indicates regular expression
-		GetX(`/(\d+)`, func(c *goa.Context) {
+		Get(`/(\d+)`, func(c *goa.Context) {
 			c.Data(userDetail(c.Param(0)))
 		})
 

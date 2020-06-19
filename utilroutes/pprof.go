@@ -14,7 +14,7 @@ import (
 
 // Pprof setup "runtime/pprof" profiles routes
 func Pprof(router *goa.Router) {
-	router.Group(`/_pprof`).Get(`/`, pprofIndex).GetX(`/(.+)`, pprofGet)
+	router.Group(`/_pprof`).Get(`/`, pprofIndex).Get(`/(.+)`, pprofGet)
 }
 
 var pprofIndexHtml []byte
