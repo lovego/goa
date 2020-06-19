@@ -18,15 +18,7 @@ type RouterGroup struct {
 
 func (g *RouterGroup) Group(path string, handlers ...HandlerFunc) *RouterGroup {
 	return &RouterGroup{
-		basePath: g.concatPath(regexp.QuoteMeta(path)),
-		handlers: g.concatHandlers(handlers...),
-		routes:   g.routes,
-	}
-}
-
-func (g *RouterGroup) GroupX(path string, handlers ...HandlerFunc) *RouterGroup {
-	return &RouterGroup{
-		basePath: g.concatPath(path),
+		basePath: g.concatPath(quotePath(path)),
 		handlers: g.concatHandlers(handlers...),
 		routes:   g.routes,
 	}
@@ -37,58 +29,33 @@ func (g *RouterGroup) Use(handlers ...HandlerFunc) {
 }
 
 func (g *RouterGroup) Get(path string, handler HandlerFunc) *RouterGroup {
-	return g.Add("GET", regexp.QuoteMeta(path), handler)
-}
-
-func (g *RouterGroup) Post(path string, handler HandlerFunc) *RouterGroup {
-	return g.Add("POST", regexp.QuoteMeta(path), handler)
-}
-
-func (g *RouterGroup) GetPost(path string, handler HandlerFunc) *RouterGroup {
-	g.Add("GET", regexp.QuoteMeta(path), handler)
-	return g.Add("POST", regexp.QuoteMeta(path), handler)
-}
-
-func (g *RouterGroup) Put(path string, handler HandlerFunc) *RouterGroup {
-	return g.Add("PUT", regexp.QuoteMeta(path), handler)
-}
-
-func (g *RouterGroup) Patch(path string, handler HandlerFunc) *RouterGroup {
-	return g.Add("PATCH", regexp.QuoteMeta(path), handler)
-}
-
-func (g *RouterGroup) Delete(path string, handler HandlerFunc) *RouterGroup {
-	return g.Add("DELETE", regexp.QuoteMeta(path), handler)
-}
-
-func (g *RouterGroup) GetX(path string, handler HandlerFunc) *RouterGroup {
 	return g.Add("GET", path, handler)
 }
 
-func (g *RouterGroup) PostX(path string, handler HandlerFunc) *RouterGroup {
+func (g *RouterGroup) Post(path string, handler HandlerFunc) *RouterGroup {
 	return g.Add("POST", path, handler)
 }
 
-func (g *RouterGroup) GetPostX(path string, handler HandlerFunc) *RouterGroup {
+func (g *RouterGroup) GetPost(path string, handler HandlerFunc) *RouterGroup {
 	g.Add("GET", path, handler)
 	return g.Add("POST", path, handler)
 }
 
-func (g *RouterGroup) PutX(path string, handler HandlerFunc) *RouterGroup {
+func (g *RouterGroup) Put(path string, handler HandlerFunc) *RouterGroup {
 	return g.Add("PUT", path, handler)
 }
 
-func (g *RouterGroup) PatchX(path string, handler HandlerFunc) *RouterGroup {
+func (g *RouterGroup) Patch(path string, handler HandlerFunc) *RouterGroup {
 	return g.Add("PATCH", path, handler)
 }
 
-func (g *RouterGroup) DeleteX(path string, handler HandlerFunc) *RouterGroup {
+func (g *RouterGroup) Delete(path string, handler HandlerFunc) *RouterGroup {
 	return g.Add("DELETE", path, handler)
 }
 
 func (g *RouterGroup) Add(method, path string, handler HandlerFunc) *RouterGroup {
 	method = strings.ToUpper(method)
-	path = g.concatPath(path)
+	path = g.concatPath(quotePath(path))
 	// remove trailing slash
 	if len(path) > 1 && path[len(path)-1] == '/' {
 		path = path[:len(path)-1]
@@ -176,4 +143,12 @@ func (g *RouterGroup) RoutesString() string {
 		buf.WriteString("  }\n")
 	}
 	return buf.String()
+}
+
+func quotePath(path string) string {
+	// if path contains "(" or ")" it should be a regular expression
+	if strings.ContainsAny(path, "()") {
+		return path
+	}
+	return regexp.QuoteMeta(path)
 }

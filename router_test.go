@@ -18,34 +18,34 @@ func ExampleRouter() {
 	users.Get("/", func(c *Context) {
 		fmt.Println("list users")
 	})
-	users.GetX(`/(\d+)`, func(c *Context) {
+	users.Get(`/(\d+)`, func(c *Context) {
 		fmt.Printf("show user: %s\n", c.Param(0))
 	})
 
 	users.Post(`/`, func(c *Context) {
 		fmt.Println("create a user")
 	})
-	users.PostX(`/postx`, func(c *Context) {
+	users.Post(`/postx`, func(c *Context) {
 	})
 
-	users = users.GroupX(`/(\d+)`)
+	users = users.Group(`/(\d+)`)
 
 	users.Put(`/`, func(c *Context) {
 		fmt.Printf("fully update user: %s\n", c.Param(0))
 	})
-	users.PutX(`/putx`, func(c *Context) {
+	users.Put(`/putx`, func(c *Context) {
 	})
 
 	users.Patch(`/`, func(c *Context) {
 		fmt.Printf("partially update user: %s\n", c.Param(0))
 	})
-	users.PatchX(`/patchx`, func(c *Context) {
+	users.Patch(`/patchx`, func(c *Context) {
 	})
 
 	users.Delete(`/`, func(c *Context) {
 		fmt.Printf("delete user: %s\n", c.Param(0))
 	})
-	users.DeleteX(`/deletex`, func(c *Context) {
+	users.Delete(`/deletex`, func(c *Context) {
 	})
 
 	request, err := http.NewRequest("GET", "http://localhost/", nil)
@@ -80,7 +80,7 @@ func ExampleRouter_GetPost() {
 	router.GetPost("/GetPost", func(c *Context) {
 		fmt.Println("GetPost")
 	})
-	router.GetPostX("/GetPostX", func(c *Context) {
+	router.GetPost("/GetPostX", func(c *Context) {
 		fmt.Println("GetPostX")
 	})
 
@@ -190,14 +190,14 @@ func ExampleRouter_String() {
 	users.Get("/", func(c *Context) {
 		fmt.Println("list users")
 	})
-	users.GetX(`/(\d+)`, func(c *Context) {
+	users.Get(`/(\d+)`, func(c *Context) {
 		fmt.Printf("show user: %s\n", c.Param(0))
 	})
 
 	users.Post(`/`, func(c *Context) {
 		fmt.Println("create a user")
 	})
-	users.PostX(`/postx`, func(c *Context) {
+	users.Post(`/postx`, func(c *Context) {
 	})
 
 	fmt.Println(router)

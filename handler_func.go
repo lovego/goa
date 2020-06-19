@@ -31,3 +31,8 @@ func (hs HandlerFuncs) StringIndent(indent string) string {
 	buf.WriteString(indent + "]")
 	return buf.String()
 }
+
+func convert(h interface{}) (HandlerFunc, error) {
+	// reflect.ValueOf(h)
+	return nil, nil
+}
