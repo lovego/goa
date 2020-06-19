@@ -3,6 +3,7 @@ package utilroutes
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"sync"
 	"time"
 
@@ -45,6 +46,8 @@ func processingList(c *goa.Context) {
 func (ps *psType) ToJson() []byte {
 	ps.RLock()
 	defer ps.RUnlock()
+	hostname, _ := os.Hostname()
+	ps.m["machineName"] = map[string]int{hostname: 1}
 	bytes, err := json.Marshal(ps.m)
 	if err != nil {
 		return []byte(fmt.Sprint(err))
