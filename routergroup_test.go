@@ -71,7 +71,7 @@ func ExampleRouterGroup_concatPath_error1() {
 		fmt.Println(recover())
 	}()
 	fmt.Println(RouterGroup{}.concatPath(""))
-	// Output: router path should not be empty.
+	// Output: router path must not be empty.
 }
 
 func ExampleRouterGroup_concatPath_error2() {
@@ -79,5 +79,5 @@ func ExampleRouterGroup_concatPath_error2() {
 		fmt.Println(recover())
 	}()
 	fmt.Println(RouterGroup{}.concatPath("abc"))
-	// Output: router path should begin with "/".
+	// Output: router path must begin with "/".
 }

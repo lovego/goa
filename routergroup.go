@@ -81,10 +81,10 @@ func (g *RouterGroup) Add(method, path string, handler HandlerFunc) *RouterGroup
 func (g RouterGroup) concatPath(path string) string {
 	path = g.basePath + path
 	if len(path) == 0 {
-		log.Panic(`router path should not be empty.`)
+		log.Panic(`router path must not be empty.`)
 	}
 	if path[0] != '/' {
-		log.Panic(`router path should begin with "/".`)
+		log.Panic(`router path must begin with "/".`)
 	}
 	return path
 }
