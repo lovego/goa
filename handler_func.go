@@ -57,7 +57,7 @@ func convert(h interface{}) HandlerFunc {
 }
 
 // handler example
-func handlerExample(req struct {
+func handlerExample(req *struct {
 	Title   string
 	Desc    string
 	Ctx     *Context
@@ -71,27 +71,29 @@ func handlerExample(req struct {
 		Id   int64
 		Page int64
 	}
-	Body struct {
-		Id   int64
-		Name string
-	}
 	Headers struct {
 		Cookie string
 	}
-}) (
-	body struct {
+	Body struct {
 		Id   int64
-		Page int64
-	},
-	err error,
-	headers struct {
-		SetCookie string
-	},
-) {
-	return struct {
-			Id   int64
-			Page int64
-		}{}, nil, struct {
-			SetCookie string
-		}{}
+		Name string
+	} `当XXX时的请求体格式`
+	Body2 struct {
+		Id   int64
+		Name string
+	} `当YYY时的请求体格式`
+}, resp *struct {
+	Headers struct {
+		Cookie string
+	}
+	Body struct {
+		Id   int64
+		Name string
+	} `当XXX时的返回体格式`
+	Body2 struct {
+		Id   int64
+		Name string
+	} `当YYY时的返回体格式`
+}) {
+	// resp.Body, resp.Error = users.Get(req.Params.Id)
 }
