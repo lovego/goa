@@ -2,7 +2,10 @@ package goa
 
 import (
 	"bytes"
+	"fmt"
 	"net/http"
+	"reflect"
+	"runtime"
 
 	"github.com/lovego/regex_tree"
 )
@@ -12,6 +15,9 @@ type Router struct {
 	notFound     HandlerFunc
 	fullNotFound HandlerFuncs
 }
+
+type HandlerFunc func(*Context)
+type HandlerFuncs []HandlerFunc
 
 func New() *Router {
 	return &Router{
@@ -55,5 +61,26 @@ func (r *Router) String() string {
 		buf.WriteString("  notFound: " + r.notFound.String() + "\n")
 	}
 	buf.WriteString("}\n")
+	return buf.String()
+}
+
+func (h HandlerFunc) String() string {
+	return runtime.FuncForPC(reflect.ValueOf(h).Pointer()).Name()
+}
+
+func (hs HandlerFuncs) String() string {
+	return hs.StringIndent("")
+}
+
+func (hs HandlerFuncs) StringIndent(indent string) string {
+	if len(hs) == 0 {
+		return "[ ]"
+	}
+	var buf bytes.Buffer
+	buf.WriteString("[\n")
+	for _, h := range hs {
+		buf.WriteString(indent + "  " + fmt.Sprint(h) + "\n")
+	}
+	buf.WriteString(indent + "]")
 	return buf.String()
 }
