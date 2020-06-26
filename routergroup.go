@@ -63,7 +63,7 @@ func (g *RouterGroup) Add(method, path string, handler HandlerFunc) *RouterGroup
 	if handler == nil {
 		return g
 	}
-	// handlerFunc = convert(handler, path)
+	// handlerFunc = convertHandler(handler, path)
 	handlers := g.concatHandlers(handler)
 
 	rootNode := g.routes[method]

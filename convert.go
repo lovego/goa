@@ -5,7 +5,7 @@ import (
 	"reflect"
 )
 
-func convert(h interface{}, path string) HandlerFunc {
+func convertHandler(h interface{}, path string) HandlerFunc {
 	if handler, ok := h.(HandlerFunc); ok {
 		return handler
 	}
