@@ -70,19 +70,16 @@ func newParamConvertFunc(typ reflect.Type, index []int, path string) convertFunc
 }
 
 func newQueryConvertFunc(typ reflect.Type, index []int) convertFunc {
-	switch typ.Kind() {
-	case reflect.String:
-	case reflect.Struct:
-	default:
-		log.Panic("Query field of req parameter must be a struct or string.")
+	converters.ValidateQuery(typ)
+	return func(req reflect.Value, ctx *Context) error {
+		return converters.ConvertQuery(req.FieldByIndex(index), ctx.Request.URL.Query())
 	}
 }
 
 func newHeaderConvertFunc(typ reflect.Type, index []int) convertFunc {
-	switch typ.Kind() {
-	case reflect.Struct, reflect.Map:
-	default:
-		log.Panic("Query field of req parameter must be a struct or map.")
+	converters.ValidateHeader(typ)
+	return func(req reflect.Value, ctx *Context) error {
+		return converters.ConvertHeader(req.FieldByIndex(index), ctx.Request.Header)
 	}
 }
 
