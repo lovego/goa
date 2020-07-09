@@ -1,6 +1,7 @@
 package goa
 
 import (
+	"encoding/json"
 	"log"
 	"reflect"
 
@@ -70,24 +71,26 @@ func newParamConvertFunc(typ reflect.Type, index []int, path string) convertFunc
 }
 
 func newQueryConvertFunc(typ reflect.Type, index []int) convertFunc {
-	converters.ValidateQuery(typ)
+	converters.ValidateQueryOrHeader(typ, `Query`)
 	return func(req reflect.Value, ctx *Context) error {
-		return converters.ConvertQuery(req.FieldByIndex(index), ctx.Request.URL.Query())
+		return converters.ConvertQueryOrHeader(req.FieldByIndex(index), ctx.Request.URL.Query())
 	}
 }
 
 func newHeaderConvertFunc(typ reflect.Type, index []int) convertFunc {
-	converters.ValidateHeader(typ)
+	converters.ValidateQueryOrHeader(typ, `Header`)
 	return func(req reflect.Value, ctx *Context) error {
-		return converters.ConvertHeader(req.FieldByIndex(index), ctx.Request.Header)
+		return converters.ConvertQueryOrHeader(req.FieldByIndex(index), ctx.Request.Header)
 	}
 }
 
 func newBodyConvertFunc(typ reflect.Type, index []int) convertFunc {
-	switch typ.Kind() {
-	case reflect.Struct, reflect.Map:
-	default:
-		log.Panic("Query field of req parameter must be a struct or map.")
+	return func(req reflect.Value, ctx *Context) error {
+		body, err := ctx.RequestBody()
+		if err != nil {
+			return err
+		}
+		return json.Unmarshal(body, req.FieldByIndex(index).Interface())
 	}
 }
 

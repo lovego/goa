@@ -81,12 +81,3 @@ func Set(v reflect.Value, s string) error {
 	}
 	return nil
 }
-
-func capitalize(s string) string {
-	if len(s) > 0 && s[0] >= 'a' && s[0] <= 'z' {
-		b := []byte(s)
-		b[0] -= ('a' - 'A')
-		return string(b)
-	}
-	return s
-}
