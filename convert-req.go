@@ -47,10 +47,10 @@ func getReqFieldsConvertFuncs(typ reflect.Type, path string) (funcs []convertFun
 			funcs = append(funcs, newParamConvertFunc(f.Type, f.Index, path))
 		case "Query":
 			funcs = append(funcs, newQueryConvertFunc(f.Type, f.Index))
-		case "Header":
-			funcs = append(funcs, newHeaderConvertFunc(f.Type, f.Index))
 		case "Body":
 			funcs = append(funcs, newBodyConvertFunc(f.Type, f.Index))
+		case "Header":
+			funcs = append(funcs, newHeaderConvertFunc(f.Type, f.Index))
 		case "Session":
 			funcs = append(funcs, newSessionConvertFunc(f.Type, f.Index))
 		case "Ctx":
@@ -71,16 +71,16 @@ func newParamConvertFunc(typ reflect.Type, index []int, path string) convertFunc
 }
 
 func newQueryConvertFunc(typ reflect.Type, index []int) convertFunc {
-	converters.ValidateQueryOrHeader(typ, `Query`)
+	converters.ValidateQuery(typ)
 	return func(req reflect.Value, ctx *Context) error {
-		return converters.ConvertQueryOrHeader(req.FieldByIndex(index), ctx.Request.URL.Query())
+		return converters.ConvertQuery(req.FieldByIndex(index), ctx.Request.URL.Query())
 	}
 }
 
 func newHeaderConvertFunc(typ reflect.Type, index []int) convertFunc {
-	converters.ValidateQueryOrHeader(typ, `Header`)
+	converters.ValidateHeader(typ)
 	return func(req reflect.Value, ctx *Context) error {
-		return converters.ConvertQueryOrHeader(req.FieldByIndex(index), ctx.Request.Header)
+		return converters.ConvertHeader(req.FieldByIndex(index), ctx.Request.Header)
 	}
 }
 

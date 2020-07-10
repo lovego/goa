@@ -42,39 +42,35 @@ func convertHandler(h interface{}, path string) HandlerFunc {
 
 // handler example
 func handlerExample(req *struct {
-	Title  string
-	Desc   string
-	Params struct {
+	Title string
+	Desc  string
+	Param struct {
 		Id int64
 	}
 	Query struct {
 		Id   int64
 		Page int64
 	}
-	Headers struct {
-		Cookie string
-	}
 	Body struct {
 		Id   int64
 		Name string
+	}
+	Header struct {
+		Cookie string
 	}
 	Session struct {
 		UserId int64
 	}
 	Ctx *Context
 }, resp *struct {
-	Error   error
-	Headers struct {
+	Data struct {
+		Id   int64
+		Name string
+	}
+	Error  error
+	Header struct {
 		SetCookie string
 	}
-	Body struct {
-		Id   int64
-		Name string
-	} `当XXX时的返回体格式`
-	Body2 struct {
-		Id   int64
-		Name string
-	} `当YYY时的返回体格式`
 }) {
 	// resp.Body, resp.Error = users.Get(req.Params.Id)
 }
