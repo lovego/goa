@@ -3,10 +3,12 @@ package goa
 import (
 	"bytes"
 	"log"
+	"path/filepath"
 	"regexp"
 	"sort"
 	"strings"
 
+	"github.com/lovego/goa/converters/docs"
 	"github.com/lovego/regex_tree"
 )
 
@@ -14,18 +16,58 @@ type RouterGroup struct {
 	basePath string
 	handlers HandlerFuncs
 	routes   map[string]*regex_tree.Node
+	docDir   string
 }
 
-func (g *RouterGroup) Group(path string, handlers ...HandlerFunc) *RouterGroup {
-	return &RouterGroup{
+func (g *RouterGroup) DocDir(dir string) {
+	g.docDir = filepath.Clean(strings.TrimSpace(dir))
+}
+
+func (g *RouterGroup) Group(path string, descs ...string) *RouterGroup {
+	newGroup := &RouterGroup{
 		basePath: g.concatPath(quotePath(path)),
-		handlers: g.concatHandlers(handlers...),
+		handlers: g.concatHandlers(),
 		routes:   g.routes,
 	}
+	if g.docDir != "" {
+		newGroup.docDir = docs.Group(g.docDir, path, descs)
+	}
+	return newGroup
 }
 
-func (g *RouterGroup) Use(handlers ...HandlerFunc) {
+func (g *RouterGroup) Use(handlers ...HandlerFunc) *RouterGroup {
 	g.handlers = append(g.handlers, handlers...)
+	return g
+}
+
+func (g *RouterGroup) Add(method, path string, handler interface{}) *RouterGroup {
+	method = strings.ToUpper(method)
+	fullPath := g.concatPath(quotePath(path))
+	// remove trailing slash
+	if len(fullPath) > 1 && fullPath[len(fullPath)-1] == '/' {
+		fullPath = fullPath[:len(fullPath)-1]
+	}
+	if handler == nil {
+		return g
+	}
+	handlerFunc := convertHandler(handler, fullPath)
+	handlers := g.concatHandlers(handlerFunc)
+
+	rootNode := g.routes[method]
+	if rootNode == nil {
+		rootNode, err := regex_tree.New(fullPath, handlers)
+		if err != nil {
+			log.Panic(err)
+		}
+		g.routes[method] = rootNode
+	} else if err := rootNode.Add(fullPath, handlers); err != nil {
+		log.Panic(err)
+	}
+
+	if g.docDir != "" {
+		docs.Route(g.docDir, path, fullPath, handler)
+	}
+	return g
 }
 
 func (g *RouterGroup) Get(path string, handler interface{}) *RouterGroup {
@@ -51,50 +93,6 @@ func (g *RouterGroup) Patch(path string, handler interface{}) *RouterGroup {
 
 func (g *RouterGroup) Delete(path string, handler interface{}) *RouterGroup {
 	return g.Add("DELETE", path, handler)
-}
-
-func (g *RouterGroup) Add(method, path string, handler interface{}) *RouterGroup {
-	method = strings.ToUpper(method)
-	path = g.concatPath(quotePath(path))
-	// remove trailing slash
-	if len(path) > 1 && path[len(path)-1] == '/' {
-		path = path[:len(path)-1]
-	}
-	if handler == nil {
-		return g
-	}
-	handlerFunc := convertHandler(handler, path)
-	handlers := g.concatHandlers(handlerFunc)
-
-	rootNode := g.routes[method]
-	if rootNode == nil {
-		rootNode, err := regex_tree.New(path, handlers)
-		if err != nil {
-			log.Panic(err)
-		}
-		g.routes[method] = rootNode
-	} else if err := rootNode.Add(path, handlers); err != nil {
-		log.Panic(err)
-	}
-	return g
-}
-
-func (g RouterGroup) concatPath(path string) string {
-	path = g.basePath + path
-	if len(path) == 0 {
-		log.Panic(`router path must not be empty.`)
-	}
-	if path[0] != '/' {
-		log.Panic(`router path must begin with "/".`)
-	}
-	return path
-}
-
-func (g RouterGroup) concatHandlers(handlers ...HandlerFunc) HandlerFuncs {
-	result := make(HandlerFuncs, len(g.handlers)+len(handlers))
-	copy(result, g.handlers)
-	copy(result[len(g.handlers):], handlers)
-	return result
 }
 
 func (g *RouterGroup) Lookup(method, path string) (HandlerFuncs, []string) {
@@ -144,6 +142,24 @@ func (g *RouterGroup) RoutesString() string {
 		buf.WriteString("  }\n")
 	}
 	return buf.String()
+}
+
+func (g RouterGroup) concatPath(path string) string {
+	path = g.basePath + path
+	if len(path) == 0 {
+		log.Panic(`router path must not be empty.`)
+	}
+	if path[0] != '/' {
+		log.Panic(`router path must begin with "/".`)
+	}
+	return path
+}
+
+func (g RouterGroup) concatHandlers(handlers ...HandlerFunc) HandlerFuncs {
+	result := make(HandlerFuncs, len(g.handlers)+len(handlers))
+	copy(result, g.handlers)
+	copy(result[len(g.handlers):], handlers)
+	return result
 }
 
 func quotePath(path string) string {
