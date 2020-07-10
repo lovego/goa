@@ -47,10 +47,10 @@ func getReqFieldsConvertFuncs(typ reflect.Type, path string) (funcs []convertFun
 			funcs = append(funcs, newParamConvertFunc(f.Type, f.Index, path))
 		case "Query":
 			funcs = append(funcs, newQueryConvertFunc(f.Type, f.Index))
-		case "Body":
-			funcs = append(funcs, newBodyConvertFunc(f.Type, f.Index))
 		case "Header":
 			funcs = append(funcs, newHeaderConvertFunc(f.Type, f.Index))
+		case "Body":
+			funcs = append(funcs, newBodyConvertFunc(f.Type, f.Index))
 		case "Session":
 			funcs = append(funcs, newSessionConvertFunc(f.Type, f.Index))
 		case "Ctx":
@@ -90,7 +90,7 @@ func newBodyConvertFunc(typ reflect.Type, index []int) convertFunc {
 		if err != nil {
 			return err
 		}
-		return json.Unmarshal(body, req.FieldByIndex(index).Interface())
+		return json.Unmarshal(body, req.FieldByIndex(index).Addr().Interface())
 	}
 }
 

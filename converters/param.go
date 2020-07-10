@@ -32,7 +32,7 @@ func ForParam(typ reflect.Type, path string) ParamConverter {
 			if isSupportedType(f.Type) {
 				fields = append(fields, ParamField{ParamIndex: i - 1, StructField: f})
 			} else {
-				log.Panic("req.Param.%s: type must be string, number or bool.", f.Name)
+				log.Panicf("req.Param.%s: type must be string, number or bool.", f.Name)
 			}
 		}
 	}

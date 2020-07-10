@@ -8,11 +8,12 @@ a golang http router with regexp support, inspired by `httprouter` and `gin`.
 
 ## default middlewares
 - logging with error alarm support
-- processing list of requests in processing
+- list of requests in processing
 - CORS check
 
 ## attentions
 - static route is always matched before regexp route.
+- routes will not be looked back if no match is found for better performance.
 - call `c.Next()` in middleware to pass control to the next midlleware or route,
   if you don't call `c.Next()` no remaining midlleware or route will be executed.
 - generally don't use midlleware after routes,
@@ -36,7 +37,7 @@ import (
 
 func main() {
 	router := goa.New()
-	// logger should be the first, to handle panic and log all requests
+	// logger should comes first, to handle panic and log all requests
 	router.Use(middlewares.NewLogger(logger.New(os.Stdout)).Record)
 	router.Use(middlewares.NewCORS(allowOrigin).Check)
 	utilroutes.Setup(router)

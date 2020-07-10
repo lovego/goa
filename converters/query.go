@@ -22,11 +22,14 @@ func ValidateQuery(typ reflect.Type) {
 
 func ConvertQuery(value reflect.Value, map2strs map[string][]string) (err error) {
 	structs.Traverse(value, true, func(v reflect.Value, f reflect.StructField) bool {
-		values := map2strs[lowercaseFirstLetter(f.Name)]
+		values := map2strs[f.Name]
+		if len(values) == 0 {
+			values = map2strs[lowercaseFirstLetter(f.Name)]
+		}
 		if len(values) > 0 && values[0] != "" {
 			err = Set(v, values[0])
 		}
-		return err != nil // if err != nil, stop Traverse
+		return err == nil // if err == nil, go on Traverse
 	})
 	return
 }

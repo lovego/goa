@@ -28,32 +28,32 @@ func (g *RouterGroup) Use(handlers ...HandlerFunc) {
 	g.handlers = append(g.handlers, handlers...)
 }
 
-func (g *RouterGroup) Get(path string, handler HandlerFunc) *RouterGroup {
+func (g *RouterGroup) Get(path string, handler interface{}) *RouterGroup {
 	return g.Add("GET", path, handler)
 }
 
-func (g *RouterGroup) Post(path string, handler HandlerFunc) *RouterGroup {
+func (g *RouterGroup) Post(path string, handler interface{}) *RouterGroup {
 	return g.Add("POST", path, handler)
 }
 
-func (g *RouterGroup) GetPost(path string, handler HandlerFunc) *RouterGroup {
+func (g *RouterGroup) GetPost(path string, handler interface{}) *RouterGroup {
 	g.Add("GET", path, handler)
 	return g.Add("POST", path, handler)
 }
 
-func (g *RouterGroup) Put(path string, handler HandlerFunc) *RouterGroup {
+func (g *RouterGroup) Put(path string, handler interface{}) *RouterGroup {
 	return g.Add("PUT", path, handler)
 }
 
-func (g *RouterGroup) Patch(path string, handler HandlerFunc) *RouterGroup {
+func (g *RouterGroup) Patch(path string, handler interface{}) *RouterGroup {
 	return g.Add("PATCH", path, handler)
 }
 
-func (g *RouterGroup) Delete(path string, handler HandlerFunc) *RouterGroup {
+func (g *RouterGroup) Delete(path string, handler interface{}) *RouterGroup {
 	return g.Add("DELETE", path, handler)
 }
 
-func (g *RouterGroup) Add(method, path string, handler HandlerFunc) *RouterGroup {
+func (g *RouterGroup) Add(method, path string, handler interface{}) *RouterGroup {
 	method = strings.ToUpper(method)
 	path = g.concatPath(quotePath(path))
 	// remove trailing slash
@@ -63,8 +63,8 @@ func (g *RouterGroup) Add(method, path string, handler HandlerFunc) *RouterGroup
 	if handler == nil {
 		return g
 	}
-	// handlerFunc = convertHandler(handler, path)
-	handlers := g.concatHandlers(handler)
+	handlerFunc := convertHandler(handler, path)
+	handlers := g.concatHandlers(handlerFunc)
 
 	rootNode := g.routes[method]
 	if rootNode == nil {

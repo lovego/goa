@@ -3,9 +3,14 @@ package goa
 import (
 	"log"
 	"reflect"
+
+	"github.com/lovego/errs"
 )
 
 func convertHandler(h interface{}, path string) HandlerFunc {
+	if handler, ok := h.(func(*Context)); ok {
+		return handler
+	}
 	if handler, ok := h.(HandlerFunc); ok {
 		return handler
 	}
@@ -29,13 +34,13 @@ func convertHandler(h interface{}, path string) HandlerFunc {
 	return func(ctx *Context) {
 		req, err := reqConvertFunc(ctx)
 		if err != nil {
-			ctx.Data(nil, err)
+			ctx.Data(nil, errs.New("args-err", err.Error()))
 			return
 		}
 		resp := reflect.New(respTyp)
 		val.Call([]reflect.Value{req, resp})
 		if respWriteFunc != nil {
-			respWriteFunc(ctx, resp)
+			respWriteFunc(ctx, resp.Elem())
 		}
 	}
 }
@@ -51,23 +56,23 @@ func handlerExample(req *struct {
 		Id   int64
 		Page int64
 	}
+	Header struct {
+		Cookie string
+	}
 	Body struct {
 		Id   int64
 		Name string
-	}
-	Header struct {
-		Cookie string
 	}
 	Session struct {
 		UserId int64
 	}
 	Ctx *Context
 }, resp *struct {
-	Data struct {
+	Error error
+	Data  struct {
 		Id   int64
 		Name string
 	}
-	Error  error
 	Header struct {
 		SetCookie string
 	}

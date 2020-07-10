@@ -32,7 +32,7 @@ func ConvertHeader(value reflect.Value, map2strs map[string][]string) (err error
 		if len(values) > 0 && values[0] != "" {
 			err = Set(v, values[0])
 		}
-		return err != nil // if err != nil, stop Traverse
+		return err == nil // if err == nil, go on Traverse
 	})
 	return
 }
@@ -43,7 +43,7 @@ func ValidateRespHeader(typ reflect.Type) {
 	}
 	structs.Traverse(reflect.New(typ).Elem(), false, func(_ reflect.Value, f reflect.StructField) bool {
 		if f.Type.Kind() != reflect.String {
-			log.Panicf("req.Header.%s: type must be string.", f.Name)
+			log.Panicf("resp.Header.%s: type must be string.", f.Name)
 		}
 		return false
 	})

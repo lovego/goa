@@ -10,9 +10,9 @@ import (
 func ExampleRouter() {
 	router := New()
 
-	router.Get("/", func(c *Context) {
+	router.Get("/", HandlerFunc(func(c *Context) {
 		fmt.Println("root")
-	})
+	}))
 	users := router.Group("/users")
 
 	users.Get("/", func(c *Context) {
