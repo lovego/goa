@@ -28,7 +28,7 @@ func ForParam(typ reflect.Type, path string) ParamConverter {
 
 	var fields []ParamField
 	for i := 1; i < len(names); i++ {
-		if f, ok := typ.FieldByName(uppercaseFirstLetter(names[i])); ok {
+		if f, ok := typ.FieldByName(UppercaseFirstLetter(names[i])); ok {
 			if isSupportedType(f.Type) {
 				fields = append(fields, ParamField{ParamIndex: i - 1, StructField: f})
 			} else {
@@ -51,7 +51,7 @@ func (pc ParamConverter) Convert(param reflect.Value, paramsSlice []string) erro
 	return nil
 }
 
-func uppercaseFirstLetter(s string) string {
+func UppercaseFirstLetter(s string) string {
 	if len(s) > 0 && s[0] >= 'a' && s[0] <= 'z' {
 		b := []byte(s)
 		b[0] -= ('a' - 'A')
@@ -60,7 +60,7 @@ func uppercaseFirstLetter(s string) string {
 	return s
 }
 
-func lowercaseFirstLetter(s string) string {
+func LowercaseFirstLetter(s string) string {
 	if len(s) > 0 && s[0] >= 'A' && s[0] <= 'Z' {
 		b := []byte(s)
 		b[0] += ('a' - 'A')

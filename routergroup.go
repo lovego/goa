@@ -8,7 +8,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/lovego/goa/converters/docs"
+	"github.com/lovego/goa/docs"
 	"github.com/lovego/regex_tree"
 )
 
@@ -30,7 +30,7 @@ func (g *RouterGroup) Group(path string, descs ...string) *RouterGroup {
 		routes:   g.routes,
 	}
 	if g.docGroup.Dir != "" {
-		newGroup.docGroup = g.docGroup.Child(path, descs)
+		newGroup.docGroup = g.docGroup.Child(path, newGroup.basePath, descs)
 	}
 	return newGroup
 }
@@ -65,7 +65,7 @@ func (g *RouterGroup) Add(method, path string, handler interface{}) *RouterGroup
 	}
 
 	if g.docGroup.Dir != "" {
-		g.docGroup.Route(path, fullPath, handler)
+		g.docGroup.Route(method, path, fullPath, handler)
 	}
 	return g
 }

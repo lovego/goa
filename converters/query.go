@@ -15,7 +15,7 @@ func ValidateQuery(typ reflect.Type) {
 		if !isSupportedType(f.Type) {
 			log.Panicf("req.Query.%s: type must be string, number or bool.", f.Name)
 		}
-		return false
+		return true
 	})
 	return
 }
@@ -24,7 +24,7 @@ func ConvertQuery(value reflect.Value, map2strs map[string][]string) (err error)
 	structs.Traverse(value, true, func(v reflect.Value, f reflect.StructField) bool {
 		values := map2strs[f.Name]
 		if len(values) == 0 {
-			values = map2strs[lowercaseFirstLetter(f.Name)]
+			values = map2strs[LowercaseFirstLetter(f.Name)]
 		}
 		if len(values) > 0 && values[0] != "" {
 			err = Set(v, values[0])

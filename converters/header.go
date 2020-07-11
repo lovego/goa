@@ -45,7 +45,7 @@ func ValidateRespHeader(typ reflect.Type) {
 		if f.Type.Kind() != reflect.String {
 			log.Panicf("resp.Header.%s: type must be string.", f.Name)
 		}
-		return false
+		return true
 	})
 	return
 }
