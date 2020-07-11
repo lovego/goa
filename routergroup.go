@@ -3,7 +3,7 @@ package goa
 import (
 	"bytes"
 	"log"
-	"path/filepath"
+	pathPkg "path"
 	"regexp"
 	"sort"
 	"strings"
@@ -16,11 +16,11 @@ type RouterGroup struct {
 	basePath string
 	handlers HandlerFuncs
 	routes   map[string]*regex_tree.Node
-	docDir   string
+	docGroup docs.Group
 }
 
 func (g *RouterGroup) DocDir(dir string) {
-	g.docDir = filepath.Clean(strings.TrimSpace(dir))
+	g.docGroup.SetDir(dir)
 }
 
 func (g *RouterGroup) Group(path string, descs ...string) *RouterGroup {
@@ -29,8 +29,8 @@ func (g *RouterGroup) Group(path string, descs ...string) *RouterGroup {
 		handlers: g.concatHandlers(),
 		routes:   g.routes,
 	}
-	if g.docDir != "" {
-		newGroup.docDir = docs.Group(g.docDir, path, descs)
+	if g.docGroup.Dir != "" {
+		newGroup.docGroup = g.docGroup.Child(path, descs)
 	}
 	return newGroup
 }
@@ -64,8 +64,8 @@ func (g *RouterGroup) Add(method, path string, handler interface{}) *RouterGroup
 		log.Panic(err)
 	}
 
-	if g.docDir != "" {
-		docs.Route(g.docDir, path, fullPath, handler)
+	if g.docGroup.Dir != "" {
+		g.docGroup.Route(path, fullPath, handler)
 	}
 	return g
 }
@@ -145,7 +145,7 @@ func (g *RouterGroup) RoutesString() string {
 }
 
 func (g RouterGroup) concatPath(path string) string {
-	path = g.basePath + path
+	path = pathPkg.Join(g.basePath, path)
 	if len(path) == 0 {
 		log.Panic(`router path must not be empty.`)
 	}

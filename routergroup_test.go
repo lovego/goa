@@ -62,7 +62,7 @@ func ExampleRouterGroup_concatPath_basic() {
 	fmt.Println(RouterGroup{basePath: "/admin"}.concatPath(`/users/(\d+)`))
 	// Output:
 	// /
-	// /users/
+	// /users
 	// /admin/users/(\d+)
 }
 
