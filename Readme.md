@@ -1,10 +1,13 @@
 # goa
-a golang http router with regexp support, inspired by `httprouter` and `gin`.
+a golang http router with regexp support and document generation.
 
 [![Build Status](https://travis-ci.org/lovego/goa.svg?branch=master)](https://travis-ci.org/lovego/goa)
 [![Coverage Status](https://img.shields.io/coveralls/github/lovego/goa/master.svg)](https://coveralls.io/github/lovego/goa?branch=master)
 [![Go Report Card](https://goreportcard.com/badge/github.com/lovego/goa?1)](https://goreportcard.com/report/github.com/lovego/goa)
 [![GoDoc](https://godoc.org/github.com/lovego/goa?status.svg)](https://godoc.org/github.com/lovego/goa)
+
+## document generation
+see [example](docs/z_test.go) and [the generated documents](docs/testdata/README.md).
 
 ## default middlewares
 - logging with error alarm support
