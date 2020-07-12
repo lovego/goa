@@ -24,6 +24,7 @@ func (r *Route) Parse(handler interface{}) bool {
 
 func (r *Route) Doc(method, fullPath string) []byte {
 	buf := bytes.NewBufferString("# " + r.Title(method, fullPath) + "\n")
+	r.Desc(buf)
 
 	r.Param(buf, fullPath)
 	r.Query(buf)

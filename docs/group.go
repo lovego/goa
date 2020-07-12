@@ -38,7 +38,7 @@ func (g *Group) Child(path, fullPath string, descs []string) Group {
 			title += " (" + fullPath + ")"
 			child.CreateReadme(title, descs[1:])
 		}
-		g.LinkInReadme(title, path)
+		g.LinkInReadme(title, path, false)
 	}
 	return child
 }
@@ -63,7 +63,7 @@ func (g *Group) Route(method, path, fullPath string, handler interface{}) {
 		log.Panic(err)
 	}
 
-	g.LinkInReadme(route.Title(method, fullPath), path)
+	g.LinkInReadme(route.Title(method, fullPath), path, true)
 }
 
 func (g *Group) CreateReadme(title string, descs []string) {
@@ -78,14 +78,18 @@ func (g *Group) CreateReadme(title string, descs []string) {
 	}
 }
 
-func (g *Group) LinkInReadme(title, href string) {
+func (g *Group) LinkInReadme(title, href string, isRoute bool) {
 	buf := bytes.NewBufferString("##")
-	if g.depth > 0 {
-		buf.WriteString(strings.Repeat("#", g.depth))
+	depth := g.depth
+	if isRoute && depth == 0 {
+		depth = 1
+	}
+	if depth > 0 {
+		buf.WriteString(strings.Repeat("#", depth))
 	}
 	buf.WriteString(" ")
-	if g.depth > 0 {
-		buf.WriteString(strings.Repeat("　", g.depth)) // use a full-width space
+	if depth > 0 {
+		buf.WriteString(strings.Repeat("　", depth)) // use a full-width space
 	}
 
 	switch href {

@@ -23,6 +23,15 @@ func (r *Route) Title(method, fullPath string) string {
 	return title + " ： " + method + " " + html.EscapeString(fullPath)
 }
 
+func (r *Route) Desc(buf *bytes.Buffer) {
+	if f, ok := r.req.FieldByName("Desc"); ok {
+		if desc := strings.TrimSpace(string(f.Tag)); desc != "" {
+			buf.WriteString(desc)
+			buf.WriteByte('\n')
+		}
+	}
+}
+
 func (r *Route) Param(buf *bytes.Buffer, fullPath string) {
 	f, ok := r.req.FieldByName("Param")
 	if !ok {
@@ -75,6 +84,7 @@ func (r *Route) Body(buf *bytes.Buffer) {
 	}
 
 	buf.WriteString("\n## 请求体说明（application/json）\n")
+	buf.WriteString("```json5\n")
 	if b, err := jsondoc.MarshalIndent(
 		reflect.Zero(f.Type).Interface(), false, "", "  ",
 	); err != nil {
@@ -82,4 +92,5 @@ func (r *Route) Body(buf *bytes.Buffer) {
 	} else {
 		buf.Write(b)
 	}
+	buf.WriteString("\n```\n")
 }

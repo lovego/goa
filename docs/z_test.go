@@ -14,7 +14,7 @@ func ExampleGroup() {
 	accounts := router.Group("/", "账号", "用户、公司、员工、角色、权限")
 	accounts.Group("/users", "用户").
 		Get(`/`, testHandler).
-		Get(`/(?P<type>\w+)/(?P<id>\d+)`, testHandler)
+		Get(`/(?P<type>\w+)/(?P<id>\d+)`, testHandler2)
 
 	accounts.Group("/companies", "公司")
 
@@ -26,52 +26,46 @@ func ExampleGroup() {
 }
 
 type T struct {
-	Type string
-	Id   int
-	Flag bool
+	Type string `c:"类型"`
+	Id   int    `c:"ID"`
+	Flag bool   `c:"标志"`
 }
 
 func testHandler(req struct {
 	Title string `用户列表`
+	Desc  string `列出所有的用户`
 	Query struct {
-		Page int
+		Page int `c:"页码"`
 		T
 	}
 	Header struct {
-		Cookie string
+		Cookie string `c:"Cookie中包含会话信息"`
 	}
 	Body struct {
-		Name string
+		Name string `c:"名称"`
 		T
 	}
 }, resp *struct {
-	Error  error
-	Data   interface{}
-	Header struct {
-		SetCookie string `header:"Set-Cookie"`
+	Error error
+	Data  []struct {
+		Id   int    `c:"ID"`
+		Name string `c:"名称"`
 	}
 }) {
 }
 
 func testHandler2(req struct {
 	Title string `用户详情`
+	Desc  string `获取用户的详细信息`
 	Param T
-	Query struct {
-		Page int
-		T
-	}
-	Header struct {
-		Cookie string
-	}
-	Body struct {
-		Name string
-		T
-	}
 }, resp *struct {
-	Error  error
-	Data   interface{}
+	Error error
+	Data  struct {
+		Id   int    `c:"ID"`
+		Name string `c:"名称"`
+	}
 	Header struct {
-		SetCookie string `header:"Set-Cookie"`
+		SetCookie string `header:"Set-Cookie" c:"返回登录会话"`
 	}
 }) {
 }

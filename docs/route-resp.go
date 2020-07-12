@@ -29,12 +29,13 @@ func (r *Route) ResHeader(buf *bytes.Buffer) {
 }
 
 func (r *Route) ResBody(buf *bytes.Buffer) {
-	f, ok := r.resp.FieldByName("Body")
+	f, ok := r.resp.FieldByName("Data")
 	if !ok {
 		return
 	}
 
 	buf.WriteString("\n## 返回体说明（application/json）\n")
+	buf.WriteString("```json5\n")
 	if b, err := jsondoc.MarshalIndent(
 		resBody{Data: reflect.Zero(f.Type).Interface()}, false, "", "  ",
 	); err != nil {
@@ -42,6 +43,7 @@ func (r *Route) ResBody(buf *bytes.Buffer) {
 	} else {
 		buf.Write(b)
 	}
+	buf.WriteString("\n```\n")
 }
 
 type resBody struct {
