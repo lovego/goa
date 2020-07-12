@@ -3,6 +3,7 @@ package docs
 import (
 	"bytes"
 	"fmt"
+	"html"
 	"log"
 	"reflect"
 	"regexp"
@@ -19,7 +20,7 @@ func (r *Route) Title(method, fullPath string) string {
 	if f, ok := r.req.FieldByName("Title"); ok {
 		title = strings.TrimSpace(string(f.Tag))
 	}
-	return title + " (" + method + " " + fullPath + ")"
+	return title + " ： " + method + " " + html.EscapeString(fullPath)
 }
 
 func (r *Route) Param(buf *bytes.Buffer, fullPath string) {

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"io/ioutil"
 	"log"
+	"net/url"
 	"os"
 	pathPkg "path"
 	"path/filepath"
@@ -27,6 +28,7 @@ func (g *Group) Child(path, fullPath string, descs []string) Group {
 		child.depth = g.depth + 1
 	default:
 		child.depth = 0
+		path = pathPkg.Join(path, readme)
 	}
 
 	descs = cleanDescs(descs)
@@ -90,8 +92,8 @@ func (g *Group) LinkInReadme(title, href string) {
 	case ".", "/":
 		buf.WriteString(title)
 	default:
-		href = pathPkg.Join(".", href)
-		buf.WriteString("[" + title + "](" + href + ")")
+		u := url.URL{Path: pathPkg.Join(".", href)}
+		buf.WriteString("[" + title + "](" + u.EscapedPath() + ")")
 	}
 	buf.WriteByte('\n')
 

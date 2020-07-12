@@ -18,7 +18,7 @@ func (r *Route) Parse(handler interface{}) bool {
 	if typ.NumIn() != 2 {
 		return false
 	}
-	r.req, r.resp = typ.In(0), typ.In(1)
+	r.req, r.resp = typ.In(0), typ.In(1).Elem()
 	return true
 }
 
