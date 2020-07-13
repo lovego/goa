@@ -12,7 +12,7 @@ import (
 	"github.com/lovego/structs"
 )
 
-func (r *Route) ResHeader(buf *bytes.Buffer) {
+func (r *Route) RespHeader(buf *bytes.Buffer) {
 	field, ok := r.resp.FieldByName("Header")
 	if !ok {
 		return
@@ -32,20 +32,24 @@ func (r *Route) ResHeader(buf *bytes.Buffer) {
 	})
 }
 
-func (r *Route) ResBody(buf *bytes.Buffer) {
+func (r *Route) RespBody(buf *bytes.Buffer) {
 	field, ok := r.resp.FieldByName("Data")
-	if !ok {
-		return
-	}
 
 	buf.WriteString("\n## 返回体说明（application/json）\n")
-	if desc := strings.TrimSpace(string(field.Tag)); desc != "" {
-		buf.WriteString(desc + "\n\n")
+	if ok {
+		if desc := strings.TrimSpace(string(field.Tag)); desc != "" {
+			buf.WriteString(desc + "\n\n")
+		}
 	}
+
 	buf.WriteString("```json5\n")
-	if b, err := jsondoc.MarshalIndent(
-		resBody{Data: reflect.Zero(field.Type).Interface()}, false, "", "  ",
-	); err != nil {
+	var body interface{}
+	if ok {
+		body = respBodyWithData{Data: reflect.Zero(field.Type).Interface()}
+	} else {
+		body = respBody{}
+	}
+	if b, err := jsondoc.MarshalIndent(body, false, "", "  "); err != nil {
 		log.Panic(err)
 	} else {
 		buf.Write(b)
@@ -53,13 +57,17 @@ func (r *Route) ResBody(buf *bytes.Buffer) {
 	buf.WriteString("\n```\n")
 }
 
-type resBody struct {
-	Code    string      `json:"code"    c:"ok表示成功，其他表示错误代码"`
-	Message string      `json:"message" c:"与code对应的描述信息"`
-	Data    interface{} `json:"data"    c:"返回的数据"`
+type respBody struct {
+	Code    string `json:"code"           c:"ok表示成功，其他表示错误代码"`
+	Message string `json:"message"        c:"与code对应的描述信息"`
 }
 
-func (r *Route) ResError(buf *bytes.Buffer) {
+type respBodyWithData struct {
+	respBody
+	Data interface{} `json:"data" c:"返回的数据"`
+}
+
+func (r *Route) RespError(buf *bytes.Buffer) {
 	field, _ := r.resp.FieldByName("Error")
 
 	if desc := strings.TrimSpace(string(field.Tag)); desc != "" {

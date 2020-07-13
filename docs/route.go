@@ -34,9 +34,9 @@ func (r *Route) Doc(method, fullPath string) []byte {
 	r.Header(buf)
 	r.Body(buf)
 
-	r.ResHeader(buf)
-	r.ResBody(buf)
-	r.ResError(buf)
+	r.RespHeader(buf)
+	r.RespBody(buf)
+	r.RespError(buf)
 
 	return buf.Bytes()
 }

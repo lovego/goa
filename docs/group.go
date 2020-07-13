@@ -80,16 +80,14 @@ func (g *Group) CreateReadme(title string, descs []string) {
 
 func (g *Group) LinkInReadme(title, href string, isRoute bool) {
 	buf := bytes.NewBufferString("##")
-	depth := g.depth
-	if isRoute && depth == 0 {
-		depth = 1
-	}
-	if depth > 0 {
-		buf.WriteString(strings.Repeat("#", depth))
+	if g.depth > 0 {
+		buf.WriteString(strings.Repeat("#", g.depth))
+	} else if isRoute {
+		buf.WriteString("#")
 	}
 	buf.WriteString(" ")
-	if depth > 0 {
-		buf.WriteString(strings.Repeat("　", depth)) // use a full-width space
+	if g.depth > 0 {
+		buf.WriteString(strings.Repeat("　" /* a full-width space */, g.depth))
 	}
 
 	switch href {
