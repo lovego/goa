@@ -20,7 +20,7 @@ func (r *Route) ResHeader(buf *bytes.Buffer) {
 
 	buf.WriteString("\n## 返回头说明\n")
 	if desc := strings.TrimSpace(string(field.Tag)); desc != "" {
-		buf.WriteString(desc)
+		buf.WriteString(desc + "\n\n")
 	}
 	structs.Traverse(reflect.New(field.Type).Elem(), true, func(_ reflect.Value, f reflect.StructField) bool {
 		name, _ := struct_tag.Lookup(string(f.Tag), "header")
@@ -40,7 +40,7 @@ func (r *Route) ResBody(buf *bytes.Buffer) {
 
 	buf.WriteString("\n## 返回体说明（application/json）\n")
 	if desc := strings.TrimSpace(string(field.Tag)); desc != "" {
-		buf.WriteString(desc)
+		buf.WriteString(desc + "\n\n")
 	}
 	buf.WriteString("```json5\n")
 	if b, err := jsondoc.MarshalIndent(
@@ -64,6 +64,6 @@ func (r *Route) ResError(buf *bytes.Buffer) {
 
 	if desc := strings.TrimSpace(string(field.Tag)); desc != "" {
 		buf.WriteString("\n## 错误码说明（application/json）\n")
-		buf.WriteString(desc)
+		buf.WriteString(desc + "\n\n")
 	}
 }

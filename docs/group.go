@@ -63,7 +63,7 @@ func (g *Group) Route(method, path, fullPath string, handler interface{}) {
 		log.Panic(err)
 	}
 
-	g.LinkInReadme(route.Title(method, fullPath), path, true)
+	g.LinkInReadme(route.Title()+" ： "+route.MethodPath(method, fullPath), path, true)
 }
 
 func (g *Group) CreateReadme(title string, descs []string) {

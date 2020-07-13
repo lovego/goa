@@ -2,6 +2,7 @@ package docs
 
 import (
 	"bytes"
+	"html"
 	"reflect"
 	"regexp"
 	"strings"
@@ -23,7 +24,9 @@ func (r *Route) Parse(handler interface{}) bool {
 }
 
 func (r *Route) Doc(method, fullPath string) []byte {
-	buf := bytes.NewBufferString("# " + r.Title(method, fullPath) + "\n")
+	buf := bytes.NewBufferString(
+		"# " + r.Title() + "<br>" + r.MethodPath(method, fullPath) + "\n",
+	)
 	r.Desc(buf)
 
 	r.Param(buf, fullPath)
@@ -36,6 +39,10 @@ func (r *Route) Doc(method, fullPath string) []byte {
 	r.ResError(buf)
 
 	return buf.Bytes()
+}
+
+func (r *Route) MethodPath(method, fullPath string) string {
+	return method + " " + html.EscapeString(fullPath)
 }
 
 // extract comment from struct field tags

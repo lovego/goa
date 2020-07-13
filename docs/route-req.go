@@ -3,7 +3,6 @@ package docs
 import (
 	"bytes"
 	"fmt"
-	"html"
 	"log"
 	"reflect"
 	"regexp"
@@ -15,19 +14,17 @@ import (
 	"github.com/lovego/structs"
 )
 
-func (r *Route) Title(method, fullPath string) string {
-	var title string
+func (r *Route) Title() string {
 	if f, ok := r.req.FieldByName("Title"); ok {
-		title = strings.TrimSpace(string(f.Tag))
+		return strings.TrimSpace(string(f.Tag))
 	}
-	return title + " ： " + method + " " + html.EscapeString(fullPath)
+	return ""
 }
 
 func (r *Route) Desc(buf *bytes.Buffer) {
 	if f, ok := r.req.FieldByName("Desc"); ok {
 		if desc := strings.TrimSpace(string(f.Tag)); desc != "" {
-			buf.WriteString(desc)
-			buf.WriteByte('\n')
+			buf.WriteString(desc + "\n\n")
 		}
 	}
 }
@@ -40,7 +37,7 @@ func (r *Route) Param(buf *bytes.Buffer, fullPath string) {
 
 	buf.WriteString("\n## 路径中正则参数（子表达式）说明\n")
 	if desc := strings.TrimSpace(string(field.Tag)); desc != "" {
-		buf.WriteString(desc)
+		buf.WriteString(desc + "\n\n")
 	}
 
 	names := regexp.MustCompile(fullPath).SubexpNames()
@@ -59,7 +56,7 @@ func (r *Route) Query(buf *bytes.Buffer) {
 
 	buf.WriteString("\n## Query参数说明\n")
 	if desc := strings.TrimSpace(string(field.Tag)); desc != "" {
-		buf.WriteString(desc)
+		buf.WriteString(desc + "\n\n")
 	}
 	structs.Traverse(reflect.New(field.Type).Elem(), true,
 		func(_ reflect.Value, f reflect.StructField) bool {
@@ -78,7 +75,7 @@ func (r *Route) Header(buf *bytes.Buffer) {
 
 	buf.WriteString("\n## 请求头说明\n")
 	if desc := strings.TrimSpace(string(field.Tag)); desc != "" {
-		buf.WriteString(desc)
+		buf.WriteString(desc + "\n\n")
 	}
 	structs.Traverse(reflect.New(field.Type).Elem(), true,
 		func(_ reflect.Value, f reflect.StructField) bool {
@@ -99,7 +96,7 @@ func (r *Route) Body(buf *bytes.Buffer) {
 
 	buf.WriteString("\n## 请求体说明（application/json）\n")
 	if desc := strings.TrimSpace(string(field.Tag)); desc != "" {
-		buf.WriteString(desc)
+		buf.WriteString(desc + "\n\n")
 	}
 	buf.WriteString("```json5\n")
 	if b, err := jsondoc.MarshalIndent(

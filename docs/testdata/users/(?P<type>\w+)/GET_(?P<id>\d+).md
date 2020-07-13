@@ -1,5 +1,6 @@
-# 用户详情 ： GET /users/(?P&lt;type&gt;\w+)/(?P&lt;id&gt;\d+)
+# 用户详情<br>GET /users/(?P&lt;type&gt;\w+)/(?P&lt;id&gt;\d+)
 获取用户的详细信息
+
 
 ## 路径中正则参数（子表达式）说明
 - type (string): 类型
