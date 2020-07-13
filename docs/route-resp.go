@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"reflect"
+	"strings"
 
 	"github.com/lovego/jsondoc"
 	"github.com/lovego/struct_tag"
@@ -12,13 +13,16 @@ import (
 )
 
 func (r *Route) ResHeader(buf *bytes.Buffer) {
-	f, ok := r.resp.FieldByName("Header")
+	field, ok := r.resp.FieldByName("Header")
 	if !ok {
 		return
 	}
 
 	buf.WriteString("\n## 返回头说明\n")
-	structs.Traverse(reflect.New(f.Type).Elem(), true, func(_ reflect.Value, f reflect.StructField) bool {
+	if desc := strings.TrimSpace(string(field.Tag)); desc != "" {
+		buf.WriteString(desc)
+	}
+	structs.Traverse(reflect.New(field.Type).Elem(), true, func(_ reflect.Value, f reflect.StructField) bool {
 		name, _ := struct_tag.Lookup(string(f.Tag), "header")
 		if name == "" {
 			name = f.Name
@@ -29,15 +33,18 @@ func (r *Route) ResHeader(buf *bytes.Buffer) {
 }
 
 func (r *Route) ResBody(buf *bytes.Buffer) {
-	f, ok := r.resp.FieldByName("Data")
+	field, ok := r.resp.FieldByName("Data")
 	if !ok {
 		return
 	}
 
 	buf.WriteString("\n## 返回体说明（application/json）\n")
+	if desc := strings.TrimSpace(string(field.Tag)); desc != "" {
+		buf.WriteString(desc)
+	}
 	buf.WriteString("```json5\n")
 	if b, err := jsondoc.MarshalIndent(
-		resBody{Data: reflect.Zero(f.Type).Interface()}, false, "", "  ",
+		resBody{Data: reflect.Zero(field.Type).Interface()}, false, "", "  ",
 	); err != nil {
 		log.Panic(err)
 	} else {
@@ -53,12 +60,10 @@ type resBody struct {
 }
 
 func (r *Route) ResError(buf *bytes.Buffer) {
-	f, _ := r.resp.FieldByName("Error")
+	field, _ := r.resp.FieldByName("Error")
 
-	if len(f.Tag) == 0 {
-		return
+	if desc := strings.TrimSpace(string(field.Tag)); desc != "" {
+		buf.WriteString("\n## 错误码说明（application/json）\n")
+		buf.WriteString(desc)
 	}
-
-	buf.WriteString("\n## 错误码说明（application/json）\n")
-	buf.WriteString(string(f.Tag))
 }
