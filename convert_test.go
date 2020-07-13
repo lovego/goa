@@ -60,6 +60,7 @@ func ExampleConvertReq() {
 
 	resp := rw.Result()
 	fmt.Printf("resp.Status: %v\n", resp.Status)
+	delete(resp.Header, "Content-Type")
 	fmt.Printf("resp.Header: %v\n", resp.Header)
 	body, err := ioutil.ReadAll(resp.Body)
 	fmt.Printf("resp.Body: %v %v\n", string(body), err)
@@ -70,7 +71,7 @@ func ExampleConvertReq() {
 	// req.Header: {Cookie:a=b}
 	// req.Body: {Name:张三 T:{Type:users Id:123 Flag:true}}
 	// resp.Status: 200 OK
-	// resp.Header: map[Content-Type:[application/json; charset=utf-8] Set-Cookie:[c=d]]
+	// resp.Header: map[Set-Cookie:[c=d]]
 	// resp.Body: {"code":"ok","data":[1,2,3],"message":"success"}
 	//  <nil>
 }
