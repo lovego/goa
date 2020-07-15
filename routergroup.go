@@ -19,8 +19,9 @@ type RouterGroup struct {
 	docGroup docs.Group
 }
 
-func (g *RouterGroup) DocDir(dir string) {
+func (g *RouterGroup) DocDir(dir string) *RouterGroup {
 	g.docGroup.SetDir(dir)
+	return g
 }
 
 func (g *RouterGroup) Group(path string, descs ...string) *RouterGroup {

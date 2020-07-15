@@ -37,8 +37,10 @@ func (g *Group) Child(path, fullPath string, descs []string) Group {
 		if child.depth == 0 {
 			title += " (" + fullPath + ")"
 			child.CreateReadme(title, descs[1:])
+			g.LinkInReadme(title, path, nil, false)
+		} else {
+			g.LinkInReadme(title, path, descs[1:], false)
 		}
-		g.LinkInReadme(title, path, false)
 	}
 	return child
 }
@@ -63,7 +65,8 @@ func (g *Group) Route(method, path, fullPath string, handler interface{}) {
 		log.Panic(err)
 	}
 
-	g.LinkInReadme(route.Title()+" ： "+route.MethodPath(method, fullPath), path, true)
+	title := route.Title() + " ： " + route.MethodPath(method, fullPath)
+	g.LinkInReadme(title, path, nil, true)
 }
 
 func (g *Group) CreateReadme(title string, descs []string) {
@@ -78,7 +81,7 @@ func (g *Group) CreateReadme(title string, descs []string) {
 	}
 }
 
-func (g *Group) LinkInReadme(title, href string, isRoute bool) {
+func (g *Group) LinkInReadme(title, href string, desc []string, isRoute bool) {
 	buf := bytes.NewBufferString("##")
 	if g.depth > 0 {
 		buf.WriteString(strings.Repeat("#", g.depth))
@@ -98,6 +101,9 @@ func (g *Group) LinkInReadme(title, href string, isRoute bool) {
 		buf.WriteString("[" + title + "](" + u.EscapedPath() + ")")
 	}
 	buf.WriteByte('\n')
+	for _, line := range desc {
+		buf.WriteString(line + "\n")
+	}
 
 	mkdir(g.Dir)
 	if err := fs.Append(filepath.Join(g.Dir, readme), buf.Bytes()); err != nil {

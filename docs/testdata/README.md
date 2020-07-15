@@ -1,4 +1,5 @@
 ## 账号
+用户、公司、员工、角色、权限
 ### 　[用户 (/users)](users/README.md)
 ### 　[公司 (/companies)](companies/README.md)
 ## [商品 (/goods)](goods/README.md)
