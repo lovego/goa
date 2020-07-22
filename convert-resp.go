@@ -5,6 +5,7 @@ import (
 	"reflect"
 
 	"github.com/lovego/goa/converters"
+	"github.com/lovego/structs"
 )
 
 var errorType = reflect.TypeOf((*error)(nil)).Elem()
@@ -22,26 +23,25 @@ func newRespWriteFunc(typ reflect.Type) (reflect.Type, func(*Context, reflect.Va
 		var data interface{}
 		var err error
 
-		for i := 0; i < typ.NumField(); i++ {
-			f := typ.Field(i)
+		structs.Traverse(resp, false, func(v reflect.Value, f reflect.StructField) bool {
 			switch f.Name {
 			case "Error":
-				if e := resp.FieldByIndex(f.Index).Interface(); e != nil {
+				if e := v.Interface(); e != nil {
 					err = e.(error)
 				}
 			case "Data":
-				data = resp.FieldByIndex(f.Index).Interface()
+				data = v.Interface()
 			case "Header":
-				converters.WriteRespHeader(resp.FieldByIndex(f.Index), ctx.ResponseWriter.Header())
+				converters.WriteRespHeader(v, ctx.ResponseWriter.Header())
 			}
-		}
+			return true
+		})
 		ctx.Data(data, err)
 	}
 }
 
 func validateRespFields(typ reflect.Type) {
-	for i := 0; i < typ.NumField(); i++ {
-		f := typ.Field(i)
+	structs.TraverseType(typ, func(f reflect.StructField) {
 		switch f.Name {
 		case "Data":
 			// data can be of any type
@@ -54,5 +54,6 @@ func validateRespFields(typ reflect.Type) {
 		default:
 			log.Panicf("Unknow field: resp.%s.", f.Name)
 		}
-	}
+	})
+
 }

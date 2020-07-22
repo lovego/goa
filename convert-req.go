@@ -6,6 +6,7 @@ import (
 	"reflect"
 
 	"github.com/lovego/goa/converters"
+	"github.com/lovego/structs"
 )
 
 func newReqConvertFunc(typ reflect.Type, path string) func(*Context) (reflect.Value, error) {
@@ -14,17 +15,36 @@ func newReqConvertFunc(typ reflect.Type, path string) func(*Context) (reflect.Va
 		isPtr = true
 		typ = typ.Elem()
 	}
-	convertFuncs := getReqFieldsConvertFuncs(typ, path)
+	param := validateReqFields(typ, path)
 
 	return func(ctx *Context) (reflect.Value, error) {
 		ptr := reflect.New(typ)
 		req := ptr.Elem()
 
-		for _, convertFn := range convertFuncs {
-			if err := convertFn(req, ctx); err != nil {
-				return reflect.Value{}, err
+		var err error
+		structs.Traverse(req, true, func(value reflect.Value, f reflect.StructField) bool {
+			switch f.Name {
+			case "Param":
+				err = param.Convert(value, ctx.params)
+			case "Query":
+				err = converters.ConvertQuery(value, ctx.Request.URL.Query())
+			case "Header":
+				err = converters.ConvertHeader(value, ctx.Request.Header)
+			case "Body":
+				err = convertReqBody(value, ctx)
+			case "Session":
+				if sess := ctx.Get("session"); sess != nil {
+					err = converters.ConvertSession(value, reflect.ValueOf(sess))
+				}
+			case "Ctx":
+				value.Set(reflect.ValueOf(ctx))
 			}
+			return err == nil
+		})
+		if err != nil {
+			return reflect.Value{}, err
 		}
+
 		if isPtr {
 			return ptr, nil
 		} else {
@@ -33,85 +53,38 @@ func newReqConvertFunc(typ reflect.Type, path string) func(*Context) (reflect.Va
 	}
 }
 
-type convertFunc func(reflect.Value, *Context) error
+var typeContextPtr = reflect.TypeOf((*Context)(nil))
 
-func getReqFieldsConvertFuncs(typ reflect.Type, path string) (funcs []convertFunc) {
+func validateReqFields(typ reflect.Type, path string) (param converters.ParamConverter) {
 	if typ.Kind() != reflect.Struct {
 		log.Panic("req parameter of handler func must be a struct or struct pointer.")
 	}
 
-	for i := 0; i < typ.NumField(); i++ {
-		f := typ.Field(i)
+	structs.TraverseType(typ, func(f reflect.StructField) {
 		switch f.Name {
 		case "Param":
-			funcs = append(funcs, newParamConvertFunc(f.Type, f.Index, path))
+			param = converters.ForParam(f.Type, path)
 		case "Query":
-			funcs = append(funcs, newQueryConvertFunc(f.Type, f.Index))
+			converters.ValidateQuery(f.Type)
 		case "Header":
-			funcs = append(funcs, newHeaderConvertFunc(f.Type, f.Index))
-		case "Body":
-			funcs = append(funcs, newBodyConvertFunc(f.Type, f.Index))
-		case "Session":
-			funcs = append(funcs, newSessionConvertFunc(f.Type, f.Index))
+			converters.ValidateHeader(f.Type)
 		case "Ctx":
-			funcs = append(funcs, newCtxConvertFunc(f.Type, f.Index))
+			if f.Type != typeContextPtr {
+				log.Panic("Ctx field of req parameter must be of type '*goa.Context'.")
+			}
+		case "Body", "Session": // can be any type, donn't how to validate here.
 		case "Title", "Desc": // just for doc, does not care here
 		default:
 			log.Panicf("Unknow field: req.%s.", f.Name)
 		}
-	}
+	})
 	return
 }
 
-func newParamConvertFunc(typ reflect.Type, index []int, path string) convertFunc {
-	converter := converters.ForParam(typ, path)
-	return func(req reflect.Value, ctx *Context) error {
-		return converter.Convert(req.FieldByIndex(index), ctx.params)
+func convertReqBody(value reflect.Value, ctx *Context) error {
+	body, err := ctx.RequestBody()
+	if err != nil {
+		return err
 	}
-}
-
-func newQueryConvertFunc(typ reflect.Type, index []int) convertFunc {
-	converters.ValidateQuery(typ)
-	return func(req reflect.Value, ctx *Context) error {
-		return converters.ConvertQuery(req.FieldByIndex(index), ctx.Request.URL.Query())
-	}
-}
-
-func newHeaderConvertFunc(typ reflect.Type, index []int) convertFunc {
-	converters.ValidateHeader(typ)
-	return func(req reflect.Value, ctx *Context) error {
-		return converters.ConvertHeader(req.FieldByIndex(index), ctx.Request.Header)
-	}
-}
-
-func newBodyConvertFunc(typ reflect.Type, index []int) convertFunc {
-	return func(req reflect.Value, ctx *Context) error {
-		body, err := ctx.RequestBody()
-		if err != nil {
-			return err
-		}
-		return json.Unmarshal(body, req.FieldByIndex(index).Addr().Interface())
-	}
-}
-
-func newSessionConvertFunc(typ reflect.Type, index []int) convertFunc {
-	return func(req reflect.Value, ctx *Context) error {
-		sess := ctx.Get("session")
-		if sess == nil {
-			return nil
-		}
-		return converters.ConvertSession(req.FieldByIndex(index), reflect.ValueOf(sess))
-	}
-}
-
-var typeContextPtr = reflect.TypeOf((*Context)(nil))
-
-func newCtxConvertFunc(typ reflect.Type, index []int) convertFunc {
-	if typ != typeContextPtr {
-		log.Panic("Ctx field of req parameter must be of type '*goa.Context'.")
-	}
-	return func(req reflect.Value, ctx *Context) error {
-		req.FieldByIndex(index).Set(reflect.ValueOf(ctx))
-		return nil
-	}
+	return json.Unmarshal(body, value.Addr().Interface())
 }
