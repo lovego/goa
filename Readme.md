@@ -38,7 +38,7 @@ func main() {
 		router.DocDir(filepath.Join(fs.SourceDir(), "docs", "apis"))
 	}
 
-	// If donn't need documentation, use this simple style.
+	// If don't need documentation, use this simple style.
 	router.Get("/", func(c *goa.Context) {
 		c.Data("index", nil)
 	})
