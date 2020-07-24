@@ -1,5 +1,7 @@
 package users
 
+import "time"
+
 type ListReq struct {
 	Name     string `c:"用户名称"`
 	Type     string `c:"用户类型"`
@@ -17,7 +19,12 @@ type ListResp struct {
 	}
 }
 
-func (l *ListReq) Run() (ListResp, error) {
+type Session struct {
+	UserId  int64
+	LoginAt time.Time
+}
+
+func (l *ListReq) Run(sess *Session) (ListResp, error) {
 	return ListResp{}, nil
 }
 
