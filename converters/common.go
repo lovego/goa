@@ -1,23 +1,23 @@
 package converters
 
 import (
+	"encoding/json"
 	"reflect"
 	"strconv"
 )
 
 func isSupportedType(typ reflect.Type) bool {
-	switch typ.Kind() {
-	case reflect.String, reflect.Bool,
-		reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
-		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64,
-		reflect.Float32, reflect.Float64:
-		return true
-	default:
-		return false
-	}
+	return true
 }
 
 func Set(v reflect.Value, s string) error {
+	for v.Kind() == reflect.Ptr {
+		if v.IsNil() {
+			v.Set(reflect.New(v.Type().Elem()))
+		}
+		v = v.Elem()
+	}
+
 	switch v.Kind() {
 	case reflect.String:
 		v.SetString(s)
@@ -77,6 +77,39 @@ func Set(v reflect.Value, s string) error {
 			return err
 		} else {
 			v.SetFloat(f)
+		}
+	default:
+		return json.Unmarshal([]byte(s), v.Addr().Interface())
+	}
+	return nil
+}
+
+func SetArray(v reflect.Value, array []string) error {
+	for v.Kind() == reflect.Ptr {
+		if v.IsNil() {
+			v.Set(reflect.New(v.Type().Elem()))
+		}
+		v = v.Elem()
+	}
+
+	var length = len(array)
+	switch v.Kind() {
+	case reflect.Slice:
+		v.Set(reflect.MakeSlice(v.Type(), length, length))
+	case reflect.Array:
+		if v.Len() < length {
+			length = v.Len()
+		}
+	default:
+		if array[0] != "" {
+			return Set(v, array[0])
+		}
+		return nil
+	}
+
+	for i := 0; i < length; i++ {
+		if err := Set(v.Index(i), array[i]); err != nil {
+			return err
 		}
 	}
 	return nil
