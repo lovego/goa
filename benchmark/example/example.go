@@ -38,8 +38,8 @@ func main() {
 			Desc  string `根据搜索条件获取用户列表`
 			Query users.ListReq
 		}, resp *struct {
-			Error error
 			Data  users.ListResp
+			Error error
 		}) {
 			resp.Data, resp.Error = req.Query.Run()
 		}).
@@ -48,8 +48,8 @@ func main() {
 			Desc  string `根据用户ID获取用户详情`
 			Param users.DetailReq
 		}, resp *struct {
-			Error error
 			Data  users.DetailResp
+			Error error
 		}) {
 			resp.Data, resp.Error = req.Param.Run()
 		})

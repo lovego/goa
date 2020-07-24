@@ -2,6 +2,7 @@ package docs_test
 
 import (
 	"path/filepath"
+	"time"
 
 	"github.com/lovego/fs"
 	"github.com/lovego/goa"
@@ -45,12 +46,17 @@ func testHandler(req struct {
 		Name string `c:"名称"`
 		T
 	}
+	Session struct {
+		UserId  int64
+		LoginAt time.Time
+	}
+	Ctx *goa.Context
 }, resp *struct {
-	Error error
-	Data  []struct {
+	Data []struct {
 		Id   int    `c:"ID"`
 		Name string `c:"名称"`
 	}
+	Error error
 }) {
 }
 
@@ -59,13 +65,13 @@ func testHandler2(req struct {
 	Desc  string `获取用户的详细信息`
 	Param T
 }, resp *struct {
-	Error error
-	Data  struct {
-		Id   int    `c:"ID"`
-		Name string `c:"名称"`
-	}
 	Header struct {
 		SetCookie string `header:"Set-Cookie" c:"返回登录会话"`
 	}
+	Data struct {
+		Id   int    `c:"ID"`
+		Name string `c:"名称"`
+	}
+	Error error
 }) {
 }
