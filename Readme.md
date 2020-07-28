@@ -56,18 +56,17 @@ func main() {
 		}) {
 			resp.Data, resp.Error = req.Query.Run(&req.Session)
 		}).
-		Get(`/(?P<userId>\d+)`, func(req struct {
-			Title string          `用户详情`         // 接口标题，仅用来生成文档
-			Desc  string          `根据用户ID获取用户详情` // 接口描述，仅用来生成文档
-			Param users.DetailReq // 路径中的正则参数，已赋值，可以直接使用
-			Ctx   *goa.Context    // 请求上下文，已赋值，可以直接使用
+		Get(`/(\d+)`, func(req struct {
+			Title string       `用户详情`         // 接口标题，仅用来生成文档
+			Desc  string       `根据用户ID获取用户详情` // 接口描述，仅用来生成文档
+			Param int64        `用户ID`         // 路径中的正则参数，已赋值，可以直接使用
+			Ctx   *goa.Context // 请求上下文，已赋值，可以直接使用
 		}, resp *struct {
 			Data  users.DetailResp
 			Error error
 		}) {
-			resp.Data, resp.Error = req.Param.Run()
+			resp.Data, resp.Error = users.Detail(req.Param)
 		})
-
 
 	if os.Getenv("GOA_DOC") != "" {
 		return
@@ -119,10 +118,6 @@ func (l *ListReq) Run(sess *Session) (ListResp, error) {
 	return ListResp{}, nil
 }
 
-type DetailReq struct {
-	UserId int64 `c:"用户ID"`
-}
-
 type DetailResp struct {
 	TotalSize int `c:"总数据条数"`
 	TotalPage int `c:"总页数"`
@@ -133,7 +128,7 @@ type DetailResp struct {
 	}
 }
 
-func (l *DetailReq) Run() (DetailResp, error) {
+func Detail(userId int64) (DetailResp, error) {
 	return DetailResp{}, nil
 }
 ```

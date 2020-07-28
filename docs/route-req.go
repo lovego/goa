@@ -40,10 +40,12 @@ func (r *Route) Param(buf *bytes.Buffer, fullPath string) {
 		buf.WriteString(desc + "\n\n")
 	}
 
-	names := regexp.MustCompile(fullPath).SubexpNames()
-	for i := 1; i < len(names); i++ { // names[0] is always "".
-		if f, ok := field.Type.FieldByName(converters.UppercaseFirstLetter(names[i])); ok {
-			buf.WriteString(fmt.Sprintf("- %s (%v): %s\n", names[i], f.Type, getComment(f.Tag)))
+	names := regexp.MustCompile(fullPath).SubexpNames()[1:] // names[0] is always "".
+	for _, name := range names {
+		if name != "" {
+			if f, ok := field.Type.FieldByName(converters.UppercaseFirstLetter(name)); ok {
+				buf.WriteString(fmt.Sprintf("- %s (%v): %s\n", name, f.Type, getComment(f.Tag)))
+			}
 		}
 	}
 }

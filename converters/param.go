@@ -17,20 +17,21 @@ type ParamField struct {
 }
 
 func ForParam(typ reflect.Type, path string) ParamConverter {
-	if typ.Kind() != reflect.Struct {
-		log.Panic("req.Param must be a struct.")
+	names := regexp.MustCompile(path).SubexpNames()[1:] // names[0] is always "".
+	if len(names) == 0 {
+		log.Panic("req.Param: no parenthesized subexpression in path.")
 	}
-	names := regexp.MustCompile(path).SubexpNames()
-	// names[0] is always "".
-	if len(names) <= 1 {
-		log.Panic("req.Param: no named parenthesized subexpression in path.")
+	if len(names) == 1 && names[0] == "" {
+		return ParamConverter{}
+	} else if typ.Kind() != reflect.Struct {
+		log.Panic("req.Param must be a struct.")
 	}
 
 	var fields []ParamField
-	for i := 1; i < len(names); i++ {
-		if f, ok := typ.FieldByName(UppercaseFirstLetter(names[i])); ok {
+	for i, name := range names {
+		if f, ok := typ.FieldByName(UppercaseFirstLetter(name)); ok {
 			if isSupportedType(f.Type) {
-				fields = append(fields, ParamField{ParamIndex: i - 1, StructField: f})
+				fields = append(fields, ParamField{ParamIndex: i, StructField: f})
 			} else {
 				log.Panicf("req.Param.%s: type must be string, number or bool.", f.Name)
 			}
@@ -43,6 +44,9 @@ func ForParam(typ reflect.Type, path string) ParamConverter {
 }
 
 func (pc ParamConverter) Convert(param reflect.Value, paramsSlice []string) error {
+	if len(pc.fields) == 0 {
+		return Set(param, paramsSlice[0])
+	}
 	for _, f := range pc.fields {
 		if err := Set(param.FieldByIndex(f.Index), paramsSlice[f.ParamIndex]); err != nil {
 			return fmt.Errorf("req.Param.%s: %s", f.Name, err.Error())

@@ -18,7 +18,9 @@ func newRespWriteFunc(typ reflect.Type) (reflect.Type, func(*Context, reflect.Va
 	if typ.Kind() != reflect.Struct {
 		log.Panic("resp parameter of handler func must be a struct pointer.")
 	}
-	validateRespFields(typ)
+	if validateRespFields(typ) {
+		return typ, nil
+	}
 	return typ, func(ctx *Context, resp reflect.Value) {
 		var data interface{}
 		var err error
@@ -40,7 +42,8 @@ func newRespWriteFunc(typ reflect.Type) (reflect.Type, func(*Context, reflect.Va
 	}
 }
 
-func validateRespFields(typ reflect.Type) {
+func validateRespFields(typ reflect.Type) bool {
+	empty := true
 	structs.TraverseType(typ, func(f reflect.StructField) {
 		switch f.Name {
 		case "Data":
@@ -54,6 +57,7 @@ func validateRespFields(typ reflect.Type) {
 		default:
 			log.Panicf("Unknow field: resp.%s.", f.Name)
 		}
+		empty = false
 	})
-
+	return empty
 }

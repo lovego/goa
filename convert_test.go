@@ -78,3 +78,21 @@ func ExampleConvertReq() {
 	// resp.Body: {"code":"ok","data":[1,2,3],"message":"success"}
 	//  <nil>
 }
+
+func ExampleConvertReq_param() {
+	router := New()
+
+	router.Get(`/(\d+)`, func(req struct {
+		Param int
+	}, resp *struct {
+	}) {
+		fmt.Println(req.Param)
+	})
+	req, err := http.NewRequest("GET", "http://localhost/123", nil)
+	if err != nil {
+		panic(err)
+	}
+	router.ServeHTTP(nil, req)
+	// Output:
+	// 123
+}

@@ -28,10 +28,6 @@ func (l *ListReq) Run(sess *Session) (ListResp, error) {
 	return ListResp{}, nil
 }
 
-type DetailReq struct {
-	UserId int64 `c:"用户ID"`
-}
-
 type DetailResp struct {
 	TotalSize int `c:"总数据条数"`
 	TotalPage int `c:"总页数"`
@@ -42,6 +38,6 @@ type DetailResp struct {
 	}
 }
 
-func (l *DetailReq) Run() (DetailResp, error) {
+func Detail(userId int64) (DetailResp, error) {
 	return DetailResp{}, nil
 }
