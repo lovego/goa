@@ -1,5 +1,5 @@
 # goa
-A golang http router with regexp support and document generation.
+A golang http router with regexp and document generation support.
 
 [![Build Status](https://travis-ci.org/lovego/goa.svg?branch=master)](https://travis-ci.org/lovego/goa)
 [![Coverage Status](https://img.shields.io/coveralls/github/lovego/goa/master.svg)](https://coveralls.io/github/lovego/goa?branch=master)
@@ -38,7 +38,7 @@ func main() {
 		router.DocDir(filepath.Join(fs.SourceDir(), "docs", "apis"))
 	}
 
-	// If donn't need document, use this simple style.
+	// If don't need document, use this simple style.
 	router.Get("/", func(c *goa.Context) {
 		c.Data("index", nil)
 	})
