@@ -29,6 +29,7 @@ func ExampleConvertReq() {
 			Name string
 			T
 		}
+		Ctx *Context
 	}, resp *struct {
 		Error  error
 		Data   interface{}
@@ -40,6 +41,7 @@ func ExampleConvertReq() {
 		fmt.Printf("req.Query: %+v\n", req.Query)
 		fmt.Printf("req.Header: %+v\n", req.Header)
 		fmt.Printf("req.Body: %+v\n", req.Body)
+		fmt.Printf("req.Ctx not nil: %v\n", req.Ctx != nil)
 
 		resp.Data = []int{1, 2, 3}
 		resp.Header.SetCookie = "c=d"
@@ -70,6 +72,7 @@ func ExampleConvertReq() {
 	// req.Query: {Page:3 T:{Type:users Id:123 Flag:true}}
 	// req.Header: {Cookie:a=b}
 	// req.Body: {Name:张三 T:{Type:users Id:123 Flag:true}}
+	// req.Ctx not nil: true
 	// resp.Status: 200 OK
 	// resp.Header: map[Set-Cookie:[c=d]]
 	// resp.Body: {"code":"ok","data":[1,2,3],"message":"success"}
