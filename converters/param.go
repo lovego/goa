@@ -29,11 +29,13 @@ func ForParam(typ reflect.Type, path string) ParamConverter {
 
 	var fields []ParamField
 	for i, name := range names {
-		if f, ok := typ.FieldByName(UppercaseFirstLetter(name)); ok {
-			if isSupportedType(f.Type) {
-				fields = append(fields, ParamField{ParamIndex: i, StructField: f})
-			} else {
-				log.Panicf("req.Param.%s: type must be string, number or bool.", f.Name)
+		if name != "" {
+			if f, ok := typ.FieldByName(UppercaseFirstLetter(name)); ok {
+				if isSupportedType(f.Type) {
+					fields = append(fields, ParamField{ParamIndex: i, StructField: f})
+				} else {
+					log.Panicf("req.Param.%s: type must be string, number or bool.", f.Name)
+				}
 			}
 		}
 	}

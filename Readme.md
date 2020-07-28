@@ -8,7 +8,7 @@ A golang http router with regexp support and document generation.
 
 
 ## Usage
-### The `main` package
+### demo `main` package
 ```go
 package main
 
@@ -38,18 +38,18 @@ func main() {
 		router.DocDir(filepath.Join(fs.SourceDir(), "docs", "apis"))
 	}
 
-	// If donn't need documentation, use this simple style.
+	// If donn't need document, use this simple style.
 	router.Get("/", func(c *goa.Context) {
 		c.Data("index", nil)
 	})
 
-	// If need documentation, use this style for automated routes documentation generation.
+	// If need document, use this style for automated routes document generation.
 	router.Group("/users", "用户", "用户相关的接口").
 		Get("/", func(req struct {
-			Title   string        `用户列表`         // 接口标题，仅用来生成文档
-			Desc    string        `根据搜索条件获取用户列表` // 接口描述，仅用来生成文档
-			Query   users.ListReq // Query参数，已反序列化，可以直接使用
-			Session users.Session // 会话，已赋值ctx.Get("session")，可以直接使用
+			Title   string        `用户列表`
+			Desc    string        `根据搜索条件获取用户列表`
+			Query   users.ListReq
+			Session users.Session
 		}, resp *struct {
 			Data  users.ListResp
 			Error error
@@ -57,10 +57,10 @@ func main() {
 			resp.Data, resp.Error = req.Query.Run(&req.Session)
 		}).
 		Get(`/(\d+)`, func(req struct {
-			Title string       `用户详情`         // 接口标题，仅用来生成文档
-			Desc  string       `根据用户ID获取用户详情` // 接口描述，仅用来生成文档
-			Param int64        `用户ID`         // 路径中的正则参数，已赋值，可以直接使用
-			Ctx   *goa.Context // 请求上下文，已赋值，可以直接使用
+			Title string       `用户详情`
+			Desc  string       `根据用户ID获取用户详情`
+			Param int64        `用户ID`
+			Ctx   *goa.Context 
 		}, resp *struct {
 			Data  users.DetailResp
 			Error error
@@ -86,7 +86,7 @@ func allowOrigin(origin string) bool {
 }
 ```
 
-### The `users` package
+### demo `users` package
 ```go
 package users
 
@@ -133,7 +133,34 @@ func Detail(userId int64) (DetailResp, error) {
 }
 ```
 
-## Document generation
+
+## Handler func
+
+### The `req` (request) parameter 
+The `req` parameter must be a struct, and it can have the following 8 fields.
+The `Title` and `Desc` fields are just used for document generation, so can be of any type, and their values are untouched;
+The other fields's values are set in advance from the `http.Request`, so can be used directly in the handler.
+Except `Session` and `Ctx`, other fields's full tag is used as description for the corresponding object in the document.
+For `Param`, `Query`, `Header` and `Body`, if it's a struct, the struct fields's `comment` or `c` tag is used as the description for the fields in the document.
+
+1. `Title`: It's full tag is used as title of the route in document. 
+2. `Desc`:  It's full tag is used as description the route in document.
+3. `Param`: Subexpression parameters in regular expression path. If there is only one subexpression in the path and it's not named, the whole `Param` is set to the match properly. Otherwise, the `Param` must be a struct, and it's fields are set properly to the corresponding named subexpression. The first letter of the subexpression name is changed to uppercase to find the corresponding field. 
+4. `Query`: Query parameters in the the request, `Query` must be a struct, and it's fields are set properly to the corresponding query paramter. The first letter of the query parameter name is changed to uppercase to find the corresponding field in the struct.
+5. `Header`: Headers in the request. `Header` must be a struct, and it's fields are set properly to the corresponding header. The field's `header` tag(if present) or it's name is used as the corresponding header name. 
+6. `Body`: The request body is set to `Body` using `json.Unmarshal`.
+7. `Session`: `Session` is set to `goa.Context.Get("session")`, so the type must be exactly the same. 
+8. `Ctx`: `Ctx` must be of type `*goa.Context`.
+
+### The `resp` (response) parameter.
+The `resp` parameter must be a struct pointer, and it can have the following 3 fields.
+The fields's full tag is used as description for the corresponding object in the document.
+For `Data` and `Header`, if it's a struct, the struct fields's `comment` or `c` tag is used as the description for the fields in the document.
+
+1. `Data`: `Data` is writed in response body as a `data` field using `json.Marshal`.
+2. `Error`: `Error` is writed in response body as the `code` and `message` fields.
+3. `Header`: `Header` is writed in response headers.
+
 see [full examples](docs/z_test.go) and [the generated documents](docs/testdata/README.md).
 
 ## Default middlewares
