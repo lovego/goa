@@ -5,6 +5,8 @@ import (
 	"log"
 	"reflect"
 	"regexp"
+
+	"github.com/lovego/strs"
 )
 
 type ParamConverter struct {
@@ -30,7 +32,7 @@ func ForParam(typ reflect.Type, path string) ParamConverter {
 	var fields []ParamField
 	for i, name := range names {
 		if name != "" {
-			if f, ok := typ.FieldByName(UppercaseFirstLetter(name)); ok {
+			if f, ok := typ.FieldByName(strs.FirstLetterToUpper(name)); ok {
 				if isSupportedType(f.Type) {
 					fields = append(fields, ParamField{ParamIndex: i, StructField: f})
 				} else {
@@ -55,22 +57,4 @@ func (pc ParamConverter) Convert(param reflect.Value, paramsSlice []string) erro
 		}
 	}
 	return nil
-}
-
-func UppercaseFirstLetter(s string) string {
-	if len(s) > 0 && s[0] >= 'a' && s[0] <= 'z' {
-		b := []byte(s)
-		b[0] -= ('a' - 'A')
-		return string(b)
-	}
-	return s
-}
-
-func LowercaseFirstLetter(s string) string {
-	if len(s) > 0 && s[0] >= 'A' && s[0] <= 'Z' {
-		b := []byte(s)
-		b[0] += ('a' - 'A')
-		return string(b)
-	}
-	return s
 }

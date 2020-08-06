@@ -8,8 +8,8 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/lovego/goa/converters"
 	"github.com/lovego/jsondoc"
+	"github.com/lovego/strs"
 	"github.com/lovego/struct_tag"
 	"github.com/lovego/structs"
 )
@@ -43,7 +43,7 @@ func (r *Route) Param(buf *bytes.Buffer, fullPath string) {
 	names := regexp.MustCompile(fullPath).SubexpNames()[1:] // names[0] is always "".
 	for _, name := range names {
 		if name != "" {
-			if f, ok := field.Type.FieldByName(converters.UppercaseFirstLetter(name)); ok {
+			if f, ok := field.Type.FieldByName(strs.FirstLetterToUpper(name)); ok {
 				buf.WriteString(fmt.Sprintf("- %s (%v): %s\n", name, f.Type, getComment(f.Tag)))
 			}
 		}
@@ -63,7 +63,7 @@ func (r *Route) Query(buf *bytes.Buffer) {
 	structs.Traverse(reflect.New(field.Type).Elem(), true,
 		func(_ reflect.Value, f reflect.StructField) bool {
 			buf.WriteString(fmt.Sprintf(
-				"- %s (%v): %s\n", converters.LowercaseFirstLetter(f.Name), f.Type, getComment(f.Tag),
+				"- %s (%v): %s\n", strs.FirstLetterToLower(f.Name), f.Type, getComment(f.Tag),
 			))
 			return true
 		})

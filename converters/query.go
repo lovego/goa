@@ -4,6 +4,7 @@ import (
 	"log"
 	"reflect"
 
+	"github.com/lovego/strs"
 	"github.com/lovego/structs"
 )
 
@@ -26,7 +27,7 @@ func ConvertQuery(value reflect.Value, map2strs map[string][]string) (err error)
 
 		values := map2strs[f.Name]
 		if len(values) == 0 {
-			lowercaseName = LowercaseFirstLetter(f.Name)
+			lowercaseName = strs.FirstLetterToLower(f.Name)
 			values = map2strs[lowercaseName]
 		}
 		if len(values) == 0 {
