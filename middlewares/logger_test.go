@@ -41,8 +41,8 @@ func ExampleLogger() {
 	// reqBody: "[0,1,2]"
 	// reqBodySize: 7
 	// requestId: ""
-	// resBody: "{\"code\":\"ok\",\"message\":\"good\"}\n"
-	// resBodySize: 31
+	// respBody: "{\"code\":\"ok\",\"message\":\"good\"}\n"
+	// respBodySize: 31
 	// session: "session-data"
 	// status: 200
 }
@@ -71,8 +71,8 @@ func ExampleLogger_debug() {
 	// reqBody: "[0,1,2]"
 	// reqBodySize: 7
 	// requestId: ""
-	// resBody: "{\"code\":\"ok\",\"message\":\"good\"}\n"
-	// resBodySize: 31
+	// respBody: "{\"code\":\"ok\",\"message\":\"good\"}\n"
+	// respBodySize: 31
 	// session: "session-data"
 	// status: 200
 }
@@ -98,8 +98,8 @@ func ExampleLogger_panic() {
 	// reqBody: ""
 	// reqBodySize: 0
 	// requestId: ""
-	// resBody: "{\"code\":\"server-err\",\"message\":\"Fatal Server Error.\"}\n"
-	// resBodySize: 54
+	// respBody: "{\"code\":\"server-err\",\"message\":\"Fatal Server Error.\"}\n"
+	// respBodySize: 54
 	// status: 500
 	// stack:  github.com/lovego/goa/middlewares.startTestServer.func2
 }
@@ -111,8 +111,8 @@ func startTestServer() (*httptest.Server, *bytes.Buffer) {
 	router.Post("/", func(c *goa.Context) {
 		c.Ok("good")
 		c.Set("session", "session-data")
-		resBody := c.ResponseBody()
-		fmt.Println(string(resBody), len(resBody))
+		respBody := c.ResponseBody()
+		fmt.Println(string(respBody), len(respBody))
 	})
 	router.Get("/panic", func(c *goa.Context) {
 		panic("crash")
