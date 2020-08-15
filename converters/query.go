@@ -12,13 +12,6 @@ func ValidateQuery(typ reflect.Type) {
 	if typ.Kind() != reflect.Struct {
 		log.Panic("req.Query must be a struct.")
 	}
-	structs.Traverse(reflect.New(typ).Elem(), true, func(_ reflect.Value, f reflect.StructField) bool {
-		if !isSupportedType(f.Type) {
-			log.Panicf("req.Query.%s: type must be string, number or bool.", f.Name)
-		}
-		return true
-	})
-	return
 }
 
 func ConvertQuery(value reflect.Value, map2strs map[string][]string) (err error) {

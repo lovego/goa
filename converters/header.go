@@ -13,13 +13,6 @@ func ValidateHeader(typ reflect.Type) {
 	if typ.Kind() != reflect.Struct {
 		log.Panic("req.Header must be a struct.")
 	}
-	structs.Traverse(reflect.New(typ).Elem(), true, func(_ reflect.Value, f reflect.StructField) bool {
-		if !isSupportedType(f.Type) {
-			log.Panicf("req.Header.%s: type must be string, number or bool.", f.Name)
-		}
-		return false
-	})
-	return
 }
 
 func ConvertHeader(value reflect.Value, map2strs map[string][]string) (err error) {

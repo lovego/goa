@@ -33,11 +33,7 @@ func ForParam(typ reflect.Type, path string) ParamConverter {
 	for i, name := range names {
 		if name != "" {
 			if f, ok := typ.FieldByName(strs.FirstLetterToUpper(name)); ok {
-				if isSupportedType(f.Type) {
-					fields = append(fields, ParamField{ParamIndex: i, StructField: f})
-				} else {
-					log.Panicf("req.Param.%s: type must be string, number or bool.", f.Name)
-				}
+				fields = append(fields, ParamField{ParamIndex: i, StructField: f})
 			}
 		}
 	}

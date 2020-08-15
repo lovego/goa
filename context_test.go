@@ -29,11 +29,12 @@ func ExampleContext_Next() {
 func ExampleContext_Context() {
 	c := &Context{Request: httptest.NewRequest("GET", "/", nil)}
 	fmt.Println(c.Context())
-	c.Set("context", context.WithValue(context.Background(), "custom", 1))
-	fmt.Println(c.Context())
+	ctx := context.WithValue(context.Background(), "custom", 1)
+	c.Set("context", ctx)
+	fmt.Println(c.Context() == ctx)
 	// Output:
 	// context.Background
-	// context.Background.WithValue("custom", 1)
+	// true
 }
 
 func ExampleContext_Get() {

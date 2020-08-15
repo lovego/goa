@@ -9,13 +9,19 @@ import (
 	"github.com/lovego/structs"
 )
 
+type todoReqFields struct {
+	Query  bool
+	Header bool
+	Body   bool
+}
+
 func newReqConvertFunc(typ reflect.Type, path string) func(*Context) (reflect.Value, error) {
 	isPtr := false
 	if typ.Kind() == reflect.Ptr {
 		isPtr = true
 		typ = typ.Elem()
 	}
-	param := validateReqFields(typ, path)
+	param, todo := validateReqFields(typ, path)
 
 	return func(ctx *Context) (reflect.Value, error) {
 		ptr := reflect.New(typ)
@@ -27,11 +33,17 @@ func newReqConvertFunc(typ reflect.Type, path string) func(*Context) (reflect.Va
 			case "Param":
 				err = param.Convert(value, ctx.params)
 			case "Query":
-				err = converters.ConvertQuery(value, ctx.Request.URL.Query())
+				if todo.Query {
+					err = converters.ConvertQuery(value, ctx.Request.URL.Query())
+				}
 			case "Header":
-				err = converters.ConvertHeader(value, ctx.Request.Header)
+				if todo.Header {
+					err = converters.ConvertHeader(value, ctx.Request.Header)
+				}
 			case "Body":
-				err = convertReqBody(value, ctx)
+				if todo.Body {
+					err = convertReqBody(value, ctx)
+				}
 			case "Session":
 				if sess := ctx.Get("session"); sess != nil {
 					err = converters.ConvertSession(value, reflect.ValueOf(sess))
@@ -55,7 +67,9 @@ func newReqConvertFunc(typ reflect.Type, path string) func(*Context) (reflect.Va
 
 var typeContextPtr = reflect.TypeOf((*Context)(nil))
 
-func validateReqFields(typ reflect.Type, path string) (param converters.ParamConverter) {
+func validateReqFields(typ reflect.Type, path string) (
+	param converters.ParamConverter, todo todoReqFields,
+) {
 	if typ.Kind() != reflect.Struct {
 		log.Panic("req parameter of handler func must be a struct or struct pointer.")
 	}
@@ -65,17 +79,27 @@ func validateReqFields(typ reflect.Type, path string) (param converters.ParamCon
 		case "Param":
 			param = converters.ForParam(f.Type, path)
 		case "Query":
-			converters.ValidateQuery(f.Type)
+			if !isEmptyStruct(f.Type) {
+				converters.ValidateQuery(f.Type)
+				todo.Query = true
+			}
 		case "Header":
-			converters.ValidateHeader(f.Type)
+			if !isEmptyStruct(f.Type) {
+				converters.ValidateHeader(f.Type)
+				todo.Header = true
+			}
 		case "Ctx":
 			if f.Type != typeContextPtr {
 				log.Panic("Ctx field of req parameter must be of type '*goa.Context'.")
 			}
-		case "Body", "Session": // can be any type, donn't how to validate here.
+		case "Body":
+			if !isEmptyStruct(f.Type) {
+				todo.Body = true
+			}
+		case "Session": // can be any type, don't need to validate here.
 		case "Title", "Desc": // just for doc, does not care here
 		default:
-			log.Panicf("Unknow field: req.%s.", f.Name)
+			log.Panicf("Unknown field: req.%s.", f.Name)
 		}
 	})
 	return
@@ -87,4 +111,8 @@ func convertReqBody(value reflect.Value, ctx *Context) error {
 		return err
 	}
 	return json.Unmarshal(body, value.Addr().Interface())
+}
+
+func isEmptyStruct(typ reflect.Type) bool {
+	return typ.Kind() == reflect.Struct && typ.NumField() == 0
 }

@@ -55,7 +55,7 @@ func validateRespFields(typ reflect.Type) bool {
 		case "Header":
 			converters.ValidateRespHeader(f.Type)
 		default:
-			log.Panicf("Unknow field: resp.%s.", f.Name)
+			log.Panicf("Unknown field: resp.%s.", f.Name)
 		}
 		empty = false
 	})

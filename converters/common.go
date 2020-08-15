@@ -8,10 +8,6 @@ import (
 	"github.com/lovego/date"
 )
 
-func isSupportedType(typ reflect.Type) bool {
-	return true
-}
-
 func SetArray(v reflect.Value, array []string) error {
 	for v.Kind() == reflect.Ptr {
 		if v.IsNil() {
