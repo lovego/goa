@@ -29,7 +29,7 @@ func ExampleGroup() {
 type T struct {
 	Type string `c:"类型"`
 	Id   int    `c:"ID"`
-	Flag bool   `c:"标志"`
+	Flag bool   `json:"-" c:"标志"`
 }
 
 func testHandler(req struct {

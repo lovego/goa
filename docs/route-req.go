@@ -62,9 +62,11 @@ func (r *Route) Query(buf *bytes.Buffer) {
 	}
 	structs.Traverse(reflect.New(field.Type).Elem(), true,
 		func(_ reflect.Value, f reflect.StructField) bool {
-			buf.WriteString(fmt.Sprintf(
-				"- %s (%v): %s\n", strs.FirstLetterToLower(f.Name), f.Type, getComment(f.Tag),
-			))
+			if f.Tag.Get("json") != "-" {
+				buf.WriteString(fmt.Sprintf(
+					"- %s (%v): %s\n", strs.FirstLetterToLower(f.Name), f.Type, getComment(f.Tag),
+				))
+			}
 			return true
 		})
 }
@@ -81,11 +83,13 @@ func (r *Route) Header(buf *bytes.Buffer) {
 	}
 	structs.Traverse(reflect.New(field.Type).Elem(), true,
 		func(_ reflect.Value, f reflect.StructField) bool {
-			name, _ := struct_tag.Lookup(string(f.Tag), "header")
-			if name == "" {
-				name = f.Name
+			if f.Tag.Get("json") != "-" {
+				name, _ := struct_tag.Lookup(string(f.Tag), "header")
+				if name == "" {
+					name = f.Name
+				}
+				buf.WriteString(fmt.Sprintf("- %s (%v): %s\n", name, f.Type, getComment(f.Tag)))
 			}
-			buf.WriteString(fmt.Sprintf("- %s (%v): %s\n", name, f.Type, getComment(f.Tag)))
 			return true
 		})
 }

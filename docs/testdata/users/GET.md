@@ -6,7 +6,6 @@
 - page (int): 页码
 - type (string): 类型
 - id (int): ID
-- flag (bool): 标志
 
 ## 请求头说明
 - Cookie (string): Cookie中包含会话信息
@@ -16,8 +15,7 @@
 {
   "Name": "",	 # 名称
   "Type": "",	 # 类型
-  "Id": 0,	 # ID
-  "Flag": false	 # 标志
+  "Id": 0	 # ID
 }
 ```
 
