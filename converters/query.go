@@ -16,6 +16,10 @@ func ValidateQuery(typ reflect.Type) {
 
 func ConvertQuery(value reflect.Value, map2strs map[string][]string) (err error) {
 	structs.Traverse(value, true, func(v reflect.Value, f reflect.StructField) bool {
+		if f.Tag.Get("json") == "-" {
+			return true
+		}
+
 		var lowercaseName string
 
 		values := map2strs[f.Name]
