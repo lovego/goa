@@ -5,7 +5,7 @@ import (
 	"log"
 	"reflect"
 
-	"github.com/lovego/goa/converters"
+	"github.com/lovego/goa/convert"
 	"github.com/lovego/structs"
 )
 
@@ -34,11 +34,11 @@ func newReqConvertFunc(typ reflect.Type, path string) func(*Context) (reflect.Va
 				err = param.Convert(value, ctx.params)
 			case "Query":
 				if todo.Query {
-					err = converters.ConvertQuery(value, ctx.Request.URL.Query())
+					err = convert.Query(value, ctx.Request.URL.Query())
 				}
 			case "Header":
 				if todo.Header {
-					err = converters.ConvertHeader(value, ctx.Request.Header)
+					err = convert.Header(value, ctx.Request.Header)
 				}
 			case "Body":
 				if todo.Body {
@@ -46,7 +46,7 @@ func newReqConvertFunc(typ reflect.Type, path string) func(*Context) (reflect.Va
 				}
 			case "Session":
 				if sess := ctx.Get("session"); sess != nil {
-					err = converters.ConvertSession(value, reflect.ValueOf(sess))
+					err = convert.Session(value, reflect.ValueOf(sess))
 				}
 			case "Ctx":
 				value.Set(reflect.ValueOf(ctx))
@@ -68,7 +68,7 @@ func newReqConvertFunc(typ reflect.Type, path string) func(*Context) (reflect.Va
 var typeContextPtr = reflect.TypeOf((*Context)(nil))
 
 func validateReqFields(typ reflect.Type, path string) (
-	param converters.ParamConverter, todo todoReqFields,
+	param convert.ParamConverter, todo todoReqFields,
 ) {
 	if typ.Kind() != reflect.Struct {
 		log.Panic("req parameter of handler func must be a struct or struct pointer.")
@@ -77,15 +77,15 @@ func validateReqFields(typ reflect.Type, path string) (
 	structs.TraverseType(typ, func(f reflect.StructField) {
 		switch f.Name {
 		case "Param":
-			param = converters.ForParam(f.Type, path)
+			param = convert.GetParamConverter(f.Type, path)
 		case "Query":
 			if !isEmptyStruct(f.Type) {
-				converters.ValidateQuery(f.Type)
+				convert.ValidateQuery(f.Type)
 				todo.Query = true
 			}
 		case "Header":
 			if !isEmptyStruct(f.Type) {
-				converters.ValidateHeader(f.Type)
+				convert.ValidateHeader(f.Type)
 				todo.Header = true
 			}
 		case "Ctx":

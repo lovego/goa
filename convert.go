@@ -7,11 +7,8 @@ import (
 	"github.com/lovego/errs"
 )
 
-func convertHandler(h interface{}, path string) HandlerFunc {
+func convertHandler(h interface{}, path string) func(*Context) {
 	if handler, ok := h.(func(*Context)); ok {
-		return handler
-	}
-	if handler, ok := h.(HandlerFunc); ok {
 		return handler
 	}
 

@@ -2,7 +2,6 @@ package goa
 
 import (
 	"bytes"
-	"fmt"
 	"net/http"
 	"reflect"
 	"runtime"
@@ -12,18 +11,13 @@ import (
 
 type Router struct {
 	RouterGroup
-	notFound     HandlerFunc
-	fullNotFound HandlerFuncs
+	notFound []func(*Context)
 }
-
-type HandlerFunc func(*Context)
-type HandlerFuncs []HandlerFunc
 
 func New() *Router {
 	return &Router{
-		RouterGroup:  RouterGroup{routes: make(map[string]*regex_tree.Node)},
-		notFound:     defaultNotFound,
-		fullNotFound: HandlerFuncs{defaultNotFound},
+		RouterGroup: RouterGroup{routes: make(map[string]*regex_tree.Node)},
+		notFound:    []func(*Context){defaultNotFound},
 	}
 }
 
@@ -31,19 +25,22 @@ func (r *Router) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	handlers, params := r.Lookup(req.Method, req.URL.Path)
 	c := &Context{Request: req, ResponseWriter: rw, handlers: handlers, params: params, index: -1}
 	if len(handlers) == 0 {
-		c.handlers = r.fullNotFound
+		c.handlers = r.notFound
 	}
 	c.Next()
 }
 
-func (r *Router) Use(handlers ...HandlerFunc) {
-	r.RouterGroup.handlers = append(r.RouterGroup.handlers, handlers...)
-	r.fullNotFound = r.concatHandlers(r.notFound)
+func (r *Router) Use(handlers ...func(*Context)) {
+	r.RouterGroup.Use(handlers...)
+	last := len(r.notFound) - 1
+	notFound := r.notFound[last]
+	r.notFound = append(r.notFound[:last], handlers...)
+	r.notFound = append(r.notFound, notFound)
 }
 
-func (r *Router) NotFound(handler HandlerFunc) {
-	r.notFound = handler
-	r.fullNotFound = r.concatHandlers(r.notFound)
+func (r *Router) NotFound(handler func(*Context)) {
+	last := len(r.notFound) - 1
+	r.notFound[last] = handler
 }
 
 func defaultNotFound(c *Context) {
@@ -57,30 +54,13 @@ func (r *Router) String() string {
 	var buf bytes.Buffer
 	buf.WriteString("{\n")
 	buf.WriteString(r.RoutesString())
-	if r.notFound != nil {
-		buf.WriteString("  notFound: " + r.notFound.String() + "\n")
+	if len(r.notFound) > 0 {
+		buf.WriteString("  notFound: " + funcName(r.notFound[len(r.notFound)-1]) + "\n")
 	}
 	buf.WriteString("}\n")
 	return buf.String()
 }
 
-func (h HandlerFunc) String() string {
-	return runtime.FuncForPC(reflect.ValueOf(h).Pointer()).Name()
-}
-
-func (hs HandlerFuncs) String() string {
-	return hs.StringIndent("")
-}
-
-func (hs HandlerFuncs) StringIndent(indent string) string {
-	if len(hs) == 0 {
-		return "[ ]"
-	}
-	var buf bytes.Buffer
-	buf.WriteString("[\n")
-	for _, h := range hs {
-		buf.WriteString(indent + "  " + fmt.Sprint(h) + "\n")
-	}
-	buf.WriteString(indent + "]")
-	return buf.String()
+func funcName(fun interface{}) string {
+	return runtime.FuncForPC(reflect.ValueOf(fun).Pointer()).Name()
 }

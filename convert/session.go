@@ -1,11 +1,11 @@
-package converters
+package convert
 
 import (
 	"fmt"
 	"reflect"
 )
 
-func ConvertSession(sess, value reflect.Value) error {
+func Session(sess, value reflect.Value) error {
 	typ := sess.Type()
 	valueTyp := value.Type()
 	if valueTyp == typ {

@@ -10,9 +10,9 @@ import (
 func ExampleRouter() {
 	router := New()
 
-	router.Get("/", HandlerFunc(func(c *Context) {
+	router.Get("/", func(c *Context) {
 		fmt.Println("root")
-	}))
+	})
 	users := router.Group("/users")
 
 	users.Get("/", func(c *Context) {
@@ -236,18 +236,4 @@ func ExampleRouter_String() {
 	//   }
 	//   notFound: github.com/lovego/goa.defaultNotFound
 	// }
-}
-
-func ExampleHandlerFuncs_String() {
-	var hs HandlerFuncs
-	fmt.Println(hs)
-	hs = HandlerFuncs{
-		func(*Context) {},
-	}
-	fmt.Println(hs)
-	// Output:
-	// [ ]
-	// [
-	//   github.com/lovego/goa.ExampleHandlerFuncs_String.func1
-	// ]
 }

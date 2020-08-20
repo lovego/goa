@@ -37,6 +37,21 @@ func ExampleRouterGroup() {
 	// [ ] []
 }
 
+func ExampleRouterGroup_Listen() {
+	g := &RouterGroup{basePath: "/users", routes: make(map[string]*regex_tree.Node)}
+	g.Listen(func(method, path string, args []interface{}) func(*Context) {
+		fmt.Println(method, path, args)
+		return nil
+	})
+	g.Get("/", func(*Context) {
+	}, "list")
+	g.Post("/", func(*Context) {
+	}, "create")
+	// Output:
+	// GET /users [list]
+	// POST /users [create]
+}
+
 func ExampleRouterGroup_Add_error1() {
 	defer func() {
 		fmt.Println(recover())
@@ -80,4 +95,16 @@ func ExampleRouterGroup_concatPath_error2() {
 	}()
 	fmt.Println(RouterGroup{}.concatPath("abc"))
 	// Output: router path must begin with "/".
+}
+
+func ExampleHandlersStringIndent() {
+	fmt.Println(handlersStringIndent(nil, ""))
+	fmt.Println(handlersStringIndent([]interface{}{
+		func(*Context) {},
+	}, ""))
+	// Output:
+	// [ ]
+	// [
+	//   github.com/lovego/goa.ExampleHandlersStringIndent.func1
+	// ]
 }

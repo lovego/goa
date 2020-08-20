@@ -4,7 +4,7 @@ import (
 	"log"
 	"reflect"
 
-	"github.com/lovego/goa/converters"
+	"github.com/lovego/goa/convert"
 	"github.com/lovego/structs"
 )
 
@@ -34,7 +34,7 @@ func newRespWriteFunc(typ reflect.Type) (reflect.Type, func(*Context, reflect.Va
 			case "Data":
 				data = v.Interface()
 			case "Header":
-				converters.WriteRespHeader(v, ctx.ResponseWriter.Header())
+				convert.WriteRespHeader(v, ctx.ResponseWriter.Header())
 			}
 			return true
 		})
@@ -53,7 +53,7 @@ func validateRespFields(typ reflect.Type) bool {
 				log.Panicf(`resp.Error must be of "error" type.`)
 			}
 		case "Header":
-			converters.ValidateRespHeader(f.Type)
+			convert.ValidateRespHeader(f.Type)
 		default:
 			log.Panicf("Unknown field: resp.%s.", f.Name)
 		}

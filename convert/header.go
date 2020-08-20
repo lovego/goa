@@ -1,4 +1,4 @@
-package converters
+package convert
 
 import (
 	"log"
@@ -15,7 +15,7 @@ func ValidateHeader(typ reflect.Type) {
 	}
 }
 
-func ConvertHeader(value reflect.Value, map2strs map[string][]string) (err error) {
+func Header(value reflect.Value, map2strs map[string][]string) (err error) {
 	structs.Traverse(value, true, func(v reflect.Value, f reflect.StructField) bool {
 		if f.Tag.Get("json") == "-" {
 			return true

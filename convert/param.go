@@ -1,4 +1,4 @@
-package converters
+package convert
 
 import (
 	"fmt"
@@ -18,7 +18,7 @@ type ParamField struct {
 	reflect.StructField
 }
 
-func ForParam(typ reflect.Type, path string) ParamConverter {
+func GetParamConverter(typ reflect.Type, path string) ParamConverter {
 	names := regexp.MustCompile(path).SubexpNames()[1:] // names[0] is always "".
 	if len(names) == 0 {
 		log.Panic("req.Param: no parenthesized subexpression in path.")
