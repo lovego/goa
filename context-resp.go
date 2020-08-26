@@ -9,7 +9,7 @@ import (
 	"reflect"
 )
 
-const rspBodyKey = "responseBody"
+const respBodyKey = "responseBody"
 
 func (c *Context) Status() int64 {
 	status := reflect.ValueOf(c.ResponseWriter).Elem().FieldByName(`status`)
@@ -33,13 +33,13 @@ func (c *Context) Write(content []byte) (int, error) {
 	if c.data == nil {
 		c.data = make(map[string]interface{})
 	}
-	data := c.data[rspBodyKey]
+	data := c.data[respBodyKey]
 	if data == nil {
 		body := append([]byte{}, content...)
-		c.data[rspBodyKey] = body
+		c.data[respBodyKey] = body
 	} else if body, ok := data.([]byte); ok {
 		body = append(body, content...)
-		c.data[rspBodyKey] = body
+		c.data[respBodyKey] = body
 	}
 	return c.ResponseWriter.Write(content)
 }
@@ -48,7 +48,7 @@ func (c *Context) ResponseBody() []byte {
 	if c.data == nil {
 		c.data = make(map[string]interface{})
 	}
-	if data, ok := c.data[rspBodyKey]; ok {
+	if data, ok := c.data[respBodyKey]; ok {
 		if body, ok := data.([]byte); ok {
 			return body
 		}
@@ -56,15 +56,56 @@ func (c *Context) ResponseBody() []byte {
 	return nil
 }
 
-func (c *Context) JsonWithCode(data interface{}, code int) {
-	c.ResponseWriter.Header().Set(`Content-Type`, `application/json; charset=utf-8`)
-	c.WriteHeader(code)
-	encoder := json.NewEncoder(c)
-	encoder.SetEscapeHTML(false)
-	if err := encoder.Encode(data); err != nil {
-		c.SetError(err)
-		c.Write([]byte(`{"code":"json-marshal-error","message":"json marshal error"}`))
+func (c *Context) Data(data interface{}, err error) {
+	statusCode := http.StatusOK
+	body := struct {
+		Code    string      `json:"code"`
+		Message string      `json:"message"`
+		Data    interface{} `json:"data,omitempty"`
+	}{}
+	if err == nil {
+		body.Code = `ok`
+		body.Message = `success`
+	} else {
+		if err2, ok := err.(interface {
+			Code() string
+			Message() string
+		}); ok && err2.Code() != "" {
+			body.Code, body.Message = err2.Code(), err2.Message()
+
+			if err3, ok := err.(interface {
+				GetError() error
+			}); ok && err3.GetError() != nil {
+				c.SetError(err3.GetError())
+			}
+		} else {
+			statusCode = http.StatusInternalServerError
+			body.Code, body.Message = `server-err`, `Server Error.`
+			c.SetError(err)
+		}
 	}
+
+	if data != nil {
+		body.Data = data
+	} else if err != nil {
+		if err2, ok := err.(interface {
+			Data() interface{}
+		}); ok && err2.Data() != nil {
+			body.Data = err2.Data()
+		}
+	}
+	c.JsonWithCode(body, statusCode)
+}
+
+func (c *Context) Ok(message string) {
+	body := struct {
+		Code    string `json:"code"`
+		Message string `json:"message"`
+	}{
+		Code:    "ok",
+		Message: message,
+	}
+	c.JsonWithCode(body, http.StatusOK)
 }
 
 func (c *Context) Json(data interface{}) {
@@ -78,53 +119,15 @@ func (c *Context) Json2(data interface{}, err error) {
 	c.JsonWithCode(data, http.StatusOK)
 }
 
-func (c *Context) Ok(message string) {
-	result := make(map[string]interface{})
-	result["code"] = "ok"
-	result["message"] = message
-	c.JsonWithCode(result, http.StatusOK)
-}
-
-func (c *Context) Data(data interface{}, err error) {
-	c.DataWithKey(data, err, `data`)
-}
-
-func (c *Context) DataWithKey(data interface{}, err error, key string) {
-	statusCode := http.StatusOK
-	result := make(map[string]interface{})
-	if err == nil {
-		result[`code`] = `ok`
-		result[`message`] = `success`
-	} else {
-		if erro, ok := err.(interface {
-			Code() string
-			Message() string
-		}); ok && erro.Code() != "" {
-			result[`code`] = erro.Code()
-			result[`message`] = erro.Message()
-			if e, ok := err.(interface {
-				GetError() error
-			}); ok && e.GetError() != nil {
-				c.SetError(e.GetError())
-			}
-		} else {
-			statusCode = http.StatusInternalServerError
-			result[`code`] = `server-err`
-			result[`message`] = `Server Error.`
-			c.SetError(err)
-		}
+func (c *Context) JsonWithCode(data interface{}, code int) {
+	c.ResponseWriter.Header().Set(`Content-Type`, `application/json; charset=utf-8`)
+	c.WriteHeader(code)
+	encoder := json.NewEncoder(c)
+	encoder.SetEscapeHTML(false)
+	if err := encoder.Encode(data); err != nil {
+		c.SetError(err)
+		c.Write([]byte(`{"code":"json-marshal-error","message":"json marshal error"}`))
 	}
-
-	if data != nil {
-		result[key] = data
-	} else if err != nil {
-		if erro, ok := err.(interface {
-			Data() interface{}
-		}); ok && erro.Data() != nil {
-			result[key] = erro.Data()
-		}
-	}
-	c.JsonWithCode(result, statusCode)
 }
 
 func (c *Context) Redirect(url string) {

@@ -10,7 +10,7 @@ import (
 
 var errorType = reflect.TypeOf((*error)(nil)).Elem()
 
-func newRespWriteFunc(typ reflect.Type) (reflect.Type, func(*Context, reflect.Value)) {
+func newRespWriteFunc(typ reflect.Type, hasCtx bool) (reflect.Type, func(*Context, reflect.Value)) {
 	if typ.Kind() != reflect.Ptr {
 		log.Panic("resp parameter of handler func must be a struct pointer.")
 	}
@@ -22,6 +22,10 @@ func newRespWriteFunc(typ reflect.Type) (reflect.Type, func(*Context, reflect.Va
 		return typ, nil
 	}
 	return typ, func(ctx *Context, resp reflect.Value) {
+		if hasCtx && ctx.ResponseBodySize() > 0 {
+			return
+		}
+
 		var data interface{}
 		var err error
 

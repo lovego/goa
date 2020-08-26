@@ -13,9 +13,12 @@ type todoReqFields struct {
 	Query  bool
 	Header bool
 	Body   bool
+	Ctx    bool
 }
 
-func newReqConvertFunc(typ reflect.Type, path string) func(*Context) (reflect.Value, error) {
+func newReqConvertFunc(typ reflect.Type, path string) (
+	func(*Context) (reflect.Value, error), bool,
+) {
 	isPtr := false
 	if typ.Kind() == reflect.Ptr {
 		isPtr = true
@@ -62,7 +65,7 @@ func newReqConvertFunc(typ reflect.Type, path string) func(*Context) (reflect.Va
 		} else {
 			return req, nil
 		}
-	}
+	}, todo.Ctx
 }
 
 var typeContextPtr = reflect.TypeOf((*Context)(nil))
@@ -92,6 +95,7 @@ func validateReqFields(typ reflect.Type, path string) (
 			if f.Type != typeContextPtr {
 				log.Panic("Ctx field of req parameter must be of type '*goa.Context'.")
 			}
+			todo.Ctx = true
 		case "Body":
 			if !isEmptyStruct(f.Type) {
 				todo.Body = true

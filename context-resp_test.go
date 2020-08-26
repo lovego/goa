@@ -186,7 +186,7 @@ func ExampleContext_Data() {
 	// Output:
 	// 200
 	// map[Content-Type:[application/json; charset=utf-8]]
-	// {"code":"ok","data":["data1","data2"],"message":"success"}
+	// {"code":"ok","message":"success","data":["data1","data2"]}
 	//  <nil>
 }
 
@@ -266,7 +266,7 @@ func ExampleContext_Data_code_message_data_error() {
 	// Output:
 	// 200
 	// map[Content-Type:[application/json; charset=utf-8]]
-	// {"code":"the-code","data":["data1","data2"],"message":"the message"}
+	// {"code":"the-code","message":"the message","data":["data1","data2"]}
 	//  <nil>
 	// some error
 }

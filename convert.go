@@ -25,8 +25,8 @@ func convertHandler(h interface{}, path string) func(*Context) {
 		log.Panic("handler func must have no return values.")
 	}
 
-	reqConvertFunc := newReqConvertFunc(typ.In(0), path)
-	respTyp, respWriteFunc := newRespWriteFunc(typ.In(1))
+	reqConvertFunc, hasCtx := newReqConvertFunc(typ.In(0), path)
+	respTyp, respWriteFunc := newRespWriteFunc(typ.In(1), hasCtx)
 
 	return func(ctx *Context) {
 		req, err := reqConvertFunc(ctx)

@@ -75,7 +75,7 @@ func ExampleConvertReq() {
 	// req.Ctx not nil: true
 	// resp.Status: 200 OK
 	// resp.Header: map[Set-Cookie:[c=d]]
-	// resp.Body: {"code":"ok","data":[1,2,3],"message":"success"}
+	// resp.Body: {"code":"ok","message":"success","data":[1,2,3]}
 	//  <nil>
 }
 
