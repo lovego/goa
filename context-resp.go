@@ -94,7 +94,7 @@ func (c *Context) Data(data interface{}, err error) {
 			body.Data = err2.Data()
 		}
 	}
-	c.JsonWithCode(body, statusCode)
+	c.StatusJson(statusCode, body)
 }
 
 func (c *Context) Ok(message string) {
@@ -105,23 +105,25 @@ func (c *Context) Ok(message string) {
 		Code:    "ok",
 		Message: message,
 	}
-	c.JsonWithCode(body, http.StatusOK)
+	c.StatusJson(http.StatusOK, body)
 }
 
 func (c *Context) Json(data interface{}) {
-	c.JsonWithCode(data, http.StatusOK)
+	c.StatusJson(http.StatusOK, data)
 }
 
 func (c *Context) Json2(data interface{}, err error) {
 	if err != nil {
 		c.SetError(err)
 	}
-	c.JsonWithCode(data, http.StatusOK)
+	c.StatusJson(http.StatusOK, data)
 }
 
-func (c *Context) JsonWithCode(data interface{}, code int) {
+func (c *Context) StatusJson(status int, data interface{}) {
+	// header should be set before WriteHeader or Write
 	c.ResponseWriter.Header().Set(`Content-Type`, `application/json; charset=utf-8`)
-	c.WriteHeader(code)
+	c.WriteHeader(status)
+
 	encoder := json.NewEncoder(c)
 	encoder.SetEscapeHTML(false)
 	if err := encoder.Encode(data); err != nil {
