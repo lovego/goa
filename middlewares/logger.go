@@ -79,7 +79,7 @@ func (l *Logger) setFields(f *loggerPkg.Fields, c *goa.Context, debug bool) {
 
 func defaultPanicHandler(c *goa.Context) {
 	if c.ResponseBodySize() <= 0 {
-		c.JsonWithCode(map[string]string{"code": "server-err", "message": "Fatal Server Error."}, 500)
+		c.StatusJson(500, map[string]string{"code": "server-err", "message": "Fatal Server Error."})
 	} else {
 		c.WriteHeader(500)
 	}
