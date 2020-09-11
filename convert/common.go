@@ -51,7 +51,7 @@ func Set(v reflect.Value, s string) error {
 
 	switch v.Type() {
 	case dateType:
-		if dt, err := date.New(s); err != nil {
+		if dt, err := date.Parse(s); err != nil {
 			return err
 		} else {
 			v.Set(reflect.ValueOf(*dt))
