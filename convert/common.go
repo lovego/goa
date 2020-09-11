@@ -54,7 +54,7 @@ func Set(v reflect.Value, s string) error {
 		if dt, err := date.Parse(s); err != nil {
 			return err
 		} else {
-			v.Set(reflect.ValueOf(*dt))
+			v.Set(reflect.ValueOf(dt))
 			return nil
 		}
 	}
