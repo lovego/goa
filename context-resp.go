@@ -85,16 +85,25 @@ func (c *Context) Data(data interface{}, err error) {
 		}
 	}
 
-	if data != nil {
-		body.Data = data
-	} else if err != nil {
+	if err != nil {
 		if err2, ok := err.(interface {
 			Data() interface{}
 		}); ok && err2.Data() != nil {
 			body.Data = err2.Data()
 		}
+	} else if data != nil && !isNilValue(data) {
+		body.Data = data
 	}
 	c.StatusJson(statusCode, body)
+}
+
+func isNilValue(itfc interface{}) bool {
+	v := reflect.ValueOf(itfc)
+	switch v.Kind() {
+	case reflect.Ptr, reflect.Map, reflect.Slice, reflect.Interface:
+		return v.IsNil()
+	}
+	return false
 }
 
 func (c *Context) Ok(message string) {
