@@ -90,8 +90,10 @@ func (c *Context) Data(data interface{}, err error) {
 			Data() interface{}
 		}); ok && err2.Data() != nil {
 			body.Data = err2.Data()
+		} else if data != nil && !isNilValue(data) { // 避免返回"data": null
+			body.Data = data
 		}
-	} else if data != nil && !isNilValue(data) {
+	} else if data != nil && !isNilValue(data) { // 避免返回"data": null
 		body.Data = data
 	}
 	c.StatusJson(statusCode, body)
