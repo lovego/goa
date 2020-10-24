@@ -170,7 +170,6 @@ see [full examples](docs/z_test.go) and [the generated documents](docs/testdata/
 
 ## Attentions
 - static route is always matched before regexp route.
-- goa use regular expression trees. when match a request, the request is matched from the root node down to leaf node, until a whole match is found. for better performance, once a node is matched, only the children nodes will be traversed for match, no sibbling nodes will be checked even if no match is found in the children nodes. so sibbling routes should always match different pathes and not have overlaps to avoid this flaw.
 - call `c.Next()` in middleware to pass control to the next midlleware or route,
   if you don't call `c.Next()` no remaining midlleware or route will be executed.
 - generally don't use midlleware after routes, because generally the routes don't call `c.Next()`.
