@@ -60,15 +60,15 @@ func (r *Route) Query(buf *bytes.Buffer) {
 	if desc := strings.TrimSpace(string(field.Tag)); desc != "" {
 		buf.WriteString(desc + "\n\n")
 	}
-	structs.Traverse(reflect.New(field.Type).Elem(), true,
-		func(_ reflect.Value, f reflect.StructField) bool {
-			if f.Tag.Get("json") != "-" {
-				buf.WriteString(fmt.Sprintf(
-					"- %s (%v): %s\n", strs.FirstLetterToLower(f.Name), f.Type, getComment(f.Tag),
-				))
-			}
-			return true
-		})
+	buf.WriteString("```json5\n")
+	if b, err := jsondoc.MarshalIndent(
+		reflect.Zero(field.Type).Interface(), false, "", "  ",
+	); err != nil {
+		log.Panic(err)
+	} else {
+		buf.Write(b)
+	}
+	buf.WriteString("\n```\n")
 }
 
 func (r *Route) Header(buf *bytes.Buffer) {

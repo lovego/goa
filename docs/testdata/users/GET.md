@@ -3,9 +3,13 @@
 
 
 ## Query参数说明
-- page (int): 页码
-- type (string): 类型
-- id (int): ID
+```json5
+{
+  "Page": 0,	 # 页码
+  "Type": "",	 # 类型
+  "Id": 0	 # ID
+}
+```
 
 ## 请求头说明
 - Cookie (string): Cookie中包含会话信息
