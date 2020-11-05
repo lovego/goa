@@ -71,7 +71,7 @@ func (r *Route) RespError(buf *bytes.Buffer) {
 	field, _ := r.resp.FieldByName("Error")
 
 	if desc := strings.TrimSpace(string(field.Tag)); desc != "" {
-		buf.WriteString("\n## 错误码说明（application/json）\n")
+		buf.WriteString("\n## 错误码说明\n")
 		buf.WriteString(desc + "\n\n")
 	}
 }
