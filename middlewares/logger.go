@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"strings"
 
 	"github.com/lovego/goa"
 	loggerPkg "github.com/lovego/logger"
@@ -87,10 +88,17 @@ func defaultPanicHandler(c *goa.Context) {
 
 func defaultShouldLogBody(c *goa.Context) bool {
 	method := c.Request.Method
-	return method == http.MethodPost ||
-		method == http.MethodPatch ||
+	if method == http.MethodPatch ||
 		method == http.MethodPut ||
-		method == http.MethodDelete
+		method == http.MethodDelete {
+		return true
+	}
+	if method == http.MethodPost &&
+		!strings.HasSuffix(c.Request.URL.Path, "query") &&
+		!strings.HasSuffix(c.Request.URL.Path, "search") {
+		return true
+	}
+	return false
 }
 
 func tryUnmarshal(b []byte) interface{} {
