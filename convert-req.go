@@ -114,6 +114,9 @@ func convertReqBody(value reflect.Value, ctx *Context) error {
 	if err != nil {
 		return err
 	}
+	if len(body) == 0 {
+		return nil
+	}
 	return json.Unmarshal(body, value.Addr().Interface())
 }
 
