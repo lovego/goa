@@ -34,13 +34,16 @@ func newReqConvertFunc(typ reflect.Type, path string) (
 		structs.Traverse(req, true, func(value reflect.Value, f reflect.StructField) bool {
 			switch f.Name {
 			case "Param":
+				convertNilPtr(value)
 				err = param.Convert(value, ctx.params)
 			case "Query":
 				if todo.Query {
+					convertNilPtr(value)
 					err = convert.Query(value, ctx.Request.URL.Query())
 				}
 			case "Header":
 				if todo.Header {
+					convertNilPtr(value)
 					err = convert.Header(value, ctx.Request.Header)
 				}
 			case "Body":
@@ -121,5 +124,14 @@ func convertReqBody(value reflect.Value, ctx *Context) error {
 }
 
 func isEmptyStruct(typ reflect.Type) bool {
+	if typ.Kind() == reflect.Ptr {
+		typ = typ.Elem()
+	}
 	return typ.Kind() == reflect.Struct && typ.NumField() == 0
+}
+
+func convertNilPtr(v reflect.Value) {
+	if v.Kind() == reflect.Ptr && v.IsNil() && v.CanSet() {
+		v.Set(reflect.New(v.Type().Elem()))
+	}
 }

@@ -25,8 +25,13 @@ func GetParamConverter(typ reflect.Type, path string) ParamConverter {
 	}
 	if len(names) == 1 && names[0] == "" {
 		return ParamConverter{}
-	} else if typ.Kind() != reflect.Struct {
-		log.Panic("req.Param must be a struct.")
+	} else {
+		if typ.Kind() == reflect.Ptr {
+			typ = typ.Elem()
+		}
+		if typ.Kind() != reflect.Struct {
+			log.Panic("req.Param must be struct or pointer to struct.")
+		}
 	}
 
 	var fields []ParamField
@@ -46,6 +51,9 @@ func GetParamConverter(typ reflect.Type, path string) ParamConverter {
 func (pc ParamConverter) Convert(param reflect.Value, paramsSlice []string) error {
 	if len(pc.fields) == 0 {
 		return Set(param, paramsSlice[0])
+	}
+	if param.Kind() == reflect.Ptr {
+		param = param.Elem()
 	}
 	for _, f := range pc.fields {
 		if err := Set(param.FieldByIndex(f.Index), paramsSlice[f.ParamIndex]); err != nil {

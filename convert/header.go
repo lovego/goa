@@ -10,8 +10,8 @@ import (
 )
 
 func ValidateHeader(typ reflect.Type) {
-	if typ.Kind() != reflect.Struct {
-		log.Panic("req.Header must be a struct.")
+	if !isStructOrStructPtr(typ) {
+		log.Panic("req.Header must be struct or pointer to struct.")
 	}
 }
 
@@ -35,8 +35,11 @@ func Header(value reflect.Value, map2strs map[string][]string) (err error) {
 }
 
 func ValidateRespHeader(typ reflect.Type) {
+	if typ.Kind() == reflect.Ptr {
+		typ = typ.Elem()
+	}
 	if typ.Kind() != reflect.Struct {
-		log.Panic("resp.Header must be a struct.")
+		log.Panic("resp.Header must be struct or pointer to struct.")
 	}
 	structs.Traverse(reflect.New(typ).Elem(), false, func(_ reflect.Value, f reflect.StructField) bool {
 		if f.Type.Kind() != reflect.String {
