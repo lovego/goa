@@ -2,13 +2,15 @@ package utilroutes
 
 import (
 	"fmt"
-	httpPprof "net/http/pprof"
-	"runtime"
-	"runtime/pprof"
-	"strconv"
+	"log"
+	"net"
+	"os"
+	"strings"
 
 	"github.com/lovego/goa"
 )
+
+var instanceName = getInstanceName()
 
 func Setup(router *goa.Router) {
 	router.Get(`/_alive`, func(ctx *goa.Context) {
@@ -16,39 +18,73 @@ func Setup(router *goa.Router) {
 	})
 	router.Use(recordRequests) // ps middleware
 
-	debug := router.Group(`/_debug`)
-	debug.Get(`/`, func(ctx *goa.Context) {
+	group := router.Group(`/_debug`)
+	group.Use(func(ctx *goa.Context) {
+		ctx.ResponseWriter.Header().Set("Instance-Name", instanceName)
+		ctx.Next()
+	})
+	group.Get(`/`, func(ctx *goa.Context) {
 		ctx.Write(debugIndex())
 	})
-
-	debug.Get(`/reqs`, func(ctx *goa.Context) {
+	group.Get(`/reqs`, func(ctx *goa.Context) {
 		ctx.Write(requests.ToJson())
 	})
 
 	// pprof
-	debug.Get(`/cpu`, func(ctx *goa.Context) {
-		// ctx.Write([]byte(instanceName + "\n"))
-		httpPprof.Profile(ctx.ResponseWriter, ctx.Request)
+	group.Get(`/cpu`, func(ctx *goa.Context) {
+		cpuProfile(ctx.ResponseWriter, ctx.Request)
+	})
+	group.Get(`/(\w+)`, func(ctx *goa.Context) {
+		getProfile(ctx.Param(0), ctx.ResponseWriter, ctx.Request)
 	})
 
-	debug.Get(`/(\w+)`, func(ctx *goa.Context) {
-		name := ctx.Param(0)
-		ctx.ResponseWriter.Header().Set("Content-Type", "text/plain; charset=utf-8")
-		ctx.ResponseWriter.Header().Set("Instance-Name", instanceName)
-		profile := pprof.Lookup(name)
-		if profile == nil {
-			ctx.WriteHeader(404)
-			fmt.Fprintf(ctx, "Unknown profile: %s\n", name)
-			return
-		}
-		if name == "heap" && ctx.FormValue("gc") != `` {
-			runtime.GC()
-		}
-		debugLevel, _ := strconv.Atoi(ctx.FormValue("debug"))
-		profile.WriteTo(ctx, debugLevel)
+	group.Get(`/trace`, func(ctx *goa.Context) {
+		runTrace(ctx.ResponseWriter, ctx.Request)
 	})
+}
 
-	debug.Get(`/trace`, func(ctx *goa.Context) {
-		httpPprof.Trace(ctx.ResponseWriter, ctx.Request)
-	})
+func getInstanceName() string {
+	hostname, err := os.Hostname()
+	if err != nil {
+		log.Panic(err)
+	}
+	return fmt.Sprintf(
+		"%s (%s) (Listen At %s)", hostname, strings.Join(ipv4Addrs(), ", "), ListenAddr(),
+	)
+}
+
+func ipv4Addrs() (result []string) {
+	ifcs, err := net.Interfaces()
+	if err != nil {
+		panic(err)
+	}
+	for _, ifc := range ifcs {
+		if ifc.Flags&net.FlagLoopback == 0 {
+			result = append(result, ipv4AddrsOfInterface(ifc)...)
+		}
+	}
+	return result
+}
+func ipv4AddrsOfInterface(ifc net.Interface) (result []string) {
+	addrs, err := ifc.Addrs()
+	if err != nil {
+		panic(err)
+	}
+	for _, addr := range addrs {
+		if str := addr.String(); strings.IndexByte(str, '.') > 0 { // ipv4
+			if i := strings.IndexByte(str, '/'); i >= 0 {
+				str = str[:i]
+			}
+			result = append(result, str)
+		}
+	}
+	return result
+}
+
+func ListenAddr() string {
+	port := os.Getenv(`GOPORT`)
+	if port == `` {
+		port = `3000`
+	}
+	return `:` + port
 }
