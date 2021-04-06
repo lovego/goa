@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/fatih/color"
+	"github.com/lovego/goa/utilroutes"
 )
 
 type Server struct {
@@ -53,11 +54,7 @@ func (s Server) gracefulShutdown() {
 }
 
 func getListener() net.Listener {
-	port := os.Getenv(`GOPORT`)
-	if port == `` {
-		port = `3000`
-	}
-	addr := `:` + port
+	addr := utilroutes.ListenAddr()
 	ln, err := net.Listen(`tcp`, addr)
 	if err != nil {
 		log.Panic(err)
