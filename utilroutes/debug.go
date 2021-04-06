@@ -47,14 +47,14 @@ var debugIndexTmpl = template.Must(template.New(``).Parse(`
 	<head>
 		<meta charset="UTF-8">
 		<base target="_blank">
-	<title>pprof</title>
+	<title>debug</title>
 		<style>
 table { border-collapse: collapse; }
 th,td { padding: 5px 10px; border: 1px dashed gray; }
 		</style>
 	</head>
 	<body>
-	<h3>{{ .Instance }} profiles</h3>
+	<h3>{{ .Instance }}</h3>
 	<table>
 		<tr>
 			<th>Name</th>
@@ -70,7 +70,7 @@ th,td { padding: 5px 10px; border: 1px dashed gray; }
 		<tr>
 			<td><a href=/_debug/cpu>cpu</a></td>
 			<td></td>
-			<td> CPU profile. You can specify the duration in the "seconds" GET parameter. After you get the profile file, use the go tool pprof command to investigate the profile. </td>
+			<td> CPU profile. You can specify the duration in the "seconds" GET parameter. After you get the profile file, use the "go tool pprof" command to investigate the profile. </td>
 		</tr>
 
 		{{range .Profiles}}
@@ -84,7 +84,7 @@ th,td { padding: 5px 10px; border: 1px dashed gray; }
 		<tr>
 			<td><a href=/_debug/trace>trace</a></td>
 			<td></td>
-			<td> A trace of execution of the current program. You can specify the duration in the "seconds" GET parameter. After you get the trace file, use the go tool trace command to investigate the trace. </td>
+			<td> A trace of execution of the current program. You can specify the duration in the "seconds" GET parameter. After you get the trace file, use the "go tool trace" command to investigate the trace. </td>
 		</tr>
 	</table>
 	</body>
