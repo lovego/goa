@@ -2,6 +2,8 @@ package docs
 
 import (
 	"bytes"
+	"crypto/md5"
+	"encoding/base64"
 	"io/ioutil"
 	"log"
 	"net/url"
@@ -21,7 +23,7 @@ type Group struct {
 const readme = "README.md"
 
 func (g *Group) Child(path, fullPath string, descs []string) Group {
-	path = pathPkg.Clean(path)
+	path = cleanPath(path)
 	child := Group{Dir: filepath.Join(g.Dir, filepath.FromSlash(path))}
 	switch path {
 	case ".", "/":
@@ -51,7 +53,7 @@ func (g *Group) Route(method, path, fullPath string, handler interface{}) {
 		return
 	}
 
-	path = pathPkg.Clean(path)
+	path = cleanPath(path)
 	switch path {
 	case ".", "/":
 		path = method + ".md"
@@ -135,4 +137,22 @@ func mkdir(dir string) {
 			log.Panic(err)
 		}
 	}
+}
+
+func cleanPath(path string) string {
+	const chars = `\|:*?"<>` // characters invalid for windows file name
+	if strings.ContainsAny(path, chars) {
+		components := strings.Split(path, "/")
+		for i, v := range components {
+			if strings.ContainsAny(v, chars) {
+				var bytesSlice []byte
+				for _, b := range md5.Sum([]byte(v)) {
+					bytesSlice = append(bytesSlice, b)
+				}
+				components[i] = base64.RawURLEncoding.EncodeToString(bytesSlice)
+			}
+		}
+		path = pathPkg.Join(components...)
+	}
+	return pathPkg.Clean(path)
 }
