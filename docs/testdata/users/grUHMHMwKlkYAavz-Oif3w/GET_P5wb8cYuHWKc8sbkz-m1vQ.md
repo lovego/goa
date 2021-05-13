@@ -4,7 +4,7 @@
 
 ## 路径中正则参数（子表达式）说明
 - type (string): 类型
-- id (int): ID
+- id (*int): ID
 
 ## 返回头说明
 - Set-Cookie: 返回登录会话

@@ -28,7 +28,7 @@ func ExampleGroup() {
 
 type T struct {
 	Type string `c:"类型"`
-	Id   int    `c:"ID"`
+	Id   *int    `c:"ID"`
 	Flag bool   `json:"-" c:"标志"`
 }
 
@@ -42,8 +42,8 @@ func testHandler(req struct {
 	Header struct {
 		Cookie string `c:"Cookie中包含会话信息"`
 	}
-	Body struct {
-		Name string `c:"名称"`
+	Body *struct {
+		Name *string `c:"名称"`
 		T
 	}
 	Session struct {
@@ -52,9 +52,9 @@ func testHandler(req struct {
 	}
 	Ctx *goa.Context
 }, resp *struct {
-	Data []struct {
-		Id   int    `c:"ID"`
-		Name string `c:"名称"`
+	Data []*struct {
+		Id   *int    `c:"ID"`
+		Name *string `c:"名称"`
 	}
 	Error error
 }) {
