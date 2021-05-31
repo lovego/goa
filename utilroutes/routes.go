@@ -82,7 +82,7 @@ func ipv4AddrsOfInterface(ifc net.Interface) (result []string) {
 }
 
 func ListenAddr() string {
-	port := os.Getenv(`GOPORT`)
+	port := os.Getenv(`ProPORT`)
 	if port == `` {
 		port = `3000`
 	}
