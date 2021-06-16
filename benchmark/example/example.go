@@ -20,7 +20,7 @@ func main() {
 	// logger should comes first, to handle panic and log all requests
 	router.Use(middlewares.NewLogger(logger.New(os.Stdout)).Record)
 	router.Use(middlewares.NewCORS(allowOrigin).Check)
-	utilroutes.Setup(router)
+	utilroutes.Setup(&router.RouterGroup)
 
 	if os.Getenv("GOA_DOC") != "" {
 		router.DocDir(filepath.Join(fs.SourceDir(), "docs", "apis"))

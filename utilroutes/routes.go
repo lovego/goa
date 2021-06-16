@@ -12,33 +12,33 @@ import (
 
 var instanceName = getInstanceName()
 
-func Setup(router *goa.Router) {
+func Setup(router *goa.RouterGroup) {
 	router.Get(`/_alive`, func(ctx *goa.Context) {
 		ctx.Write([]byte(`ok`))
 	})
 	router.Use(recordRequests) // ps middleware
 
-	group := router.Group(`/_debug`)
-	group.Use(func(ctx *goa.Context) {
+	debug := router.Group(`/_debug`)
+	debug.Use(func(ctx *goa.Context) {
 		ctx.ResponseWriter.Header().Set("Instance-Name", instanceName)
 		ctx.Next()
 	})
-	group.Get(`/`, func(ctx *goa.Context) {
+	debug.Get(`/`, func(ctx *goa.Context) {
 		ctx.Write(debugIndex())
 	})
-	group.Get(`/reqs`, func(ctx *goa.Context) {
+	debug.Get(`/reqs`, func(ctx *goa.Context) {
 		ctx.Write(requests.ToJson())
 	})
 
 	// pprof
-	group.Get(`/cpu`, func(ctx *goa.Context) {
+	debug.Get(`/cpu`, func(ctx *goa.Context) {
 		cpuProfile(ctx.ResponseWriter, ctx.Request)
 	})
-	group.Get(`/(\w+)`, func(ctx *goa.Context) {
+	debug.Get(`/(\w+)`, func(ctx *goa.Context) {
 		getProfile(ctx.Param(0), ctx.ResponseWriter, ctx.Request)
 	})
 
-	group.Get(`/trace`, func(ctx *goa.Context) {
+	debug.Get(`/trace`, func(ctx *goa.Context) {
 		runTrace(ctx.ResponseWriter, ctx.Request)
 	})
 }
