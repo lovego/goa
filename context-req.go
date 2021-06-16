@@ -37,8 +37,12 @@ func (c *Context) Scheme() string {
 	return `http`
 }
 
+func (c *Context) Origin() string {
+	return c.Scheme() + "://" + c.Request.Host
+}
+
 func (c *Context) Url() string {
-	return c.Scheme() + `://` + c.Request.Host + c.Request.URL.RequestURI()
+	return c.Origin() + c.Request.URL.RequestURI()
 }
 
 func (c *Context) ClientAddr() string {

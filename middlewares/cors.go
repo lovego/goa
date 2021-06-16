@@ -17,7 +17,7 @@ func NewCORS(allow func(origin string) bool) CORS {
 }
 
 func (cors CORS) Check(c *goa.Context) {
-	if origin := c.Request.Header.Get(`Origin`); origin != `` {
+	if origin := c.Request.Header.Get(`Origin`); origin != `` && origin != c.Origin() {
 		if !cors.allow(origin) {
 			c.WriteHeader(http.StatusForbidden)
 			c.Write([]byte(`origin not allowed.`))
