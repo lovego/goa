@@ -10,6 +10,7 @@ import (
 )
 
 type Router struct {
+	beforeLookup func(rw http.ResponseWriter, req *http.Request)
 	RouterGroup
 	notFound []func(*Context)
 }
@@ -22,12 +23,19 @@ func New() *Router {
 }
 
 func (r *Router) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
+	if r.beforeLookup != nil {
+		r.beforeLookup(rw, req)
+	}
 	handlers, params := r.Lookup(req.Method, req.URL.Path)
 	c := &Context{Request: req, ResponseWriter: rw, handlers: handlers, params: params, index: -1}
 	if len(handlers) == 0 {
 		c.handlers = r.notFound
 	}
 	c.Next()
+}
+
+func (r *Router) BeforeLookup(fun func(rw http.ResponseWriter, req *http.Request)) {
+	r.beforeLookup = fun
 }
 
 func (r *Router) Use(handlers ...func(*Context)) {
