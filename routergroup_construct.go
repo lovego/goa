@@ -37,13 +37,13 @@ func (g *RouterGroup) Use(handlers ...func(*Context)) *RouterGroup {
 	return g
 }
 
-// Listen listens every route in the group,
+// Watch watchs every route in the group,
 // and optionally return a middleware to be executed only for this route.
-func (g *RouterGroup) Listen(
-	listeners ...func(method, fullPath string, args []interface{}) func(*Context),
+func (g *RouterGroup) Watch(
+	watchers ...func(method, fullPath string, args []interface{}) func(*Context),
 ) *RouterGroup {
-	for _, listener := range listeners {
-		g.handlers = append(g.handlers, listener)
+	for _, watcher := range watchers {
+		g.handlers = append(g.handlers, watcher)
 	}
 	return g
 }

@@ -39,7 +39,7 @@ func ExampleRouterGroup() {
 
 func ExampleRouterGroup_Listen() {
 	g := &RouterGroup{basePath: "/users", routes: make(map[string]*regex_tree.Node)}
-	g.Listen(func(method, path string, args []interface{}) func(*Context) {
+	g.Watch(func(method, path string, args []interface{}) func(*Context) {
 		fmt.Println(method, path, args)
 		return nil
 	})
