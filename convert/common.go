@@ -25,7 +25,7 @@ func SetArray(v reflect.Value, array []string) error {
 			length = v.Len()
 		}
 	default:
-		if array[0] != "" {
+		if length > 0 && array[0] != "" {
 			return Set(v, array[0])
 		}
 		return nil

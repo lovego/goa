@@ -5,7 +5,6 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/lovego/strs"
 	"github.com/lovego/structs"
 )
 
@@ -23,39 +22,60 @@ func isStructOrStructPtr(typ reflect.Type) bool {
 }
 
 func Query(value reflect.Value, map2strs map[string][]string) (err error) {
+	if len(map2strs) == 0 {
+		return nil
+	}
 	structs.Traverse(value, true, func(v reflect.Value, f reflect.StructField) bool {
-		var values []string
-		if tag := f.Tag.Get("json"); tag == "-" {
+		paramName, arrayParamName := queryParamName(f)
+		if paramName == "" {
 			return true
-		} else if idx := strings.Index(tag, ","); idx > 0 {
-			var name = tag[:idx]
-			values = map2strs[name]
-			if len(values) == 0 {
-				switch f.Type.Kind() {
-				case reflect.Slice, reflect.Array:
-					values = map2strs[name+"[]"]
-				}
-			}
-		} else {
-			values = map2strs[f.Name]
-			var lowercaseName string
-			if len(values) == 0 {
-				lowercaseName = strs.FirstLetterToLower(f.Name)
-				values = map2strs[lowercaseName]
-			}
-			if len(values) == 0 {
-				switch f.Type.Kind() {
-				case reflect.Slice, reflect.Array:
-					if values = map2strs[f.Name+"[]"]; len(values) == 0 {
-						values = map2strs[lowercaseName+"[]"]
-					}
-				}
-			}
 		}
-		if len(values) > 0 {
-			err = SetArray(v, values)
+		// value is always empty, so Set only when len(values) > 0
+		if values := queryParamValues(map2strs, paramName, arrayParamName); len(values) > 0 {
+			err := SetArray(v, values)
+			return err == nil // if err == nil, go on Traverse
 		}
-		return err == nil // if err == nil, go on Traverse
+		return true // go on Traverse
 	})
 	return
+}
+
+func queryParamName(field reflect.StructField) (string, string) {
+	tag := field.Tag.Get("json")
+	if tag == "-" {
+		return "", ""
+	}
+	name := field.Name
+	if tag != "" {
+		if idx := strings.Index(tag, ","); idx > 0 {
+			name = tag[:idx]
+		} else if idx < 0 {
+			name = tag
+		}
+	}
+	if kind := field.Type.Kind(); kind == reflect.Slice || kind == reflect.Array {
+		return name, name + "[]"
+	}
+	return name, ""
+}
+
+func queryParamValues(map2strs map[string][]string, paramName, arrayParamName string) []string {
+	if values, ok := map2strs[paramName]; ok {
+		return values
+	}
+	if arrayParamName != "" {
+		if values, ok := map2strs[arrayParamName]; ok {
+			return values
+		}
+	}
+
+	paramName, arrayParamName = strings.ToLower(paramName), strings.ToLower(arrayParamName)
+	for key, values := range map2strs {
+		key = strings.ToLower(key)
+		if key == paramName || arrayParamName != "" && key == arrayParamName {
+			return values
+		}
+	}
+
+	return nil
 }
