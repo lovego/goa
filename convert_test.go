@@ -3,6 +3,7 @@ package goa
 import (
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -53,7 +54,7 @@ func ExampleConvertReq() {
 		strings.NewReader(`{"name":"张三", "type":"users", "id": 123, "flag": true}`),
 	)
 	if err != nil {
-		panic(err)
+		log.Panic(err)
 	}
 	req.Header.Set("Cookie", "a=b")
 
@@ -90,7 +91,7 @@ func ExampleConvertReq_param() {
 	})
 	req, err := http.NewRequest("GET", "http://localhost/123", nil)
 	if err != nil {
-		panic(err)
+		log.Panic(err)
 	}
 	router.ServeHTTP(nil, req)
 	// Output:
@@ -144,7 +145,7 @@ func ExampleConvertReq_pointerFields() {
 		strings.NewReader(`{"name":"张三", "type":"users", "id": 123, "flag": true}`),
 	)
 	if err != nil {
-		panic(err)
+		log.Panic(err)
 	}
 	req.Header.Set("Cookie", "a=b")
 

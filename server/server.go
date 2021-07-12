@@ -6,8 +6,11 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"os/exec"
 	"os/signal"
+	"path/filepath"
 	"runtime"
+	"strings"
 	"syscall"
 	"time"
 
@@ -15,52 +18,47 @@ import (
 	"github.com/lovego/goa/utilroutes"
 )
 
-type Server struct {
-	*http.Server
-}
-
 func ListenAndServe(handler http.Handler) {
-	s := Server{&http.Server{}}
-	s.ListenAndServe(handler)
-}
-
-func (s Server) ListenAndServe(handler http.Handler) {
-	s.Server.Handler = handler
+	server := &http.Server{Handler: handler}
 
 	ch := make(chan os.Signal)
 	signal.Notify(ch, syscall.SIGTERM, os.Interrupt)
 
 	go func() {
-		if err := s.Server.Serve(getListener()); err != nil && err != http.ErrServerClosed {
+		if err := server.Serve(getListener()); err != nil && err != http.ErrServerClosed {
 			log.Panic(err)
 		}
 	}()
 
 	<-ch
-	s.gracefulShutdown()
+	gracefulShutdown(server)
 }
 
-func (s Server) gracefulShutdown() {
+func gracefulShutdown(server *http.Server) {
 	if runtime.GOOS != "linux" {
 		return
 	}
 	c, cancel := context.WithDeadline(context.Background(), time.Now().Add(7*time.Second))
 	defer cancel()
-	if err := s.Server.Shutdown(c); err == nil {
+	if err := server.Shutdown(c); err == nil {
 		log.Println(`shutdown`)
 	} else {
 		log.Println("shutdown error: ", err)
 	}
 }
 
+var listenControl func(network, address string, c syscall.RawConn) error
+
 func getListener() net.Listener {
 	addr := utilroutes.ListenAddr()
-	ln, err := net.Listen(`tcp`, addr)
+	checkListenAddr(addr)
+	listenConfig := net.ListenConfig{Control: listenControl}
+	listener, err := listenConfig.Listen(context.Background(), `tcp`, addr)
 	if err != nil {
 		log.Panic(err)
 	}
 	log.Println(color.GreenString(`started.(` + addr + `)`))
-	return tcpKeepAliveListener{ln.(*net.TCPListener)}
+	return tcpKeepAliveListener{listener.(*net.TCPListener)}
 }
 
 // tcpKeepAliveListener sets TCP keep-alive timeouts on accepted
@@ -79,4 +77,40 @@ func (ln tcpKeepAliveListener) Accept() (c net.Conn, err error) {
 	tc.SetKeepAlive(true)
 	tc.SetKeepAlivePeriod(3 * time.Minute)
 	return tc, nil
+}
+
+func checkListenAddr(addr string) {
+	if conn, _ := net.DialTimeout("tcp", addr, time.Second); conn == nil {
+		return
+	} else {
+		conn.Close()
+	}
+
+	switch runtime.GOOS {
+	case "linux", "darwin":
+		mustBoundBySameNameProcess(addr)
+	default:
+		log.Fatalf("addr %s is already bound by other process.", addr)
+	}
+}
+
+func mustBoundBySameNameProcess(addr string) {
+	args := []string{"-aP", "-itcp" + addr, "-stcp:listen", "-Fc"}
+	cmd := exec.Command("lsof", args...)
+	cmd.Stderr = os.Stderr
+	outputBytes, err := cmd.Output()
+	if err != nil {
+		log.Panicf("%v:\n", err)
+	}
+	output := string(outputBytes)
+	line := "c" + filepath.Base(os.Args[0]) + "\n"
+	if i := strings.Index(output, line); i == 0 || i > 0 && output[i-1] == '\n' {
+		return
+	}
+
+	log.Printf("addr %s is already bound by: ", addr)
+	cmd = exec.Command("lsof", args[:len(args)-1]...)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	cmd.Run()
 }

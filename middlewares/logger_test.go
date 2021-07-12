@@ -101,7 +101,7 @@ func ExampleLogger_panic() {
 	// respBody: "{\"code\":\"server-err\",\"message\":\"Fatal Server Error.\"}\n"
 	// respBodySize: 54
 	// status: 500
-	// stack:  github.com/lovego/goa/middlewares.startTestServer.func2
+	// stack:  log.Panic
 }
 
 func startTestServer() (*httptest.Server, *bytes.Buffer) {
@@ -115,7 +115,7 @@ func startTestServer() (*httptest.Server, *bytes.Buffer) {
 		fmt.Println(string(respBody), len(respBody))
 	})
 	router.Get("/panic", func(c *goa.Context) {
-		panic("crash")
+		log.Panic("crash")
 	})
 
 	ts := httptest.NewUnstartedServer(router)

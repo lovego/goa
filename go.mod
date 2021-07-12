@@ -16,5 +16,5 @@ require (
 	github.com/lovego/structs v0.0.1
 	github.com/lovego/tracer v0.0.1
 	github.com/mattn/go-isatty v0.0.13 // indirect
-	golang.org/x/sys v0.0.0-20210630005230-0f9fa26af87c // indirect
+	golang.org/x/sys v0.0.0-20210630005230-0f9fa26af87c
 )

@@ -2,6 +2,7 @@ package benchmark
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"regexp"
@@ -67,7 +68,7 @@ func runGoaRouterTestCase(b *testing.B, tc *goaRouterTestCase) {
 
 	request, err := http.NewRequest("GET", "http://localhost/", nil)
 	if err != nil {
-		panic(err)
+		log.Panic(err)
 	}
 	for i := 0; i < b.N; i++ {
 		for _, route := range tc.routes {
@@ -87,7 +88,7 @@ func runGoaRouterTestCase_Lookup(b *testing.B, tc *goaRouterTestCase) {
 
 	request, err := http.NewRequest("GET", "http://localhost/", nil)
 	if err != nil {
-		panic(err)
+		log.Panic(err)
 	}
 	for i := 0; i < b.N; i++ {
 		for _, route := range tc.routes {
@@ -104,7 +105,7 @@ func runHttpRouterTestCase(b *testing.B, tc *httpRouterTestCase) {
 
 	request, err := http.NewRequest("GET", "http://localhost/", nil)
 	if err != nil {
-		panic(err)
+		log.Panic(err)
 	}
 	for i := 0; i < b.N; i++ {
 		for _, route := range tc.routes {

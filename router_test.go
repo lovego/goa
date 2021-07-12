@@ -3,6 +3,7 @@ package goa
 import (
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/http/httptest"
 )
@@ -50,7 +51,7 @@ func ExampleRouter() {
 
 	request, err := http.NewRequest("GET", "http://localhost/", nil)
 	if err != nil {
-		panic(err)
+		log.Panic(err)
 	}
 	for _, route := range [][2]string{
 		{"GET", "/"},
@@ -86,7 +87,7 @@ func ExampleRouter_GetPost() {
 
 	request, err := http.NewRequest("GET", "http://localhost/", nil)
 	if err != nil {
-		panic(err)
+		log.Panic(err)
 	}
 	for _, route := range [][2]string{
 		{"GET", "/GetPost"},
@@ -124,7 +125,7 @@ func ExampleRouter_Use() {
 
 	request, err := http.NewRequest("GET", "http://localhost/", nil)
 	if err != nil {
-		panic(err)
+		log.Panic(err)
 	}
 	router.ServeHTTP(nil, request)
 	// Output:
@@ -147,7 +148,7 @@ func ExampleRouter_NotFound() {
 
 	request, err := http.NewRequest("GET", "http://localhost/404", nil)
 	if err != nil {
-		panic(err)
+		log.Panic(err)
 	}
 	rw := httptest.NewRecorder()
 	router.ServeHTTP(rw, request)

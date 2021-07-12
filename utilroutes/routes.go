@@ -56,7 +56,7 @@ func getInstanceName() string {
 func ipv4Addrs() (result []string) {
 	ifcs, err := net.Interfaces()
 	if err != nil {
-		panic(err)
+		log.Panic(err)
 	}
 	for _, ifc := range ifcs {
 		if ifc.Flags&net.FlagLoopback == 0 {
@@ -68,7 +68,7 @@ func ipv4Addrs() (result []string) {
 func ipv4AddrsOfInterface(ifc net.Interface) (result []string) {
 	addrs, err := ifc.Addrs()
 	if err != nil {
-		panic(err)
+		log.Panic(err)
 	}
 	for _, addr := range addrs {
 		if str := addr.String(); strings.IndexByte(str, '.') > 0 { // ipv4
