@@ -6,11 +6,8 @@ import (
 	"net"
 	"net/http"
 	"os"
-	"os/exec"
 	"os/signal"
-	"path/filepath"
 	"runtime"
-	"strings"
 	"syscall"
 	"time"
 
@@ -51,7 +48,6 @@ var listenControl func(network, address string, c syscall.RawConn) error
 
 func getListener() net.Listener {
 	addr := utilroutes.ListenAddr()
-	checkListenAddr(addr)
 	listenConfig := net.ListenConfig{Control: listenControl}
 	listener, err := listenConfig.Listen(context.Background(), `tcp`, addr)
 	if err != nil {
@@ -77,40 +73,4 @@ func (ln tcpKeepAliveListener) Accept() (c net.Conn, err error) {
 	tc.SetKeepAlive(true)
 	tc.SetKeepAlivePeriod(3 * time.Minute)
 	return tc, nil
-}
-
-func checkListenAddr(addr string) {
-	if conn, _ := net.DialTimeout("tcp", addr, time.Second); conn == nil {
-		return
-	} else {
-		conn.Close()
-	}
-
-	switch runtime.GOOS {
-	case "linux", "darwin":
-		mustBoundBySameNameProcess(addr)
-	default:
-		log.Fatalf("addr %s is already bound by other process.", addr)
-	}
-}
-
-func mustBoundBySameNameProcess(addr string) {
-	args := []string{"-aP", "-itcp" + addr, "-stcp:listen", "-Fc"}
-	cmd := exec.Command("lsof", args...)
-	cmd.Stderr = os.Stderr
-	outputBytes, err := cmd.Output()
-	if err != nil {
-		log.Panicf("%v:\n", err)
-	}
-	output := string(outputBytes)
-	line := "c" + filepath.Base(os.Args[0]) + "\n"
-	if i := strings.Index(output, line); i == 0 || i > 0 && output[i-1] == '\n' {
-		return
-	}
-
-	log.Printf("addr %s is already bound by: ", addr)
-	cmd = exec.Command("lsof", args[:len(args)-1]...)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	cmd.Run()
 }
