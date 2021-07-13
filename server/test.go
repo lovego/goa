@@ -4,6 +4,7 @@ package main
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/lovego/goa/server"
 )
@@ -11,6 +12,7 @@ import (
 type testHandler struct{}
 
 func (h testHandler) ServeHTTP(http.ResponseWriter, *http.Request) {
+	time.Sleep(5 * time.Second)
 }
 
 func main() {

@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"runtime"
 	"syscall"
 	"time"
 
@@ -32,19 +31,17 @@ func ListenAndServe(handler http.Handler) {
 }
 
 func gracefulShutdown(server *http.Server) {
-	if runtime.GOOS != "linux" {
-		return
-	}
 	var wait = time.Minute
 	if s := os.Getenv("ProShutdownWait"); s != "" {
 		if w, err := time.ParseDuration(s); err == nil {
 			wait = w
 		}
 	}
-	c, cancel := context.WithDeadline(context.Background(), time.Now().Add(wait))
+	beginAt := time.Now()
+	c, cancel := context.WithDeadline(context.Background(), beginAt.Add(wait))
 	defer cancel()
 	if err := server.Shutdown(c); err == nil {
-		log.Println(`shutdown`)
+		log.Printf("shutdown. (waited %v)\n", time.Since(beginAt))
 	} else {
 		log.Println("shutdown error: ", err)
 	}
