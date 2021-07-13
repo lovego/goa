@@ -35,7 +35,13 @@ func gracefulShutdown(server *http.Server) {
 	if runtime.GOOS != "linux" {
 		return
 	}
-	c, cancel := context.WithDeadline(context.Background(), time.Now().Add(7*time.Second))
+	var wait = time.Minute
+	if s := os.Getenv("ProShutdownWait"); s != "" {
+		if w, err := time.ParseDuration(s); err == nil {
+			wait = w
+		}
+	}
+	c, cancel := context.WithDeadline(context.Background(), time.Now().Add(wait))
 	defer cancel()
 	if err := server.Shutdown(c); err == nil {
 		log.Println(`shutdown`)
