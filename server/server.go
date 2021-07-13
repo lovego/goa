@@ -53,7 +53,7 @@ func getListener() net.Listener {
 	if err != nil {
 		log.Panic(err)
 	}
-	log.Println(color.GreenString(`started.(` + addr + `)`))
+	log.Println(color.GreenString(`backend started.(` + addr + `)`))
 	return tcpKeepAliveListener{listener.(*net.TCPListener)}
 }
 
