@@ -18,7 +18,7 @@ func ListenAndServe(handler http.Handler) {
 	server := &http.Server{Handler: handler}
 
 	ch := make(chan os.Signal)
-	signal.Notify(ch, syscall.SIGTERM, os.Interrupt)
+	signal.Notify(ch, syscall.SIGQUIT, syscall.SIGTERM, syscall.SIGINT)
 
 	go func() {
 		if err := server.Serve(getListener()); err != nil && err != http.ErrServerClosed {
