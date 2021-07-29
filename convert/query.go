@@ -1,6 +1,7 @@
 package convert
 
 import (
+	"fmt"
 	"log"
 	"reflect"
 	"strings"
@@ -32,7 +33,9 @@ func Query(value reflect.Value, map2strs map[string][]string) (err error) {
 		}
 		// value is always empty, so Set only when len(values) > 0
 		if values := queryParamValues(map2strs, paramName, arrayParamName); len(values) > 0 {
-			err := SetArray(v, values)
+			if err = SetArray(v, values); err != nil {
+				err = fmt.Errorf("req.Query.%s: %s", f.Name, err.Error())
+			}
 			return err == nil // if err == nil, go on Traverse
 		}
 		return true // go on Traverse

@@ -1,6 +1,7 @@
 package convert
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"reflect"
@@ -27,7 +28,9 @@ func Header(value reflect.Value, map2strs map[string][]string) (err error) {
 		}
 		values := map2strs[key]
 		if len(values) > 0 && values[0] != "" {
-			err = Set(v, values[0])
+			if err = Set(v, values[0]); err != nil {
+				err = fmt.Errorf("req.Header.%s: %s", f.Name, err.Error())
+			}
 		}
 		return err == nil // if err == nil, go on Traverse
 	})
