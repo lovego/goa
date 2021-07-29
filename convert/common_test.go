@@ -35,3 +35,30 @@ func ExampleSetArray() {
 	// [1 2 0]
 	// [{3 f} {0 }]
 }
+
+type testUnmarshaler struct {
+	V string
+}
+
+func (u *testUnmarshaler) UnmarshalJSON(b []byte) error {
+	u.V = string(b)
+	return nil
+}
+
+func ExampleSet() {
+	var t struct {
+		V string
+	}
+	fmt.Println(Set(reflect.ValueOf(&t), "XX"))
+	fmt.Println(t)
+
+	var t2 testUnmarshaler
+	fmt.Println(Set(reflect.ValueOf(&t2), "XX"))
+	fmt.Println(t2)
+
+	// Output:
+	// invalid character 'X' looking for beginning of value
+	// {}
+	// <nil>
+	// {XX}
+}

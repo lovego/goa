@@ -77,7 +77,11 @@ func Set(v reflect.Value, s string) error {
 	case reflect.Float32, reflect.Float64:
 		return SetFloat(v, s)
 	default:
-		return json.Unmarshal([]byte(s), v.Addr().Interface())
+		pointer := v.Addr().Interface()
+		if um, ok := pointer.(json.Unmarshaler); ok {
+			return um.UnmarshalJSON([]byte(s))
+		}
+		return json.Unmarshal([]byte(s), pointer)
 	}
 }
 
