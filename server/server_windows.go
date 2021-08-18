@@ -17,6 +17,5 @@ func init() {
 				log.Panic(err)
 			}
 		})
-		return
 	}
 }
