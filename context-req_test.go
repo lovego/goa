@@ -10,7 +10,7 @@ import (
 
 func ExampleContext_RequestBody() {
 	buf := []byte("hello world!")
-	c := &Context{Request: &http.Request{Body: ioutil.NopCloser(bytes.NewBuffer(buf))}}
+	c := &ContextBeforeLookup{Request: &http.Request{Body: ioutil.NopCloser(bytes.NewBuffer(buf))}}
 	body, err := c.RequestBody()
 	if err != nil {
 		fmt.Println(err)
@@ -30,7 +30,7 @@ func ExampleContext_RequestBody() {
 
 func ExampleContext_Scheme() {
 	req := httptest.NewRequest("GET", "http://example.com/path", nil)
-	c := &Context{Request: req}
+	c := &ContextBeforeLookup{Request: req}
 	fmt.Println(c.Scheme())
 	req.Header.Set("X-Forwarded-Proto", "https")
 	fmt.Println(c.Scheme())
@@ -40,10 +40,10 @@ func ExampleContext_Scheme() {
 }
 
 func ExampleContext_Url() {
-	c := &Context{Request: httptest.NewRequest("GET", "/path", nil)}
+	c := &ContextBeforeLookup{Request: httptest.NewRequest("GET", "/path", nil)}
 	fmt.Println(c.Url())
 
-	c = &Context{Request: httptest.NewRequest("GET", "http://example.com/path", nil)}
+	c = &ContextBeforeLookup{Request: httptest.NewRequest("GET", "http://example.com/path", nil)}
 	fmt.Println(c.Url())
 	// Output:
 	// http://example.com/path
@@ -52,7 +52,7 @@ func ExampleContext_Url() {
 
 func ExampleContext_ClientAddr() {
 	req := httptest.NewRequest("GET", "/path", nil)
-	c := &Context{Request: req}
+	c := &ContextBeforeLookup{Request: req}
 	fmt.Println(c.ClientAddr())
 
 	req.Header.Set("X-Real-IP", "192.0.2.2")

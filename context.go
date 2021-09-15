@@ -5,15 +5,20 @@ import (
 	"net/http"
 )
 
-type Context struct {
+type ContextBeforeLookup struct {
 	*http.Request
 	http.ResponseWriter
-	handlers []func(c *Context)
-	params   []string
-	index    int
 
 	data map[string]interface{}
 	err  error
+}
+
+type Context struct {
+	ContextBeforeLookup
+
+	handlers []func(c *Context)
+	params   []string
+	index    int
 }
 
 // Param returns captured subpatterns.
@@ -25,6 +30,7 @@ func (c *Context) Param(i int) string {
 	return ""
 }
 
+// run the next midllware or route handler.
 func (c *Context) Next() {
 	c.index++
 	if c.index >= len(c.handlers) {
@@ -33,7 +39,7 @@ func (c *Context) Next() {
 	c.handlers[c.index](c)
 }
 
-func (c *Context) Context() context.Context {
+func (c *ContextBeforeLookup) Context() context.Context {
 	if data := c.Get("context"); data != nil {
 		if c, ok := data.(context.Context); ok {
 			return c
@@ -42,7 +48,7 @@ func (c *Context) Context() context.Context {
 	return c.Request.Context()
 }
 
-func (c *Context) Get(key string) interface{} {
+func (c *ContextBeforeLookup) Get(key string) interface{} {
 	if c.data == nil {
 		c.data = make(map[string]interface{})
 	}
@@ -52,17 +58,17 @@ func (c *Context) Get(key string) interface{} {
 	return nil
 }
 
-func (c *Context) Set(key string, value interface{}) {
+func (c *ContextBeforeLookup) Set(key string, value interface{}) {
 	if c.data == nil {
 		c.data = make(map[string]interface{})
 	}
 	c.data[key] = value
 }
 
-func (c *Context) SetError(err error) {
+func (c *ContextBeforeLookup) SetError(err error) {
 	c.err = err
 }
 
-func (c *Context) GetError() error {
+func (c *ContextBeforeLookup) GetError() error {
 	return c.err
 }

@@ -12,11 +12,11 @@ import (
 )
 
 func ExampleContext_Status() {
-	c := &Context{ResponseWriter: httptest.NewRecorder()}
+	c := &ContextBeforeLookup{ResponseWriter: httptest.NewRecorder()}
 	fmt.Println(c.Status())
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		c := &Context{ResponseWriter: w}
+		c := &ContextBeforeLookup{ResponseWriter: w}
 		fmt.Println(c.Status())
 		c.WriteHeader(http.StatusOK)
 		fmt.Println(c.Status())
@@ -38,11 +38,11 @@ func ExampleContext_Status() {
 }
 
 func ExampleContext_ResponseBody() {
-	c := &Context{ResponseWriter: httptest.NewRecorder()}
+	c := &ContextBeforeLookup{ResponseWriter: httptest.NewRecorder()}
 	fmt.Println("empty" + string(c.ResponseBody()))
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		c := &Context{ResponseWriter: w}
+		c := &ContextBeforeLookup{ResponseWriter: w}
 		fmt.Println("empty" + string(c.ResponseBody()))
 
 		c.Write([]byte("1"))
@@ -75,11 +75,11 @@ func ExampleContext_ResponseBody() {
 }
 
 func ExampleContext_ResponseBodySize() {
-	c := &Context{ResponseWriter: httptest.NewRecorder()}
+	c := &ContextBeforeLookup{ResponseWriter: httptest.NewRecorder()}
 	fmt.Println(c.ResponseBodySize())
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		c := &Context{ResponseWriter: w}
+		c := &ContextBeforeLookup{ResponseWriter: w}
 		fmt.Println(c.ResponseBodySize())
 
 		c.Write([]byte("1"))
@@ -106,7 +106,7 @@ func ExampleContext_ResponseBodySize() {
 
 func ExampleContext_Json() {
 	recorder := httptest.NewRecorder()
-	c := &Context{ResponseWriter: recorder}
+	c := &ContextBeforeLookup{ResponseWriter: recorder}
 	c.Json(map[string]interface{}{"k": "<value>"})
 	res := recorder.Result()
 	fmt.Println(res.StatusCode)
@@ -123,7 +123,7 @@ func ExampleContext_Json() {
 
 func ExampleContext_Json_error() {
 	recorder := httptest.NewRecorder()
-	c := &Context{ResponseWriter: recorder}
+	c := &ContextBeforeLookup{ResponseWriter: recorder}
 	c.Json(map[string]interface{}{"a": "a", "b": func() {}})
 	res := recorder.Result()
 	fmt.Println(res.StatusCode)
@@ -139,7 +139,7 @@ func ExampleContext_Json_error() {
 
 func ExampleContext_Json2() {
 	recorder := httptest.NewRecorder()
-	c := &Context{ResponseWriter: recorder}
+	c := &ContextBeforeLookup{ResponseWriter: recorder}
 	c.Json2(map[string]interface{}{"k": "<value>"}, errors.New("the error"))
 	res := recorder.Result()
 	fmt.Println(res.StatusCode)
@@ -158,7 +158,7 @@ func ExampleContext_Json2() {
 
 func ExampleContext_Ok() {
 	recorder := httptest.NewRecorder()
-	c := &Context{ResponseWriter: recorder}
+	c := &ContextBeforeLookup{ResponseWriter: recorder}
 	c.Ok("success")
 	res := recorder.Result()
 	fmt.Println(res.StatusCode)
@@ -175,7 +175,7 @@ func ExampleContext_Ok() {
 
 func ExampleContext_Data() {
 	recorder := httptest.NewRecorder()
-	c := &Context{ResponseWriter: recorder}
+	c := &ContextBeforeLookup{ResponseWriter: recorder}
 	c.Data([]string{"data1", "data2"}, nil)
 	res := recorder.Result()
 	fmt.Println(res.StatusCode)
@@ -192,7 +192,7 @@ func ExampleContext_Data() {
 
 func ExampleContext_Data_error() {
 	recorder := httptest.NewRecorder()
-	c := &Context{ResponseWriter: recorder}
+	c := &ContextBeforeLookup{ResponseWriter: recorder}
 	c.Data(nil, errors.New("some error"))
 	res := recorder.Result()
 	fmt.Println(res.StatusCode)
@@ -211,7 +211,7 @@ func ExampleContext_Data_error() {
 
 func ExampleContext_Data_code_message() {
 	recorder := httptest.NewRecorder()
-	c := &Context{ResponseWriter: recorder}
+	c := &ContextBeforeLookup{ResponseWriter: recorder}
 	c.Data(nil, errs.New("the-code", "the message"))
 	res := recorder.Result()
 	fmt.Println(res.StatusCode)
@@ -230,7 +230,7 @@ func ExampleContext_Data_code_message() {
 
 func ExampleContext_Data_code_message_error() {
 	recorder := httptest.NewRecorder()
-	c := &Context{ResponseWriter: recorder}
+	c := &ContextBeforeLookup{ResponseWriter: recorder}
 	theErr := errs.New("the-code", "the message")
 	theErr.SetError(errors.New("some error"))
 	c.Data(nil, theErr)
@@ -251,7 +251,7 @@ func ExampleContext_Data_code_message_error() {
 
 func ExampleContext_Data_code_message_data_error() {
 	recorder := httptest.NewRecorder()
-	c := &Context{ResponseWriter: recorder}
+	c := &ContextBeforeLookup{ResponseWriter: recorder}
 	theErr := errs.New("the-code", "the message")
 	theErr.SetError(errors.New("some error"))
 	theErr.SetData([]string{"data1", "data2"})
@@ -273,7 +273,7 @@ func ExampleContext_Data_code_message_data_error() {
 
 func ExampleContext_Redirect() {
 	recorder := httptest.NewRecorder()
-	c := &Context{ResponseWriter: recorder}
+	c := &ContextBeforeLookup{ResponseWriter: recorder}
 	c.Redirect("http://example.com/path")
 	res := recorder.Result()
 	fmt.Println(res.StatusCode)
@@ -291,11 +291,11 @@ func ExampleContext_Redirect() {
 
 func ExampleContext_Hijack() {
 	recorder := httptest.NewRecorder()
-	c := &Context{ResponseWriter: recorder}
+	c := &ContextBeforeLookup{ResponseWriter: recorder}
 	fmt.Println(c.Hijack())
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		c := &Context{ResponseWriter: w}
+		c := &ContextBeforeLookup{ResponseWriter: w}
 		conn, buf, err := c.Hijack()
 		if err != nil {
 			log.Fatal(err)
@@ -324,11 +324,11 @@ func ExampleContext_Hijack() {
 
 func ExampleContext_Flush() {
 	recorder := httptest.NewRecorder()
-	c := &Context{ResponseWriter: recorder}
+	c := &ContextBeforeLookup{ResponseWriter: recorder}
 	c.Flush()
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		c := &Context{ResponseWriter: w}
+		c := &ContextBeforeLookup{ResponseWriter: w}
 		c.Flush()
 	}))
 	defer ts.Close()

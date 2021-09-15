@@ -27,7 +27,7 @@ func ExampleContext_Next() {
 }
 
 func ExampleContext_Context() {
-	c := &Context{Request: httptest.NewRequest("GET", "/", nil)}
+	c := &ContextBeforeLookup{Request: httptest.NewRequest("GET", "/", nil)}
 	fmt.Println(c.Context())
 	ctx := context.WithValue(context.Background(), "custom", 1)
 	c.Set("context", ctx)
@@ -38,7 +38,7 @@ func ExampleContext_Context() {
 }
 
 func ExampleContext_Get() {
-	c := &Context{}
+	c := &ContextBeforeLookup{}
 	fmt.Println(c.Get("a"))
 	c.Set("a", "韩梅梅")
 	fmt.Println(c.Get("a"))
@@ -48,7 +48,7 @@ func ExampleContext_Get() {
 }
 
 func ExampleContext_Set() {
-	c := &Context{}
+	c := &ContextBeforeLookup{}
 	c.Set("a", "韩梅梅")
 	fmt.Println(c.Get("a"))
 	// Output:
@@ -56,7 +56,7 @@ func ExampleContext_Set() {
 }
 
 func ExampleContext_GetError_SetError() {
-	c := &Context{}
+	c := &ContextBeforeLookup{}
 	fmt.Println(c.GetError())
 	c.SetError(errors.New("the-error"))
 	fmt.Println(c.GetError())

@@ -11,7 +11,7 @@ import (
 
 const respBodyKey = "responseBody"
 
-func (c *Context) Status() int64 {
+func (c *ContextBeforeLookup) Status() int64 {
 	status := reflect.ValueOf(c.ResponseWriter).Elem().FieldByName(`status`)
 	if status.IsValid() {
 		return status.Int()
@@ -20,7 +20,7 @@ func (c *Context) Status() int64 {
 	}
 }
 
-func (c *Context) ResponseBodySize() int64 {
+func (c *ContextBeforeLookup) ResponseBodySize() int64 {
 	s := reflect.ValueOf(c.ResponseWriter).Elem().FieldByName(`written`)
 	if s.IsValid() {
 		return s.Int()
@@ -29,7 +29,7 @@ func (c *Context) ResponseBodySize() int64 {
 	}
 }
 
-func (c *Context) Write(content []byte) (int, error) {
+func (c *ContextBeforeLookup) Write(content []byte) (int, error) {
 	if c.data == nil {
 		c.data = make(map[string]interface{})
 	}
@@ -44,10 +44,7 @@ func (c *Context) Write(content []byte) (int, error) {
 	return c.ResponseWriter.Write(content)
 }
 
-func (c *Context) ResponseBody() []byte {
-	if c.data == nil {
-		c.data = make(map[string]interface{})
-	}
+func (c *ContextBeforeLookup) ResponseBody() []byte {
 	if data, ok := c.data[respBodyKey]; ok {
 		if body, ok := data.([]byte); ok {
 			return body
@@ -56,7 +53,7 @@ func (c *Context) ResponseBody() []byte {
 	return nil
 }
 
-func (c *Context) Data(data interface{}, err error) {
+func (c *ContextBeforeLookup) Data(data interface{}, err error) {
 	statusCode := http.StatusOK
 	body := struct {
 		Code    string      `json:"code"`
@@ -108,7 +105,7 @@ func isNilValue(itfc interface{}) bool {
 	return false
 }
 
-func (c *Context) Ok(message string) {
+func (c *ContextBeforeLookup) Ok(message string) {
 	body := struct {
 		Code    string `json:"code"`
 		Message string `json:"message"`
@@ -119,18 +116,18 @@ func (c *Context) Ok(message string) {
 	c.StatusJson(http.StatusOK, body)
 }
 
-func (c *Context) Json(data interface{}) {
+func (c *ContextBeforeLookup) Json(data interface{}) {
 	c.StatusJson(http.StatusOK, data)
 }
 
-func (c *Context) Json2(data interface{}, err error) {
+func (c *ContextBeforeLookup) Json2(data interface{}, err error) {
 	if err != nil {
 		c.SetError(err)
 	}
 	c.StatusJson(http.StatusOK, data)
 }
 
-func (c *Context) StatusJson(status int, data interface{}) {
+func (c *ContextBeforeLookup) StatusJson(status int, data interface{}) {
 	// header should be set before WriteHeader or Write
 	c.ResponseWriter.Header().Set(`Content-Type`, `application/json; charset=utf-8`)
 	c.WriteHeader(status)
@@ -143,19 +140,19 @@ func (c *Context) StatusJson(status int, data interface{}) {
 	}
 }
 
-func (c *Context) Redirect(url string) {
+func (c *ContextBeforeLookup) Redirect(url string) {
 	c.ResponseWriter.Header().Set("Location", url)
 	c.ResponseWriter.WriteHeader(302)
 }
 
-func (c *Context) Hijack() (net.Conn, *bufio.ReadWriter, error) {
+func (c *ContextBeforeLookup) Hijack() (net.Conn, *bufio.ReadWriter, error) {
 	if hijacker, ok := c.ResponseWriter.(http.Hijacker); ok {
 		return hijacker.Hijack()
 	}
 	return nil, nil, errors.New("the ResponseWriter doesn't support hijacking.")
 }
 
-func (c *Context) Flush() {
+func (c *ContextBeforeLookup) Flush() {
 	if flusher, ok := c.ResponseWriter.(http.Flusher); ok {
 		flusher.Flush()
 	}

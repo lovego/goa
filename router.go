@@ -10,7 +10,7 @@ import (
 )
 
 type Router struct {
-	beforeLookup func(rw http.ResponseWriter, req *http.Request)
+	beforeLookup func(ctx *ContextBeforeLookup)
 	RouterGroup
 	notFound []func(*Context)
 }
@@ -23,18 +23,20 @@ func New() *Router {
 }
 
 func (r *Router) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
+	ctxBeforeLookup := ContextBeforeLookup{Request: req, ResponseWriter: rw}
 	if r.beforeLookup != nil {
-		r.beforeLookup(rw, req)
+		r.beforeLookup(&ctxBeforeLookup)
 	}
 	handlers, params := r.Lookup(req.Method, req.URL.Path)
-	c := &Context{Request: req, ResponseWriter: rw, handlers: handlers, params: params, index: -1}
+	c := &Context{ContextBeforeLookup: ctxBeforeLookup, handlers: handlers, params: params, index: -1}
 	if len(handlers) == 0 {
 		c.handlers = r.notFound
 	}
 	c.Next()
 }
 
-func (r *Router) BeforeLookup(fun func(rw http.ResponseWriter, req *http.Request)) {
+// BeforeLookup regiter a function to be run before every route Lookup.
+func (r *Router) BeforeLookup(fun func(ctx *ContextBeforeLookup)) {
 	r.beforeLookup = fun
 }
 

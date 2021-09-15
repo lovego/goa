@@ -9,10 +9,12 @@ import (
 
 const reqBodyKey = "requestBody"
 
-func (c *Context) RequestBody() ([]byte, error) {
-	if c.data == nil {
-		c.data = make(map[string]interface{})
-	}
+func (c *ContextBeforeLookup) ParseForm() error {
+	c.RequestBody() // record the request body
+	return c.Request.ParseForm()
+}
+
+func (c *ContextBeforeLookup) RequestBody() ([]byte, error) {
 	if data, ok := c.data[reqBodyKey]; ok {
 		if body, ok := data.([]byte); ok {
 			return body, nil
@@ -24,28 +26,31 @@ func (c *Context) RequestBody() ([]byte, error) {
 		c.SetError(err)
 		return nil, err
 	}
+	if c.data == nil {
+		c.data = make(map[string]interface{})
+	}
 	c.data[reqBodyKey] = body
 	c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(body))
 
 	return body, nil
 }
 
-func (c *Context) Scheme() string {
+func (c *ContextBeforeLookup) Scheme() string {
 	if proto := c.Request.Header.Get("X-Forwarded-Proto"); proto != `` {
 		return proto
 	}
 	return `http`
 }
 
-func (c *Context) Origin() string {
+func (c *ContextBeforeLookup) Origin() string {
 	return c.Scheme() + "://" + c.Request.Host
 }
 
-func (c *Context) Url() string {
+func (c *ContextBeforeLookup) Url() string {
 	return c.Origin() + c.Request.URL.RequestURI()
 }
 
-func (c *Context) ClientAddr() string {
+func (c *ContextBeforeLookup) ClientAddr() string {
 	if addrs := c.Request.Header.Get("X-Forwarded-For"); addrs != `` {
 		addr := strings.SplitN(addrs, `, `, 2)[0]
 		if addr != `unknown` {
@@ -59,6 +64,6 @@ func (c *Context) ClientAddr() string {
 	return host
 }
 
-func (c *Context) RequestId() string {
+func (c *ContextBeforeLookup) RequestId() string {
 	return c.Request.Header.Get("X-Request-Id")
 }
