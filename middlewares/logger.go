@@ -33,6 +33,9 @@ func (l *Logger) Record(c *goa.Context) {
 		if debug {
 			tracerCtx = tracer.SetDebug(tracerCtx)
 		}
+		if debug || l.ShouldLogReqBody != nil && l.ShouldLogReqBody(c) {
+			c.RequestBody()
+		}
 		c.Set("context", tracerCtx)
 		c.Next()
 		return c.GetError()
@@ -43,7 +46,6 @@ func (l *Logger) Record(c *goa.Context) {
 	}, func(fields *loggerPkg.Fields) {
 		l.setFields(fields, c, debug)
 	})
-
 }
 
 func (l *Logger) setFields(f *loggerPkg.Fields, c *goa.Context, debug bool) {
