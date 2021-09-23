@@ -33,11 +33,11 @@ func (c *ContextBeforeLookup) Write(content []byte) (int, error) {
 	if c.data == nil {
 		c.data = make(map[string]interface{})
 	}
-	data := c.data[respBodyKey]
-	if data == nil {
+	value := c.data[respBodyKey]
+	if value == nil {
 		body := append([]byte{}, content...)
 		c.data[respBodyKey] = body
-	} else if body, ok := data.([]byte); ok {
+	} else if body, ok := value.([]byte); ok {
 		body = append(body, content...)
 		c.data[respBodyKey] = body
 	}
@@ -130,7 +130,9 @@ func (c *ContextBeforeLookup) Json2(data interface{}, err error) {
 func (c *ContextBeforeLookup) StatusJson(status int, data interface{}) {
 	// header should be set before WriteHeader or Write
 	c.ResponseWriter.Header().Set(`Content-Type`, `application/json; charset=utf-8`)
-	c.WriteHeader(status)
+	if v := reflect.ValueOf(c.ResponseWriter).Elem().FieldByName(`wroteHeader`); !v.IsValid() || !v.Bool() {
+		c.WriteHeader(status)
+	}
 
 	encoder := json.NewEncoder(c)
 	encoder.SetEscapeHTML(false)
