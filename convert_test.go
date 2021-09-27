@@ -170,3 +170,42 @@ func ExampleConvertReq_pointerFields() {
 	// resp.Body: {"code":"ok","message":"success","data":[1,2,3]}
 	//  <nil>
 }
+
+func ExampleConvertReq_jsonIgnored() {
+	router := New()
+
+	router.Post(`/(\d+)`, func(req struct {
+		Param int `json:"-"`
+		Query struct {
+			Q string
+		} `json:"-"`
+		Header struct {
+			H string
+		} `json:"-"`
+		Body struct {
+			B string
+		} `json:"-"`
+		Ctx *Context `json:"-"`
+	}, resp *struct {
+	}) {
+		fmt.Println(req.Param)
+		fmt.Println(req.Query)
+		fmt.Println(req.Header)
+		fmt.Println(req.Body)
+		fmt.Println(req.Ctx)
+	})
+	req, err := http.NewRequest("POST", "http://localhost/123?q=query", nil)
+	if err != nil {
+		log.Panic(err)
+	}
+	req.Header.Set("H", "header")
+	req.Body = ioutil.NopCloser(strings.NewReader(`{"b":"body"}`))
+
+	router.ServeHTTP(nil, req)
+	// Output:
+	// 0
+	// {}
+	// {}
+	// {}
+	// <nil>
+}

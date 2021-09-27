@@ -45,6 +45,8 @@ func (r *Route) MethodPath(method, fullPath string) string {
 	return method + " " + html.EscapeString(fullPath)
 }
 
+var whitespaceRegexp = regexp.MustCompile(`\s+`)
+
 // extract comment from struct field tags
 func getComment(tag reflect.StructTag) string {
 	tagStr := string(tag)
@@ -60,5 +62,3 @@ func getComment(tag reflect.StructTag) string {
 	}
 	return comment
 }
-
-var whitespaceRegexp = regexp.MustCompile(`\s+`)

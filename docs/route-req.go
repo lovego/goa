@@ -36,7 +36,7 @@ func (r *Route) Param(buf *bytes.Buffer, fullPath string) {
 	}
 
 	buf.WriteString("\n## 路径中正则参数（子表达式）说明\n")
-	if desc := strings.TrimSpace(string(field.Tag)); desc != "" {
+	if desc := getComment(field.Tag); desc != "" {
 		buf.WriteString(desc + "\n\n")
 	}
 
@@ -57,7 +57,7 @@ func (r *Route) Query(buf *bytes.Buffer) {
 	}
 
 	buf.WriteString("\n## Query参数说明\n")
-	if desc := strings.TrimSpace(string(field.Tag)); desc != "" {
+	if desc := getComment(field.Tag); desc != "" {
 		buf.WriteString(desc + "\n\n")
 	}
 	buf.WriteString("```json5\n")
@@ -78,7 +78,7 @@ func (r *Route) Header(buf *bytes.Buffer) {
 	}
 
 	buf.WriteString("\n## 请求头说明\n")
-	if desc := strings.TrimSpace(string(field.Tag)); desc != "" {
+	if desc := getComment(field.Tag); desc != "" {
 		buf.WriteString(desc + "\n\n")
 	}
 	structs.Traverse(reflect.New(field.Type).Elem(), true,
@@ -101,7 +101,7 @@ func (r *Route) Body(buf *bytes.Buffer) {
 	}
 
 	buf.WriteString("\n## 请求体说明（application/json）\n")
-	if desc := strings.TrimSpace(string(field.Tag)); desc != "" {
+	if desc := getComment(field.Tag); desc != "" {
 		buf.WriteString(desc + "\n\n")
 	}
 	buf.WriteString("```json5\n")

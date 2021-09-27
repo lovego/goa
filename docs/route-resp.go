@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"reflect"
-	"strings"
 
 	"github.com/lovego/jsondoc"
 	"github.com/lovego/struct_tag"
@@ -19,7 +18,7 @@ func (r *Route) RespHeader(buf *bytes.Buffer) {
 	}
 
 	buf.WriteString("\n## 返回头说明\n")
-	if desc := strings.TrimSpace(string(field.Tag)); desc != "" {
+	if desc := getComment(field.Tag); desc != "" {
 		buf.WriteString(desc + "\n\n")
 	}
 	structs.Traverse(reflect.New(field.Type).Elem(), true, func(_ reflect.Value, f reflect.StructField) bool {
@@ -37,7 +36,7 @@ func (r *Route) RespBody(buf *bytes.Buffer) {
 
 	buf.WriteString("\n## 返回体说明（application/json）\n")
 	if ok {
-		if desc := strings.TrimSpace(string(field.Tag)); desc != "" {
+		if desc := getComment(field.Tag); desc != "" {
 			buf.WriteString(desc + "\n\n")
 		}
 	}
@@ -70,7 +69,7 @@ type respBodyWithData struct {
 func (r *Route) RespError(buf *bytes.Buffer) {
 	field, _ := r.resp.FieldByName("Error")
 
-	if desc := strings.TrimSpace(string(field.Tag)); desc != "" {
+	if desc := getComment(field.Tag); desc != "" {
 		buf.WriteString("\n## 错误码说明\n")
 		buf.WriteString(desc + "\n\n")
 	}

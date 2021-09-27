@@ -15,6 +15,9 @@ func (c *ContextBeforeLookup) ParseForm() error {
 }
 
 func (c *ContextBeforeLookup) RequestBody() ([]byte, error) {
+	if c.Request.Body == nil {
+		return nil, nil
+	}
 	if data, ok := c.data[reqBodyKey]; ok {
 		if body, ok := data.([]byte); ok {
 			return body, nil

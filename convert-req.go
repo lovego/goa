@@ -6,10 +6,12 @@ import (
 	"reflect"
 
 	"github.com/lovego/goa/convert"
+	"github.com/lovego/struct_tag"
 	"github.com/lovego/structs"
 )
 
 type todoReqFields struct {
+	Param  bool
 	Query  bool
 	Header bool
 	Body   bool
@@ -34,8 +36,10 @@ func newReqConvertFunc(typ reflect.Type, path string) (
 		structs.Traverse(req, true, func(value reflect.Value, f reflect.StructField) bool {
 			switch f.Name {
 			case "Param":
-				convertNilPtr(value)
-				err = param.Convert(value, ctx.params)
+				if todo.Param {
+					convertNilPtr(value)
+					err = param.Convert(value, ctx.params)
+				}
 			case "Query":
 				if todo.Query {
 					convertNilPtr(value)
@@ -55,7 +59,9 @@ func newReqConvertFunc(typ reflect.Type, path string) (
 					err = convert.Session(value, reflect.ValueOf(sess))
 				}
 			case "Ctx":
-				value.Set(reflect.ValueOf(ctx))
+				if todo.Ctx {
+					value.Set(reflect.ValueOf(ctx))
+				}
 			}
 			return err == nil
 		})
@@ -83,14 +89,17 @@ func validateReqFields(typ reflect.Type, path string) (
 	structs.TraverseType(typ, func(f reflect.StructField) {
 		switch f.Name {
 		case "Param":
-			param = convert.GetParamConverter(f.Type, path)
+			if !jsonIgnored(f.Tag) {
+				param = convert.GetParamConverter(f.Type, path)
+				todo.Param = true
+			}
 		case "Query":
-			if !isEmptyStruct(f.Type) {
+			if !isEmptyStruct(f.Type) && !jsonIgnored(f.Tag) {
 				convert.ValidateQuery(f.Type)
 				todo.Query = true
 			}
 		case "Header":
-			if !isEmptyStruct(f.Type) {
+			if !isEmptyStruct(f.Type) && !jsonIgnored(f.Tag) {
 				convert.ValidateHeader(f.Type)
 				todo.Header = true
 			}
@@ -98,9 +107,11 @@ func validateReqFields(typ reflect.Type, path string) (
 			if f.Type != typeContextPtr {
 				log.Panic("Ctx field of req parameter must be of type '*goa.Context'.")
 			}
-			todo.Ctx = true
+			if !jsonIgnored(f.Tag) {
+				todo.Ctx = true
+			}
 		case "Body":
-			if !isEmptyStruct(f.Type) {
+			if !isEmptyStruct(f.Type) && !jsonIgnored(f.Tag) {
 				todo.Body = true
 			}
 		case "Session": // can be any type, don't need to validate here.
@@ -134,4 +145,8 @@ func convertNilPtr(v reflect.Value) {
 	if v.Kind() == reflect.Ptr && v.IsNil() && v.CanSet() {
 		v.Set(reflect.New(v.Type().Elem()))
 	}
+}
+
+func jsonIgnored(tag reflect.StructTag) bool {
+	return struct_tag.Get(string(tag), "json") == "-"
 }
