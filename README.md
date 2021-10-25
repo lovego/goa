@@ -4,7 +4,7 @@ A golang http router with regexp and document generation support.
 [![Build Status](https://github.com/lovego/goa/actions/workflows/go.yml/badge.svg)](https://github.com/lovego/goa/actions/workflows/go.yml)
 [![Coverage Status](https://coveralls.io/repos/github/lovego/goa/badge.svg?branch=master&1)](https://coveralls.io/github/lovego/goa)
 [![Go Report Card](https://goreportcard.com/badge/github.com/lovego/goa)](https://goreportcard.com/report/github.com/lovego/goa)
-[![Documentation](https://pkg.go.dev/badge/github.com/lovego/goa)](https://pkg.go.dev/github.com/lovego/goa@v0.2.0)
+[![Documentation](https://pkg.go.dev/badge/github.com/lovego/goa)](https://pkg.go.dev/github.com/lovego/goa@v0.2.1)
 
 
 ## Usage

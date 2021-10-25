@@ -81,19 +81,23 @@ func (c *ContextBeforeLookup) Data(data interface{}, err error) {
 			c.SetError(err)
 		}
 	}
+	body.Data = getData(data, err, statusCode)
 
-	if err != nil {
+	c.StatusJson(statusCode, body)
+}
+
+func getData(data interface{}, err error, code int) interface{} {
+	if err != nil && code != http.StatusInternalServerError {
 		if err2, ok := err.(interface {
 			Data() interface{}
 		}); ok && err2.Data() != nil {
-			body.Data = err2.Data()
-		} else if data != nil && !isNilValue(data) { // 避免返回"data": null
-			body.Data = data
+			return err2.Data()
 		}
-	} else if data != nil && !isNilValue(data) { // 避免返回"data": null
-		body.Data = data
 	}
-	c.StatusJson(statusCode, body)
+	if data != nil && !isNilValue(data) { // 避免返回"data": null
+		return data
+	}
+	return nil
 }
 
 func isNilValue(itfc interface{}) bool {
