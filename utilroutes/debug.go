@@ -89,8 +89,8 @@ th,td { padding: 5px 10px; border: 1px dashed gray; }
 
 		<tr>
 			<td><a href=./caches>pgcache</a></td>
-			<td> if present </td>
-			<td> PostgreSQL caches. </td>
+			<td></td>
+			<td> PostgreSQL caches if present. </td>
 		</tr>
 	</table>
 	</body>
