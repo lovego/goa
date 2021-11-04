@@ -63,28 +63,34 @@ th,td { padding: 5px 10px; border: 1px dashed gray; }
 		</tr>
 
 		<tr>
-			<td><a href=/_debug/reqs>requests</a></td>
+			<td><a href=./_debug/reqs>requests</a></td>
 			<td align=right>{{ .ReqCount }}</td>
 			<td>Requests in processing.</td>
 		</tr>
 		<tr>
-			<td><a href=/_debug/cpu>cpu</a></td>
+			<td><a href=./_debug/cpu>cpu</a></td>
 			<td></td>
 			<td> CPU profile. You can specify the duration in the "seconds" GET parameter. After you get the profile file, use the "go tool pprof" command to investigate the profile. </td>
 		</tr>
 
 		{{range .Profiles}}
 		<tr>
-			<td><a href="/_debug/{{.Name}}?debug=1">{{.Name}}</a></td>
+			<td><a href="./_debug/{{.Name}}?debug=1">{{.Name}}</a></td>
 			<td align=right>{{.Count}}</td>
 			<td>{{ index $.Descs .Name }}</td>
 		</tr>
 		{{end}}
 
 		<tr>
-			<td><a href=/_debug/trace>trace</a></td>
+			<td><a href=./_debug/trace>trace</a></td>
 			<td></td>
 			<td> A trace of execution of the current program. You can specify the duration in the "seconds" GET parameter. After you get the trace file, use the "go tool trace" command to investigate the trace. </td>
+		</tr>
+
+		<tr>
+			<td><a href=./caches>pgcache</a></td>
+			<td> if present </td>
+			<td> PostgreSQL caches. </td>
 		</tr>
 	</table>
 	</body>
