@@ -3,6 +3,8 @@ package goa
 import (
 	"context"
 	"net/http"
+
+	"github.com/lovego/errs"
 )
 
 type ContextBeforeLookup struct {
@@ -66,7 +68,7 @@ func (c *ContextBeforeLookup) Set(key string, value interface{}) {
 }
 
 func (c *ContextBeforeLookup) SetError(err error) {
-	c.err = err
+	c.err = errs.Trace(err)
 }
 
 func (c *ContextBeforeLookup) GetError() error {
