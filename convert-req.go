@@ -2,6 +2,7 @@ package goa
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"reflect"
 
@@ -131,7 +132,10 @@ func convertReqBody(value reflect.Value, ctx *Context) error {
 	if len(body) == 0 {
 		return nil
 	}
-	return json.Unmarshal(body, value.Addr().Interface())
+	if err := json.Unmarshal(body, value.Addr().Interface()); err != nil {
+		return fmt.Errorf("req.Body: %s", err.Error())
+	}
+	return nil
 }
 
 func isEmptyStruct(typ reflect.Type) bool {
