@@ -90,22 +90,25 @@ func defaultPanicHandler(c *goa.Context) {
 }
 
 func shouldLogReqBody(c *goa.Context) bool {
-	if v := c.Request.Header.Get("Content-Type"); v != "" {
-		mediaType, _, _ := mime.ParseMediaType(v)
-		// multipart is often use by file uploading.
+	// big multipart request often is file uploading, so ignore it.
+	if body, _ := c.RequestBody(); len(body) > 1024 {
+		mediaType, _, _ := mime.ParseMediaType(c.Request.Header.Get("Content-Type"))
 		if strings.HasPrefix(mediaType, "multipart/") {
 			return false
 		}
 	}
+
 	return true
 }
 
 func shouldLogRespBody(c *goa.Context) bool {
-	method := c.Request.Method
-	if method == http.MethodGet || method == http.MethodPost &&
-		strings.Contains(c.Request.URL.Path, "query") &&
-		strings.Contains(c.Request.URL.Path, "search") {
-		return false
+	// big reading request often is of low value for debugging, so ignore it.
+	if len(c.ResponseBody()) > 1024 {
+		if c.Request.Method == http.MethodGet || c.Request.Method == http.MethodPost &&
+			strings.Contains(c.Request.URL.Path, "query") &&
+			strings.Contains(c.Request.URL.Path, "search") {
+			return false
+		}
 	}
 	return true
 }
