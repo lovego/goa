@@ -3,6 +3,7 @@ package middlewares
 import (
 	"context"
 	"encoding/json"
+	"mime"
 	"net/http"
 	"strings"
 
@@ -22,8 +23,8 @@ func NewLogger(logger *loggerPkg.Logger) *Logger {
 	return &Logger{
 		Logger:            logger,
 		PanicHandler:      defaultPanicHandler,
-		ShouldLogReqBody:  defaultShouldLogBody,
-		ShouldLogRespBody: defaultShouldLogBody,
+		ShouldLogReqBody:  shouldLogReqBody,
+		ShouldLogRespBody: shouldLogRespBody,
 	}
 }
 
@@ -88,19 +89,25 @@ func defaultPanicHandler(c *goa.Context) {
 	}
 }
 
-func defaultShouldLogBody(c *goa.Context) bool {
+func shouldLogReqBody(c *goa.Context) bool {
+	if v := c.Request.Header.Get("Content-Type"); v != "" {
+		mediaType, _, _ := mime.ParseMediaType(v)
+		// multipart is often use by file uploading.
+		if strings.HasPrefix(mediaType, "multipart/") {
+			return false
+		}
+	}
+	return true
+}
+
+func shouldLogRespBody(c *goa.Context) bool {
 	method := c.Request.Method
-	if method == http.MethodPatch ||
-		method == http.MethodPut ||
-		method == http.MethodDelete {
-		return true
+	if method == http.MethodGet || method == http.MethodPost &&
+		strings.Contains(c.Request.URL.Path, "query") &&
+		strings.Contains(c.Request.URL.Path, "search") {
+		return false
 	}
-	if method == http.MethodPost &&
-		!strings.HasSuffix(c.Request.URL.Path, "query") &&
-		!strings.HasSuffix(c.Request.URL.Path, "search") {
-		return true
-	}
-	return false
+	return true
 }
 
 func tryUnmarshal(b []byte) interface{} {
