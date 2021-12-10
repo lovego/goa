@@ -17,11 +17,7 @@ func ValidateHeader(typ reflect.Type) {
 }
 
 func Header(value reflect.Value, map2strs map[string][]string) (err error) {
-	structs.Traverse(value, true, func(v reflect.Value, f reflect.StructField) bool {
-		if f.Tag.Get("json") == "-" {
-			return true
-		}
-
+	Traverse(value, true, func(v reflect.Value, f reflect.StructField) bool {
 		key, _ := struct_tag.Lookup(string(f.Tag), "header")
 		if key == "" {
 			key = f.Name
@@ -44,7 +40,7 @@ func ValidateRespHeader(typ reflect.Type) {
 	if typ.Kind() != reflect.Struct {
 		log.Panic("resp.Header must be struct or pointer to struct.")
 	}
-	structs.Traverse(reflect.New(typ).Elem(), false, func(_ reflect.Value, f reflect.StructField) bool {
+	Traverse(reflect.New(typ).Elem(), false, func(_ reflect.Value, f reflect.StructField) bool {
 		if f.Type.Kind() != reflect.String {
 			log.Panicf("resp.Header.%s: type must be string.", f.Name)
 		}
@@ -54,7 +50,7 @@ func ValidateRespHeader(typ reflect.Type) {
 }
 
 func WriteRespHeader(value reflect.Value, header http.Header) {
-	structs.Traverse(value, false, func(v reflect.Value, f reflect.StructField) bool {
+	Traverse(value, false, func(v reflect.Value, f reflect.StructField) bool {
 		if value := v.String(); value != "" {
 			key, _ := struct_tag.Lookup(string(f.Tag), "header")
 			if key == "" {
@@ -65,4 +61,18 @@ func WriteRespHeader(value reflect.Value, header http.Header) {
 		return false
 	})
 	return
+}
+
+func Traverse(
+	value reflect.Value, convertNilPtr bool, fn func(reflect.Value, reflect.StructField) bool,
+) {
+	structs.Traverse(value, convertNilPtr, func(v reflect.Value, f reflect.StructField) bool {
+		return f.Tag.Get("json") == "-"
+	}, fn)
+}
+
+func TraverseType(typ reflect.Type, fn func(f reflect.StructField)) {
+	structs.TraverseType(typ, func(f reflect.StructField) bool {
+		return f.Tag.Get("json") == "-"
+	}, fn)
 }

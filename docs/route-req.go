@@ -8,10 +8,10 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/lovego/goa/convert"
 	"github.com/lovego/jsondoc"
 	"github.com/lovego/strs"
 	"github.com/lovego/struct_tag"
-	"github.com/lovego/structs"
 )
 
 func (r *Route) Title() string {
@@ -81,15 +81,13 @@ func (r *Route) Header(buf *bytes.Buffer) {
 	if desc := getComment(field.Tag); desc != "" {
 		buf.WriteString(desc + "\n\n")
 	}
-	structs.Traverse(reflect.New(field.Type).Elem(), true,
+	convert.Traverse(reflect.New(field.Type).Elem(), true,
 		func(_ reflect.Value, f reflect.StructField) bool {
-			if f.Tag.Get("json") != "-" {
-				name, _ := struct_tag.Lookup(string(f.Tag), "header")
-				if name == "" {
-					name = f.Name
-				}
-				buf.WriteString(fmt.Sprintf("- %s (%v): %s\n", name, f.Type, getComment(f.Tag)))
+			name, _ := struct_tag.Lookup(string(f.Tag), "header")
+			if name == "" {
+				name = f.Name
 			}
+			buf.WriteString(fmt.Sprintf("- %s (%v): %s\n", name, f.Type, getComment(f.Tag)))
 			return true
 		})
 }

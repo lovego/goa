@@ -5,7 +5,6 @@ import (
 	"reflect"
 
 	"github.com/lovego/goa/convert"
-	"github.com/lovego/structs"
 )
 
 var errorType = reflect.TypeOf((*error)(nil)).Elem()
@@ -29,7 +28,7 @@ func newRespWriteFunc(typ reflect.Type, hasCtx bool) (reflect.Type, func(*Contex
 		var data interface{}
 		var err error
 
-		structs.Traverse(resp, false, func(v reflect.Value, f reflect.StructField) bool {
+		convert.Traverse(resp, false, func(v reflect.Value, f reflect.StructField) bool {
 			switch f.Name {
 			case "Error":
 				if e := v.Interface(); e != nil {
@@ -48,7 +47,7 @@ func newRespWriteFunc(typ reflect.Type, hasCtx bool) (reflect.Type, func(*Contex
 
 func validateRespFields(typ reflect.Type) bool {
 	empty := true
-	structs.TraverseType(typ, func(f reflect.StructField) {
+	convert.TraverseType(typ, func(f reflect.StructField) {
 		switch f.Name {
 		case "Data":
 			// data can be of any type

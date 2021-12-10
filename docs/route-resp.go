@@ -6,9 +6,9 @@ import (
 	"log"
 	"reflect"
 
+	"github.com/lovego/goa/convert"
 	"github.com/lovego/jsondoc"
 	"github.com/lovego/struct_tag"
-	"github.com/lovego/structs"
 )
 
 func (r *Route) RespHeader(buf *bytes.Buffer) {
@@ -21,14 +21,15 @@ func (r *Route) RespHeader(buf *bytes.Buffer) {
 	if desc := getComment(field.Tag); desc != "" {
 		buf.WriteString(desc + "\n\n")
 	}
-	structs.Traverse(reflect.New(field.Type).Elem(), true, func(_ reflect.Value, f reflect.StructField) bool {
-		name, _ := struct_tag.Lookup(string(f.Tag), "header")
-		if name == "" {
-			name = f.Name
-		}
-		buf.WriteString(fmt.Sprintf("- %s: %s\n", name, getComment(f.Tag)))
-		return true
-	})
+	convert.Traverse(reflect.New(field.Type).Elem(), true,
+		func(_ reflect.Value, f reflect.StructField) bool {
+			name, _ := struct_tag.Lookup(string(f.Tag), "header")
+			if name == "" {
+				name = f.Name
+			}
+			buf.WriteString(fmt.Sprintf("- %s: %s\n", name, getComment(f.Tag)))
+			return true
+		})
 }
 
 func (r *Route) RespBody(buf *bytes.Buffer) {

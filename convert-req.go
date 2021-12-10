@@ -7,8 +7,6 @@ import (
 	"reflect"
 
 	"github.com/lovego/goa/convert"
-	"github.com/lovego/struct_tag"
-	"github.com/lovego/structs"
 )
 
 type todoReqFields struct {
@@ -34,7 +32,7 @@ func newReqConvertFunc(typ reflect.Type, path string) (
 		req := ptr.Elem()
 
 		var err error
-		structs.Traverse(req, true, func(value reflect.Value, f reflect.StructField) bool {
+		convert.Traverse(req, true, func(value reflect.Value, f reflect.StructField) bool {
 			switch f.Name {
 			case "Param":
 				if todo.Param {
@@ -87,20 +85,18 @@ func validateReqFields(typ reflect.Type, path string) (
 		log.Panic("req parameter of handler func must be a struct or struct pointer.")
 	}
 
-	structs.TraverseType(typ, func(f reflect.StructField) {
+	convert.TraverseType(typ, func(f reflect.StructField) {
 		switch f.Name {
 		case "Param":
-			if !jsonIgnored(f.Tag) {
-				param = convert.GetParamConverter(f.Type, path)
-				todo.Param = true
-			}
+			param = convert.GetParamConverter(f.Type, path)
+			todo.Param = true
 		case "Query":
-			if !isEmptyStruct(f.Type) && !jsonIgnored(f.Tag) {
+			if !isEmptyStruct(f.Type) {
 				convert.ValidateQuery(f.Type)
 				todo.Query = true
 			}
 		case "Header":
-			if !isEmptyStruct(f.Type) && !jsonIgnored(f.Tag) {
+			if !isEmptyStruct(f.Type) {
 				convert.ValidateHeader(f.Type)
 				todo.Header = true
 			}
@@ -108,11 +104,9 @@ func validateReqFields(typ reflect.Type, path string) (
 			if f.Type != typeContextPtr {
 				log.Panic("Ctx field of req parameter must be of type '*goa.Context'.")
 			}
-			if !jsonIgnored(f.Tag) {
-				todo.Ctx = true
-			}
+			todo.Ctx = true
 		case "Body":
-			if !isEmptyStruct(f.Type) && !jsonIgnored(f.Tag) {
+			if !isEmptyStruct(f.Type) {
 				todo.Body = true
 			}
 		case "Session": // can be any type, don't need to validate here.
@@ -149,8 +143,4 @@ func convertNilPtr(v reflect.Value) {
 	if v.Kind() == reflect.Ptr && v.IsNil() && v.CanSet() {
 		v.Set(reflect.New(v.Type().Elem()))
 	}
-}
-
-func jsonIgnored(tag reflect.StructTag) bool {
-	return struct_tag.Get(string(tag), "json") == "-"
 }

@@ -5,8 +5,6 @@ import (
 	"log"
 	"reflect"
 	"strings"
-
-	"github.com/lovego/structs"
 )
 
 func ValidateQuery(typ reflect.Type) {
@@ -26,7 +24,7 @@ func Query(value reflect.Value, map2strs map[string][]string) (err error) {
 	if len(map2strs) == 0 {
 		return nil
 	}
-	structs.Traverse(value, true, func(v reflect.Value, f reflect.StructField) bool {
+	Traverse(value, true, func(v reflect.Value, f reflect.StructField) bool {
 		paramName, arrayParamName := queryParamName(f)
 		if paramName == "" {
 			return true
