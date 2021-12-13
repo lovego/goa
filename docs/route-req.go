@@ -16,6 +16,9 @@ import (
 
 func (r *Route) Title() string {
 	if f, ok := r.req.FieldByName("Title"); ok {
+		if comment := getComment(f.Tag); comment != "" {
+			return comment
+		}
 		return strings.TrimSpace(string(f.Tag))
 	}
 	return ""
@@ -23,7 +26,9 @@ func (r *Route) Title() string {
 
 func (r *Route) Desc(buf *bytes.Buffer) {
 	if f, ok := r.req.FieldByName("Desc"); ok {
-		if desc := strings.TrimSpace(string(f.Tag)); desc != "" {
+		if comment := getComment(f.Tag); comment != "" {
+			buf.WriteString(comment + "\n\n")
+		} else if desc := strings.TrimSpace(string(f.Tag)); desc != "" {
 			buf.WriteString(desc + "\n\n")
 		}
 	}
