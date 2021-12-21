@@ -63,7 +63,7 @@ func main() {
 	server.ListenAndServe(router)
 }
 
-func allowOrigin(origin string) bool {
+func allowOrigin(origin string, c *goa.Context) bool {
 	u, err := url.Parse(origin)
 	if err != nil {
 		return false

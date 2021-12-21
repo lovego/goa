@@ -8,18 +8,18 @@ import (
 
 // crosss origin resource share
 type CORS struct {
-	allow     func(origin string) bool
+	allow     func(origin string, c *goa.Context) bool
 	SetHeader func(http.Header)
 }
 
-func NewCORS(allow func(origin string) bool) CORS {
+func NewCORS(allow func(origin string, c *goa.Context) bool) CORS {
 	return CORS{allow: allow}
 }
 
 func (cors CORS) Check(c *goa.Context) {
 	if c.Request.Header.Get(`Sec-Fetch-Site`) != "same-origin" {
 		if origin := c.Request.Header.Get(`Origin`); origin != `` && origin != c.Origin() {
-			if !cors.allow(origin) {
+			if !cors.allow(origin, c) {
 				c.WriteHeader(http.StatusForbidden)
 				c.Write([]byte(`origin not allowed.`))
 				return
