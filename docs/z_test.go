@@ -28,7 +28,7 @@ func ExampleGroup() {
 
 type T struct {
 	Type string `c:"类型"`
-	Id   *int    `c:"ID"`
+	Id   *int   `c:"ID"`
 	Flag bool   `json:"-" c:"标志"`
 }
 
@@ -63,7 +63,7 @@ func testHandler(req struct {
 func testHandler2(req struct {
 	Title string `用户详情`
 	Desc  string `获取用户的详细信息`
-	Param T
+	Param T      `c:"type: 用户类型，\\id：用户ID"`
 }, resp *struct {
 	Header struct {
 		SetCookie string `header:"Set-Cookie" c:"返回登录会话"`

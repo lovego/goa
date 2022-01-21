@@ -3,6 +3,8 @@
 
 
 ## 路径中正则参数（子表达式）说明
+type: 用户类型，\id：用户ID
+
 - type (string): 类型
 - id (*int): ID
 
