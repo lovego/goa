@@ -14,7 +14,19 @@ func (g *RouterGroup) DocDir(dir string) *RouterGroup {
 	return g
 }
 
+// Group returns a new RouterGroup with separate docs.
+// That means, its docs is generated in its own README file unless path is "", ".", or "/".
 func (g *RouterGroup) Group(path string, descs ...string) *RouterGroup {
+	return g.group(path, false, descs)
+}
+
+// Child returns a new RouterGroup with inline docs.
+// That means, its docs is generated in its parent's REAMED file.
+func (g *RouterGroup) Child(path string, descs ...string) *RouterGroup {
+	return g.group(path, true, descs)
+}
+
+func (g *RouterGroup) group(path string, inline bool, descs []string) *RouterGroup {
 	// make a copy to prevent handlers of children groups overwritten.
 	handlersCopy := make([]interface{}, len(g.handlers))
 	copy(handlersCopy, g.handlers)
@@ -23,8 +35,12 @@ func (g *RouterGroup) Group(path string, descs ...string) *RouterGroup {
 		handlers: handlersCopy,
 		routes:   g.routes,
 	}
-	if g.docGroup.Dir != "" {
-		newGroup.docGroup = g.docGroup.Child(path, newGroup.basePath, descs)
+	if g.docGroup.Valid() {
+		if inline {
+			newGroup.docGroup = g.docGroup.Child(path, "", descs)
+		} else {
+			newGroup.docGroup = g.docGroup.Child(path, newGroup.basePath, descs)
+		}
 	}
 	return newGroup
 }
@@ -66,7 +82,7 @@ func (g *RouterGroup) Add(method, path string, handler interface{}, args ...inte
 		log.Panic(err)
 	}
 
-	if g.docGroup.Dir != "" {
+	if g.docGroup.Valid() {
 		g.docGroup.Route(method, path, fullPath, handler)
 	}
 	return g

@@ -13,7 +13,7 @@ func ExampleGroup() {
 	router.DocDir(filepath.Join(fs.SourceDir(), "testdata"))
 
 	accounts := router.Group("/", "账号", "用户、公司、员工、角色、权限")
-	accounts.Group("/users", "用户").
+	accounts.Child("/users", "用户").
 		Get(`/`, testHandler).
 		Get(`/(?P<type>\w+)/(?P<id>\d+)`, testHandler2)
 

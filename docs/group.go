@@ -8,40 +8,49 @@ import (
 	"log"
 	"net/url"
 	"os"
-	pathPkg "path"
+	webpath "path"
 	"path/filepath"
 	"strings"
 
 	"github.com/lovego/fs"
 )
 
-type Group struct {
-	Dir   string
-	depth int // depth in readme file of parent group.
-}
-
 const readme = "README.md"
 
+// Group for docs generation. Every docs.Group has an one-to-one goa.RouterGroup.
+// A group can be inline, that means its docs is generated in its parent's REAMED file.
+type Group struct {
+	// Readme file directory of this group, converted to hash if has special chars.
+	// readmeDir is parent group's readmeDir if this group is inline.
+	readmeDir string
+
+	inlineHashPath string // Hash path prefix for child group or route if this group is inline.
+	inlineDepth    int    // Indent depth in README file if this group is inline.
+}
+
 func (g *Group) Child(path, fullPath string, descs []string) Group {
-	path = cleanPath(path)
-	child := Group{Dir: filepath.Join(g.Dir, filepath.FromSlash(path))}
-	switch path {
-	case ".", "/":
-		child.depth = g.depth + 1
-	default:
-		child.depth = 0
-		path = pathPkg.Join(path, readme)
+	path = webpath.Clean(path)
+	var inline = isInlinePath(path) || isInlinePath(fullPath)
+
+	var hashPath = makeHashPath(path)
+	var child Group
+	if inline {
+		child.readmeDir = g.readmeDir
+		child.inlineHashPath = webpath.Join(g.inlineHashPath, hashPath)
+		child.inlineDepth = g.inlineDepth + 1
+	} else {
+		child.readmeDir = filepath.Join(g.readmeDir, g.inlineHashPath, filepath.FromSlash(hashPath))
 	}
 
 	descs = cleanDescs(descs)
 	if len(descs) > 0 {
 		title := descs[0]
-		if child.depth == 0 {
+		if inline {
+			g.LinkInReadme(title, "", descs[1:], false)
+		} else {
 			title += " (" + fullPath + ")"
 			child.CreateReadme(title, descs[1:])
-			g.LinkInReadme(title, path, nil, false)
-		} else {
-			g.LinkInReadme(title, path, descs[1:], false)
+			g.LinkInReadme(title, webpath.Join(hashPath, readme), nil, false)
 		}
 	}
 	return child
@@ -53,22 +62,21 @@ func (g *Group) Route(method, path, fullPath string, handler interface{}) {
 		return
 	}
 
-	path = cleanPath(path)
-	switch path {
-	case ".", "/":
-		path = method + ".md"
-	default:
-		path = pathPkg.Join(pathPkg.Dir(path), method+"_"+pathPkg.Base(path)+".md")
+	var hashPath = webpath.Join(g.inlineHashPath, makeHashPath(path))
+	if isInlinePath(hashPath) {
+		hashPath = method + ".md"
+	} else {
+		hashPath = webpath.Join(webpath.Dir(hashPath), method+"_"+webpath.Base(hashPath)+".md")
 	}
 
-	file := filepath.Join(g.Dir, filepath.FromSlash(path))
+	var file = filepath.Join(g.readmeDir, filepath.FromSlash(hashPath))
 	mkdir(filepath.Dir(file))
 	if err := ioutil.WriteFile(file, route.Doc(method, fullPath), 0666); err != nil {
 		log.Panic(err)
 	}
 
 	title := route.Title() + " ： " + route.MethodPath(method, fullPath)
-	g.LinkInReadme(title, path, nil, true)
+	g.LinkInReadme(title, hashPath, nil, true)
 }
 
 func (g *Group) CreateReadme(title string, descs []string) {
@@ -77,29 +85,29 @@ func (g *Group) CreateReadme(title string, descs []string) {
 		buf.WriteString(desc + "\n\n")
 	}
 
-	mkdir(g.Dir)
-	if err := ioutil.WriteFile(filepath.Join(g.Dir, readme), buf.Bytes(), 0666); err != nil {
+	mkdir(g.readmeDir)
+	if err := ioutil.WriteFile(filepath.Join(g.readmeDir, readme), buf.Bytes(), 0666); err != nil {
 		log.Panic(err)
 	}
 }
 
 func (g *Group) LinkInReadme(title, href string, desc []string, isRoute bool) {
 	buf := bytes.NewBufferString("##")
-	if g.depth > 0 {
-		buf.WriteString(strings.Repeat("#", g.depth))
+	if g.inlineDepth > 0 {
+		buf.WriteString(strings.Repeat("#", g.inlineDepth))
 	} else if isRoute {
 		buf.WriteString("#")
 	}
 	buf.WriteString(" ")
-	if g.depth > 0 {
-		buf.WriteString(strings.Repeat("　" /* a full-width space */, g.depth))
+	if g.inlineDepth > 0 {
+		// indent by full-width space
+		buf.WriteString(strings.Repeat("　", g.inlineDepth))
 	}
 
-	switch href {
-	case ".", "/":
+	if isInlinePath(href) {
 		buf.WriteString(title)
-	default:
-		u := url.URL{Path: pathPkg.Join(".", href)}
+	} else {
+		u := url.URL{Path: webpath.Join(".", href)}
 		buf.WriteString("[" + title + "](" + u.EscapedPath() + ")")
 	}
 	buf.WriteByte('\n')
@@ -107,16 +115,20 @@ func (g *Group) LinkInReadme(title, href string, desc []string, isRoute bool) {
 		buf.WriteString(line + "\n")
 	}
 
-	mkdir(g.Dir)
-	if err := fs.Append(filepath.Join(g.Dir, readme), buf.Bytes()); err != nil {
+	mkdir(g.readmeDir)
+	if err := fs.Append(filepath.Join(g.readmeDir, readme), buf.Bytes()); err != nil {
 		log.Panic(err)
 	}
 }
 
+func (g *Group) Valid() bool {
+	return g.readmeDir != ""
+}
+
 func (g *Group) SetDir(dir string) {
-	g.Dir = filepath.Clean(strings.TrimSpace(dir))
-	if fs.Exist(g.Dir) {
-		if err := os.RemoveAll(g.Dir); err != nil {
+	g.readmeDir = filepath.Clean(strings.TrimSpace(dir))
+	if fs.Exist(g.readmeDir) {
+		if err := os.RemoveAll(g.readmeDir); err != nil {
 			log.Panic(err)
 		}
 	}
@@ -139,7 +151,16 @@ func mkdir(dir string) {
 	}
 }
 
-func cleanPath(path string) string {
+func isInlinePath(path string) bool {
+	switch path {
+	case "", ".", "/": // thease also in factly makes an inline group.
+		return true
+	}
+	return false
+}
+
+// convert path with sepecial chars to hash
+func makeHashPath(path string) string {
 	const chars = `\|:*?"<>` // characters invalid for windows file name
 	if strings.ContainsAny(path, chars) {
 		components := strings.Split(path, "/")
@@ -152,7 +173,7 @@ func cleanPath(path string) string {
 				components[i] = base64.RawURLEncoding.EncodeToString(bytesSlice)
 			}
 		}
-		path = pathPkg.Join(components...)
+		path = webpath.Join(components...)
 	}
-	return pathPkg.Clean(path)
+	return webpath.Clean(path)
 }
