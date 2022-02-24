@@ -12,12 +12,12 @@ import (
 
 var requests = requestsT{
 	Instance: instanceName,
-	Ps:       make(map[string]map[string]int),
+	Reqs:     make(map[string]map[string]int),
 }
 
 type requestsT struct {
 	Instance     string
-	Ps           map[string]map[string]int
+	Reqs         map[string]map[string]int
 	sync.RWMutex `json:"-"`
 }
 
@@ -35,45 +35,45 @@ func recordRequests(ctx *goa.Context) {
 	ctx.Next()
 }
 
-func (ps *requestsT) Count() int {
-	ps.RLock()
-	defer ps.RUnlock()
-	return len(ps.Ps)
+func (reqs *requestsT) Count() int {
+	reqs.RLock()
+	defer reqs.RUnlock()
+	return len(reqs.Reqs)
 
 }
-func (ps *requestsT) ToJson() []byte {
-	ps.RLock()
-	defer ps.RUnlock()
-	bytes, err := json.Marshal(ps)
+func (reqs *requestsT) ToJson() []byte {
+	reqs.RLock()
+	defer reqs.RUnlock()
+	bytes, err := json.Marshal(reqs)
 	if err != nil {
 		return []byte(fmt.Sprint(err))
 	}
 	return bytes
 }
 
-func (ps *requestsT) Add(method, path string, startTime time.Time) {
-	ps.Lock()
-	defer ps.Unlock()
+func (reqs *requestsT) Add(method, path string, startTime time.Time) {
+	reqs.Lock()
+	defer reqs.Unlock()
 	key := method + ` ` + path
 	ts := startTime.Format(`2006-01-02T15:04:05Z0700`)
-	if value, ok := ps.Ps[key]; ok {
+	if value, ok := reqs.Reqs[key]; ok {
 		value[ts]++
 	} else {
-		ps.Ps[key] = map[string]int{ts: 1}
+		reqs.Reqs[key] = map[string]int{ts: 1}
 	}
 }
 
-func (ps *requestsT) Remove(method, path string, startTime time.Time) {
-	ps.Lock()
-	defer ps.Unlock()
+func (reqs *requestsT) Remove(method, path string, startTime time.Time) {
+	reqs.Lock()
+	defer reqs.Unlock()
 	key := method + ` ` + path
-	if value, ok := ps.Ps[key]; ok {
+	if value, ok := reqs.Reqs[key]; ok {
 		if ts := startTime.Format(`2006-01-02T15:04:05Z0700`); value[ts] > 1 {
 			value[ts]--
 		} else if len(value) > 1 {
 			delete(value, ts)
 		} else {
-			delete(ps.Ps, key)
+			delete(reqs.Reqs, key)
 		}
 	}
 }
