@@ -1,10 +1,9 @@
-package docs
+package ts
 
 import (
 	"bytes"
 	"crypto/md5"
 	"encoding/base64"
-	"io/ioutil"
 	"log"
 	"net/url"
 	"os"
@@ -13,7 +12,6 @@ import (
 	"strings"
 
 	"github.com/lovego/fs"
-	"github.com/lovego/goa/docs/ts"
 )
 
 const readme = "README.md"
@@ -57,32 +55,32 @@ func (g *Group) Child(path, fullPath string, descs []string) Group {
 	return child
 }
 
-func (g *Group) Route(method, path, fullPath string, handler interface{}) {
-	var route Route
-	if !route.Parse(handler) {
-		return
-	}
-
-	var hashPath = webpath.Join(g.inlineHashPath, makeHashPath(path))
-	if isInlinePath(hashPath) {
-		hashPath = method + ".md"
-	} else {
-		hashPath = webpath.Join(webpath.Dir(hashPath), method+"_"+webpath.Base(hashPath)+".md")
-	}
-
-	var file = filepath.Join(g.readmeDir, filepath.FromSlash(hashPath))
-	mkdir(filepath.Dir(file))
-	if err := os.WriteFile(file, route.Doc(method, fullPath), 0666); err != nil {
-		log.Panic(err)
-	}
-
-	tsRoute := ts.Route{Req: route.req, Resp: route.resp}
-	tsSdkFile := strings.TrimRight(file, ".md") + ".ts"
-	tsRoute.TypeScriptSdk(method, fullPath, tsSdkFile)
-
-	title := route.Title() + " ： " + route.MethodPath(method, fullPath)
-	g.LinkInReadme(title, hashPath, nil, true)
-}
+//func (g *Group) Route(method, path, fullPath string, handler interface{}) {
+//	var route Route
+//	if !route.Parse(handler) {
+//		return
+//	}
+//
+//	var hashPath = webpath.Join(g.inlineHashPath, makeHashPath(path))
+//
+//	if isInlinePath(hashPath) {
+//		hashPath = method + ".md"
+//	} else {
+//		hashPath = webpath.Join(webpath.Dir(hashPath), method+"_"+webpath.Base(hashPath)+".md")
+//	}
+//
+//	var file = filepath.Join(g.readmeDir, filepath.FromSlash(hashPath))
+//
+//
+//	tsSdkFile :=strings.TrimRight(file,".md")+".ts"
+//	mkdir(filepath.Dir(file))
+//	if err := os.WriteFile(file, route.TypeScriptSdk(method, fullPath, tsSdkFile), 0666); err != nil {
+//		log.Panic(err)
+//	}
+//
+//	title := route.Title() + " ： " + route.MethodPath(method, fullPath)
+//	g.LinkInReadme(title, hashPath, nil, true)
+//}
 
 func (g *Group) CreateReadme(title string, descs []string) {
 	buf := bytes.NewBufferString("# " + title + "\n")
@@ -91,7 +89,7 @@ func (g *Group) CreateReadme(title string, descs []string) {
 	}
 
 	mkdir(g.readmeDir)
-	if err := ioutil.WriteFile(filepath.Join(g.readmeDir, readme), buf.Bytes(), 0666); err != nil {
+	if err := os.WriteFile(filepath.Join(g.readmeDir, readme), buf.Bytes(), 0666); err != nil {
 		log.Panic(err)
 	}
 }
