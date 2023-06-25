@@ -27,6 +27,9 @@ func (r *Route) Parse(handler interface{}) bool {
 func (r *Route) TypeScriptSdk(method, fullPath, tsFile string) error {
 
 	param, names := r.Param(fullPath)
+	if param != nil {
+		return nil
+	}
 	commQuery, reqQuery := r.Query()
 	fmt.Println(reqQuery)
 
@@ -44,6 +47,7 @@ func (r *Route) TypeScriptSdk(method, fullPath, tsFile string) error {
 	comm = append(comm, commResp...)
 
 	fmt.Println(fullPath)
+	fmt.Println("tsfile:", tsFile)
 
 	api := ts_tpl.ApiInfo{
 		File:         tsFile,

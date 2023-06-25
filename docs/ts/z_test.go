@@ -14,9 +14,17 @@ func ExampleGroup() {
 
 	accounts := router.Group("/", "账号", "用户、公司、员工、角色、权限")
 	accounts.Child("/users", "用户").
-		Get(`/`, testHandler).
-		Get(`/(?P<type>\w+)/(?P<id>\d+)`, testHandler2)
-
+		//Get(`/`, testHandler).
+		//Get(`/(?P<type>\w+)/(?P<id>\d+)`, testHandler2).
+		Get(`/returnable-stocks-nohistory`,
+			func(req struct {
+				Title string `获取无调拨记录的可退库存列表`
+				Query *Bill
+			}, resp *struct {
+				Data  *Bill
+				Error error
+			}) {
+			})
 	accounts.Group("/companies", "公司")
 
 	router.Group("/goods", "商品")
@@ -27,14 +35,16 @@ func ExampleGroup() {
 }
 
 type T struct {
-	Type string `c:"类型"`
-	Id   *int   `c:"ID"`
-	Flag bool   `json:"-" c:"标志"`
+	Type      string    `c:"类型"`
+	Id        *int      `c:"ID"`
+	Flag      bool      `json:"-" c:"标志"`
+	CreatedAt time.Time `json:"createdAt" c:""`
 }
 
 type Bill struct {
-	Id     int64
-	BillNo string `json:"billNo" c:"单据号"`
+	//Id     int64
+	//BillNo string `json:"billNo" c:"单据号"`
+	Rows []*T `json:"rows" c:""`
 }
 type User struct {
 	Id       int64                  `json:"id" c:"用户ID"`

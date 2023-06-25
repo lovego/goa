@@ -47,6 +47,11 @@ func genTsMemberType(m reflect.Type) (typ string, err error) {
 func ToTypeScriptType(typ reflect.Type) (string, error) {
 	switch typ.Kind() {
 	case reflect.Struct:
+		if typ.Name() == "Time" ||
+			typ.Name() == "Decimal" ||
+			typ.Name() == "Date" {
+			return "string", nil
+		}
 		return typ.Name(), nil
 	case reflect.String, reflect.Bool, reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32,
 		reflect.Int64, reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64,
@@ -64,7 +69,7 @@ func ToTypeScriptType(typ reflect.Type) (string, error) {
 		}
 
 		return fmt.Sprintf("{ [key: string]: %s }", valueType), nil
-	case reflect.Array,reflect.Slice:
+	case reflect.Array, reflect.Slice:
 		if typ.Name() == "[]byte" {
 			return "Blob", nil
 		}

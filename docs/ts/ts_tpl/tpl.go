@@ -38,7 +38,7 @@ func (a ApiInfo) Run() error {
 	// todo 删除连续空行
 	buf = deleteSpaceLine(buf.String())
 
-	err = os.WriteFile(a.File, buf.Bytes(), 0666)
+	err = os.WriteFile(a.File, buf.Bytes(), 0644)
 	if err != nil {
 		return err
 	}

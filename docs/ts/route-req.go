@@ -3,7 +3,6 @@ package ts
 import (
 	"bytes"
 	"fmt"
-	"log"
 	"reflect"
 	"regexp"
 	"strings"
@@ -45,6 +44,10 @@ func (r *Route) Param(fullPath string) (*api_type.Object, []string) {
 		Name:     "paramReq",
 		JsonName: "paramReq",
 		Comment:  getComment(field.Tag),
+	}
+
+	if field.Type.Kind() == reflect.Pointer {
+		field.Type = field.Type.Elem()
 	}
 
 	names := regexp.MustCompile(fullPath).SubexpNames()[1:] // names[0] is always "".
@@ -118,19 +121,27 @@ func (r *Route) Query() ([]api_type.Object, *api_type.Object) {
 		req.Comment = desc
 	}
 
-	ob, err := api_type.GetObjectMap([]reflect.Type{field.Type}, "typescript", api_type.MemberTypeJson)
+	if field.Type.Kind() == reflect.Pointer {
+		field.Type = field.Type.Elem()
+	}
+
+	name := field.Type.Name()
+
+	ob := api_type.ObjectMap{}
+
+	err := api_type.GetObjectMap(&ob, []reflect.Type{field.Type}, "typescript", api_type.MemberTypeJson)
 	if err != nil {
-		log.Panic(err)
+		return nil, nil
 	}
 	var queryReq api_type.Object
 	for s, object := range ob {
-		if s == "" {
+		if s == name {
 			object.Name = "QueryReq"
 			object.Comment = "Query请求参数"
 			object.JsonName = field.Tag.Get("json")
 			queryReq = object
 			//ob[object.Name] = object
-			delete(ob, "")
+			delete(ob, name)
 		}
 	}
 
@@ -168,20 +179,29 @@ func (r *Route) Header() *api_type.Object {
 	if desc := getComment(field.Tag); desc != "" {
 		req.Comment = desc
 	}
-	ob, err := api_type.GetObjectMap([]reflect.Type{field.Type}, "typescript", api_type.MemberTypeJson)
+
+	if field.Type.Kind() == reflect.Pointer {
+		field.Type = field.Type.Elem()
+	}
+
+	ob := api_type.ObjectMap{}
+
+	err := api_type.GetObjectMap(&ob, []reflect.Type{field.Type}, "typescript", api_type.MemberTypeJson)
 	if err != nil {
-		log.Panic(err)
+		return nil
 	}
 	var ReqHeader api_type.Object
 
+	name := field.Type.Name()
+
 	for s, object := range ob {
-		if s == "" {
+		if s == name {
 			object.Name = "Header"
 			object.Comment = "Header说明"
 			object.JsonName = field.Tag.Get("json")
 			//ob[object.Name] = object
 			ReqHeader = object
-			delete(ob, "")
+			delete(ob, name)
 		}
 	}
 	return &ReqHeader
@@ -197,20 +217,27 @@ func (r *Route) Body() ([]api_type.Object, *api_type.Object) {
 	if desc := getComment(field.Tag); desc != "" {
 		req.Comment = desc
 	}
-	ob, err := api_type.GetObjectMap([]reflect.Type{field.Type}, "typescript", api_type.MemberTypeJson)
+
+	if field.Type.Kind() == reflect.Pointer {
+		field.Type = field.Type.Elem()
+	}
+	ob := api_type.ObjectMap{}
+
+	 err := api_type.GetObjectMap(&ob,[]reflect.Type{field.Type}, "typescript", api_type.MemberTypeJson)
 	if err != nil {
-		log.Panic(err)
+		return nil, nil
 	}
 	var bodyReq api_type.Object
+	name := field.Type.Name()
 
 	for s, object := range ob {
-		if s == "" {
+		if s == name {
 			object.Name = "BodyReq"
 			object.Comment = "Body请求参数"
 			object.JsonName = field.Tag.Get("json")
 			//ob[object.Name] = object
 			bodyReq = object
-			delete(ob, "")
+			delete(ob, name)
 		}
 	}
 	return ob.ToList(), &bodyReq

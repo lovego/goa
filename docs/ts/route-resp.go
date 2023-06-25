@@ -3,7 +3,6 @@ package ts
 import (
 	"bytes"
 	"fmt"
-	"log"
 	"reflect"
 
 	"github.com/lovego/goa/convert"
@@ -44,20 +43,27 @@ func (r *Route) RespBody() ([]api_type.Object, *api_type.Object) {
 		req.Comment = desc
 	}
 
-	ob, err := api_type.GetObjectMap([]reflect.Type{field.Type}, "typescript", api_type.MemberTypeJson)
+	if field.Type.Kind() == reflect.Pointer {
+		field.Type = field.Type.Elem()
+	}
+	ob := api_type.ObjectMap{}
+
+	err := api_type.GetObjectMap(&ob,[]reflect.Type{field.Type}, "typescript", api_type.MemberTypeJson)
 	if err != nil {
-		log.Panic(err)
+		return nil, nil
 	}
 	var resp api_type.Object
 
+	name := field.Type.Name()
+
 	for s, object := range ob {
-		if s == "" {
+		if s == name {
 			object.Name = "Resp"
 			object.Comment = "返回内容"
 			object.JsonName = field.Tag.Get("json")
 			resp = object
 			//ob[object.Name] = object
-			delete(ob, "")
+			delete(ob, name)
 		}
 	}
 	return ob.ToList(), &resp

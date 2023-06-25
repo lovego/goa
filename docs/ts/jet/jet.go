@@ -42,7 +42,7 @@ func NewFuncMap(f template.FuncMap) template.FuncMap {
 	return m
 }
 
-func Tpl(tpl []byte, data any) (*bytes.Buffer, error) {
+func Tpl(tpl []byte, data interface{}) (*bytes.Buffer, error) {
 
 	tplDir := "./.tmp/tpl/"
 	tplFile := "home.jet"

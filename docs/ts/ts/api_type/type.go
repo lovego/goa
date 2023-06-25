@@ -1,6 +1,7 @@
 package api_type
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 	"regexp"
@@ -29,6 +30,10 @@ type Object struct {
 
 type ObjectMap map[string]Object
 
+func (o *ObjectMap) Get(key string) (Object, bool) {
+	s, ok := (*o)[key]
+	return s, ok
+}
 func (o *ObjectMap) Delete(key string) {
 	delete(*o, key)
 }
@@ -96,8 +101,21 @@ func getComment(tag reflect.StructTag) string {
 	return comment
 }
 
-func GetObjectMap(types []reflect.Type, lang, memberType string) (ObjectMap, error) {
-	var list = ObjectMap{}
+func GetTyp(typ reflect.Type) reflect.Type {
+	switch typ.Kind() {
+	case reflect.Struct:
+		return typ
+	case reflect.Pointer, reflect.Slice, reflect.Array, reflect.Map:
+		return GetTyp(typ.Elem())
+	default:
+		return typ
+	}
+}
+
+func GetObjectMap(ob *ObjectMap, types []reflect.Type, lang, memberType string) error {
+	if ob == nil {
+		return errors.New("obj必填")
+	}
 
 	for _, typ := range types {
 		if typ == nil {
@@ -111,28 +129,28 @@ func GetObjectMap(types []reflect.Type, lang, memberType string) (ObjectMap, err
 		}
 		obj.Comment = cleanComment(obj.Comment)
 
-		members, specList, err := GetMembers(typ, lang, memberType)
+		members, specList, err := GetMembers(ob, typ, lang, memberType)
 		if err != nil {
-			return nil, err
+			return err
 		}
 		obj.Members = members
-		list[obj.Name] = obj
+		(*ob)[obj.Name] = obj
 		if len(specList) == 0 {
 			continue
 		}
-		l, err := GetObjectMap(specList, lang, memberType)
+		err = GetObjectMap(ob, specList, lang, memberType)
 		if err != nil {
-			return nil, err
+			return err
 		}
-		if len(l) == 0 {
-			continue
-		}
-		for k, v := range l {
-			list[k] = v
-		}
+		//if len(l) == 0 {
+		//	continue
+		//}
+		//for k, v := range l {
+		//	list[k] = v
+		//}
 	}
 
-	return list, nil
+	return nil
 }
 
 const (
@@ -143,13 +161,13 @@ const (
 )
 
 // memberType json:带有json标签的body字段 !json:除了json标签的其他字段  form:带有form标签的表单字段 为空表示所有字段
-func GetMembers(tp reflect.Type, lang, memberType string) ([]Member, []reflect.Type, error) {
+func GetMembers(list *ObjectMap, tp reflect.Type, lang, memberType string) ([]Member, []reflect.Type, error) {
 	definedType := tp.Kind()
 
 	if definedType != reflect.Struct {
 
 		if definedType == reflect.Pointer {
-			return GetMembers(tp.Elem(), lang, memberType)
+			return GetMembers(list, tp.Elem(), lang, memberType)
 		}
 
 		return nil, nil, fmt.Errorf("type %s not supported", tp.Name())
@@ -164,34 +182,97 @@ func GetMembers(tp reflect.Type, lang, memberType string) ([]Member, []reflect.T
 		if f.Tag.Get("json") == "-" {
 			continue
 		}
+		//t := f.Type
+		t2 := GetTyp(f.Type)
 
-		if f.Type.Kind() == reflect.Pointer && f.Type.Elem().Kind() == reflect.Struct {
-			specTypeList = append(specTypeList, f.Type.Elem())
+		//if strings.Contains(strings.ToLower(t2.Name()), "tree") {
+		//	return nil, nil, nil
+		//}
+
+		_, ok := list.Get(t2.Name())
+		if ok {
+			continue
 		}
-		if f.Type.Kind() == reflect.Struct {
-			if f.Anonymous && f.Tag.Get("json") != "" {
-				specTypeList = append(specTypeList, f.Type)
-			}
-			if !f.Anonymous {
-				specTypeList = append(specTypeList, f.Type)
+
+		if t2.Kind() == reflect.Struct {
+			n := strings.ToLower(t2.Name())
+			if n != "time" &&
+				n != "decimal" &&
+				n != "date" {
+
+				specTypeList = append(specTypeList, t2)
 			} else {
-				mem, list, err := GetMembers(f.Type, lang, memberType)
-				if err != nil {
-					return nil, nil, err
-				}
-				fields = append(fields, mem...)
-				specTypeList = append(specTypeList, list...)
-				continue
+				fmt.Println(n)
 			}
+
+		}
+		if f.Anonymous && f.Tag.Get("json") == "" {
+			mem, list, err := GetMembers(list, f.Type, lang, memberType)
+			if err != nil {
+				return nil, nil, err
+			}
+			fields = append(fields, mem...)
+			specTypeList = append(specTypeList, list...)
+			continue
 		}
 
-		t, err := GenMemberType(f.Type, lang)
+		//if t.Kind() == reflect.Pointer {
+		//	t = t.Elem()
+		//}
+		//
+		//switch t.Kind() {
+		//case reflect.Slice, reflect.Map:
+		//	if t.Elem().Kind() == reflect.Pointer && t.Elem().Elem().Kind() == reflect.Struct {
+		//		specTypeList = append(specTypeList, t)
+		//	}
+		//	if t.Elem().Kind() == reflect.Struct {
+		//		specTypeList = append(specTypeList, t)
+		//	}
+		//case reflect.Struct, reflect.Pointer:
+		//	if f.Anonymous && f.Tag.Get("json") != "" {
+		//		specTypeList = append(specTypeList, t)
+		//	}
+		//	if !f.Anonymous {
+		//		specTypeList = append(specTypeList, t)
+		//	} else {
+		//		mem, list, err := GetMembers(f.Type, lang, memberType)
+		//		if err != nil {
+		//			return nil, nil, err
+		//		}
+		//		fields = append(fields, mem...)
+		//		specTypeList = append(specTypeList, list...)
+		//		continue
+		//	}
+		//
+		//}
+
+		//if f.Type.Kind() == reflect.Pointer && f.Type.Elem().Kind() == reflect.Struct {
+		//	specTypeList = append(specTypeList, f.Type.Elem())
+		//}
+		//if f.Type.Kind() == reflect.Struct {
+		//	if f.Anonymous && f.Tag.Get("json") != "" {
+		//		specTypeList = append(specTypeList, f.Type)
+		//	}
+		//	if !f.Anonymous {
+		//		specTypeList = append(specTypeList, f.Type)
+		//	} else {
+		//		mem, list, err := GetMembers(f.Type, lang, memberType)
+		//		if err != nil {
+		//			return nil, nil, err
+		//		}
+		//		fields = append(fields, mem...)
+		//		specTypeList = append(specTypeList, list...)
+		//		continue
+		//	}
+		//}
+
+		s, err := GenMemberType(f.Type, lang)
 		if err != nil {
 			return nil, nil, err
 		}
 
 		m := Member{
-			Type:     t,
+			Type:     s,
 			Name:     f.Name,
 			Comment:  getComment(f.Tag),
 			JsonName: f.Tag.Get("json"),
