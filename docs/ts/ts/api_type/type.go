@@ -83,6 +83,21 @@ func (o *ObjectMap) NoPrimMembers(lang string) []string {
 	return list
 }
 
+func (o *ObjectMap) IsExistMember(name string) bool {
+	for _, object := range *o {
+		//if object.Name == name {
+		//	return true
+		//}
+		for _, mem := range object.Members {
+			if mem.Type == name {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
 var whitespaceRegexp = regexp.MustCompile(`\s+`)
 
 // extract comment from struct field tags
@@ -179,34 +194,30 @@ func GetMembers(list *ObjectMap, tp reflect.Type, lang, memberType string) ([]Me
 	for i := 0; i < tp.NumField(); i++ {
 		f := tp.Field(i)
 
-		if f.Tag.Get("json") == "-" {
+		if f.Tag.Get("json") == "-" || (f.Name[0] >= 'a' && f.Name[0] <= 'z') {
 			continue
 		}
-		//t := f.Type
-		t2 := GetTyp(f.Type)
+		t := GetTyp(f.Type)
 
-		//if strings.Contains(strings.ToLower(t2.Name()), "tree") {
-		//	return nil, nil, nil
-		//}
+		if t.Kind() == reflect.Struct && !(f.Anonymous && f.Tag.Get("json") == "") {
+			name := t.Name()
 
-		_, ok := list.Get(t2.Name())
-		if ok {
-			continue
-		}
+			_, ok := list.Get(name)
+			if !ok {
+				n := strings.ToLower(t.Name())
+				if n != "time" &&
+					n != "decimal" &&
+					n != "date" && (!f.Anonymous || (f.Anonymous && f.Tag.Get("json") != "")) {
 
-		if t2.Kind() == reflect.Struct {
-			n := strings.ToLower(t2.Name())
-			if n != "time" &&
-				n != "decimal" &&
-				n != "date" {
-
-				specTypeList = append(specTypeList, t2)
-			} else {
-				fmt.Println(n)
+					specTypeList = append(specTypeList, t)
+				}
 			}
 
 		}
 		if f.Anonymous && f.Tag.Get("json") == "" {
+			if f.Type.Kind() == reflect.Pointer {
+				f.Type = f.Type.Elem()
+			}
 			mem, list, err := GetMembers(list, f.Type, lang, memberType)
 			if err != nil {
 				return nil, nil, err
@@ -215,56 +226,6 @@ func GetMembers(list *ObjectMap, tp reflect.Type, lang, memberType string) ([]Me
 			specTypeList = append(specTypeList, list...)
 			continue
 		}
-
-		//if t.Kind() == reflect.Pointer {
-		//	t = t.Elem()
-		//}
-		//
-		//switch t.Kind() {
-		//case reflect.Slice, reflect.Map:
-		//	if t.Elem().Kind() == reflect.Pointer && t.Elem().Elem().Kind() == reflect.Struct {
-		//		specTypeList = append(specTypeList, t)
-		//	}
-		//	if t.Elem().Kind() == reflect.Struct {
-		//		specTypeList = append(specTypeList, t)
-		//	}
-		//case reflect.Struct, reflect.Pointer:
-		//	if f.Anonymous && f.Tag.Get("json") != "" {
-		//		specTypeList = append(specTypeList, t)
-		//	}
-		//	if !f.Anonymous {
-		//		specTypeList = append(specTypeList, t)
-		//	} else {
-		//		mem, list, err := GetMembers(f.Type, lang, memberType)
-		//		if err != nil {
-		//			return nil, nil, err
-		//		}
-		//		fields = append(fields, mem...)
-		//		specTypeList = append(specTypeList, list...)
-		//		continue
-		//	}
-		//
-		//}
-
-		//if f.Type.Kind() == reflect.Pointer && f.Type.Elem().Kind() == reflect.Struct {
-		//	specTypeList = append(specTypeList, f.Type.Elem())
-		//}
-		//if f.Type.Kind() == reflect.Struct {
-		//	if f.Anonymous && f.Tag.Get("json") != "" {
-		//		specTypeList = append(specTypeList, f.Type)
-		//	}
-		//	if !f.Anonymous {
-		//		specTypeList = append(specTypeList, f.Type)
-		//	} else {
-		//		mem, list, err := GetMembers(f.Type, lang, memberType)
-		//		if err != nil {
-		//			return nil, nil, err
-		//		}
-		//		fields = append(fields, mem...)
-		//		specTypeList = append(specTypeList, list...)
-		//		continue
-		//	}
-		//}
 
 		s, err := GenMemberType(f.Type, lang)
 		if err != nil {
@@ -275,8 +236,8 @@ func GetMembers(list *ObjectMap, tp reflect.Type, lang, memberType string) ([]Me
 			Type:     s,
 			Name:     f.Name,
 			Comment:  getComment(f.Tag),
-			JsonName: f.Tag.Get("json"),
-			FormName: f.Tag.Get("form"),
+			JsonName: strings.ReplaceAll(f.Tag.Get("json"), ",omitempty", ""),
+			FormName: strings.ReplaceAll(f.Tag.Get("form"), ",omitempty", ""),
 		}
 		m.Comment = cleanComment(m.Comment)
 
@@ -286,6 +247,7 @@ func GetMembers(list *ObjectMap, tp reflect.Type, lang, memberType string) ([]Me
 		if m.FormName == "" {
 			m.FormName = m.Name
 		}
+		// 如果member中有m中已经存在的,则将field中的删掉
 		fields = append(fields, m)
 
 	}

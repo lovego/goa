@@ -1,12 +1,12 @@
 package ts
 
 import (
-	"fmt"
 	"html"
 	"reflect"
 	"regexp"
 	"strings"
 
+	"github.com/lovego/goa/docs/ts/ts/api_type"
 	"github.com/lovego/goa/docs/ts/ts_tpl"
 	"github.com/lovego/struct_tag"
 )
@@ -27,27 +27,37 @@ func (r *Route) Parse(handler interface{}) bool {
 func (r *Route) TypeScriptSdk(method, fullPath, tsFile string) error {
 
 	param, names := r.Param(fullPath)
-	if param != nil {
-		return nil
-	}
+	//if param != nil {
+	//	return nil
+	//}
 	commQuery, reqQuery := r.Query()
-	fmt.Println(reqQuery)
+	//fmt.Println(reqQuery)
 
 	reqHeader := r.Header()
 
 	commBody, reqBody := r.Body()
-	fmt.Println(reqBody)
+	//fmt.Println(reqBody)
 
 	//r.RespHeader(buf)
 	commResp, resp := r.RespBody()
-	fmt.Println(resp)
+	//fmt.Println(resp)
 	//r.RespError(buf)
 
 	comm := append(commQuery, commBody...)
 	comm = append(comm, commResp...)
 
-	fmt.Println(fullPath)
-	fmt.Println("tsfile:", tsFile)
+	// 数组去重
+	data := api_type.ObjectMap{}
+
+	for _, object := range comm {
+		data[object.Name] = object
+	}
+	comm = data.ToList()
+
+	// 数组去重之后就开始了
+
+	//fmt.Println(fullPath)
+	//fmt.Println("tsfile:", tsFile)
 
 	api := ts_tpl.ApiInfo{
 		File:         tsFile,
@@ -64,6 +74,8 @@ func (r *Route) TypeScriptSdk(method, fullPath, tsFile string) error {
 		Resp:         resp,
 		FunctionName: "test",
 	}
+
+	//fmt.Println(api)
 
 	err := api.Run()
 	if err != nil {

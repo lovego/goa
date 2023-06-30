@@ -48,7 +48,7 @@ func (r *Route) RespBody() ([]api_type.Object, *api_type.Object) {
 	}
 	ob := api_type.ObjectMap{}
 
-	err := api_type.GetObjectMap(&ob,[]reflect.Type{field.Type}, "typescript", api_type.MemberTypeJson)
+	err := api_type.GetObjectMap(&ob, []reflect.Type{field.Type}, "typescript", api_type.MemberTypeJson)
 	if err != nil {
 		return nil, nil
 	}
@@ -63,7 +63,10 @@ func (r *Route) RespBody() ([]api_type.Object, *api_type.Object) {
 			object.JsonName = field.Tag.Get("json")
 			resp = object
 			//ob[object.Name] = object
-			delete(ob, name)
+
+			if !ob.IsExistMember(name) {
+				delete(ob, name)
+			}
 		}
 	}
 	return ob.ToList(), &resp

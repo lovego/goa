@@ -9,7 +9,6 @@ import (
 
 	"github.com/lovego/goa/convert"
 	"github.com/lovego/goa/docs/ts/ts/api_type"
-	"github.com/lovego/strs"
 	"github.com/lovego/struct_tag"
 )
 
@@ -51,10 +50,28 @@ func (r *Route) Param(fullPath string) (*api_type.Object, []string) {
 	}
 
 	names := regexp.MustCompile(fullPath).SubexpNames()[1:] // names[0] is always "".
+	var arr []string
 	for _, name := range names {
-		if name != "" {
-			if f, ok := field.Type.FieldByName(strs.FirstLetterToUpper(name)); ok {
+		if strings.TrimSpace(name) == "" {
+			continue
+		}
+		arr = append(arr, strings.TrimSpace(name))
+	}
 
+	names = arr
+
+	if len(names) == 0 {
+		return nil, nil
+	}
+
+	for _, name := range names {
+		if name == "" {
+			continue
+		}
+
+		for i := 0; i < field.Type.NumField(); i++ {
+			f := field.Type.Field(i)
+			if strings.TrimSpace(strings.Split(f.Tag.Get("json"), ",")[0]) == name {
 				m := api_type.Member{
 					Type:     "string",
 					Name:     name,
@@ -68,6 +85,7 @@ func (r *Route) Param(fullPath string) (*api_type.Object, []string) {
 				paramReq.Members = append(paramReq.Members, m)
 			}
 		}
+
 	}
 
 	return &paramReq, names
@@ -86,27 +104,48 @@ func Between(str, starting, ending string) string {
 	}
 	return str[s : s+e]
 }
+
+// sdfsdf/sdfsdf/($1)/($2)/sdf
+
 func getTsParamPath(fullPath string, names []string) string {
 	if len(names) == 0 {
 		return fullPath
 	}
-	for {
-		if !strings.Contains(fullPath, "(") && !strings.Contains(fullPath, ")") {
-			break
-		}
-		t := Between(fullPath, "(", ")")
-		if t == "" {
-			continue
-		}
-		for _, name := range names {
-			if !strings.Contains(t, name) {
-				continue
-			}
-			fullPath = strings.ReplaceAll(fullPath, "("+t+")", `${param.`+name+`}`)
+	var p string
+
+	paths := strings.Split(fullPath, "/(")
+	for _, path := range paths {
+
+		pt := path
+		n := strings.LastIndex(path, ")") + 1
+		if n > 0 {
+			path = path[:n]
+			pt = pt[n:]
 		}
 
+		if strings.HasSuffix(path, ")") {
+			path = `${param.` + getNamesValue(names, path) + `}` + pt
+		}
+		p += "/" + path
 	}
-	return fullPath
+	p = "/" + strings.TrimLeft(p, "/")
+
+	//fmt.Println(p)
+
+	return p
+}
+
+func getNamesValue(names []string, path string) string {
+	for _, s := range names {
+		s = strings.TrimSpace(s)
+		if s == "" {
+			continue
+		}
+		if strings.Contains(path, s) {
+			return s
+		}
+	}
+	return path
 }
 
 func (r *Route) Query() ([]api_type.Object, *api_type.Object) {
@@ -141,7 +180,9 @@ func (r *Route) Query() ([]api_type.Object, *api_type.Object) {
 			object.JsonName = field.Tag.Get("json")
 			queryReq = object
 			//ob[object.Name] = object
-			delete(ob, name)
+			if !ob.IsExistMember(name) {
+				delete(ob, name)
+			}
 		}
 	}
 
@@ -201,9 +242,12 @@ func (r *Route) Header() *api_type.Object {
 			object.JsonName = field.Tag.Get("json")
 			//ob[object.Name] = object
 			ReqHeader = object
-			delete(ob, name)
+			if !ob.IsExistMember(name) {
+				delete(ob, name)
+			}
 		}
 	}
+
 	return &ReqHeader
 }
 
@@ -223,7 +267,7 @@ func (r *Route) Body() ([]api_type.Object, *api_type.Object) {
 	}
 	ob := api_type.ObjectMap{}
 
-	 err := api_type.GetObjectMap(&ob,[]reflect.Type{field.Type}, "typescript", api_type.MemberTypeJson)
+	err := api_type.GetObjectMap(&ob, []reflect.Type{field.Type}, "typescript", api_type.MemberTypeJson)
 	if err != nil {
 		return nil, nil
 	}
@@ -237,7 +281,9 @@ func (r *Route) Body() ([]api_type.Object, *api_type.Object) {
 			object.JsonName = field.Tag.Get("json")
 			//ob[object.Name] = object
 			bodyReq = object
-			delete(ob, name)
+			if !ob.IsExistMember(name) {
+				delete(ob, name)
+			}
 		}
 	}
 	return ob.ToList(), &bodyReq

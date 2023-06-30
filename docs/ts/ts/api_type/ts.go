@@ -10,10 +10,8 @@ func TsPrimitiveType(typeName string) (string, error) {
 	switch typeName {
 	case "string":
 		return "string", nil
-	case "int", "int8", "int16", "int32", "uint", "uint8", "uint16", "uint32":
+	case "int", "int8", "int16", "int32", "uint", "uint8", "uint16", "uint32", "int64", "uint64":
 		return "number", nil
-	case "int64", "uint64":
-		return "string", nil
 	case "float", "float32", "float64":
 		return "number", nil
 	case "bool":
@@ -56,7 +54,7 @@ func ToTypeScriptType(typ reflect.Type) (string, error) {
 	case reflect.String, reflect.Bool, reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32,
 		reflect.Int64, reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64,
 		reflect.Float32, reflect.Float64:
-		r, err := TsPrimitiveType(typ.Name())
+		r, err := TsPrimitiveType(typ.Kind().String())
 		if err != nil {
 			return "", err
 		}
