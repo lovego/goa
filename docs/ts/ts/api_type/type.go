@@ -120,7 +120,7 @@ func GetTyp(typ reflect.Type) reflect.Type {
 	switch typ.Kind() {
 	case reflect.Struct:
 		return typ
-	case reflect.Pointer, reflect.Slice, reflect.Array, reflect.Map:
+	case reflect.Ptr, reflect.Slice, reflect.Array, reflect.Map:
 		return GetTyp(typ.Elem())
 	default:
 		return typ
@@ -181,7 +181,7 @@ func GetMembers(list *ObjectMap, tp reflect.Type, lang, memberType string) ([]Me
 
 	if definedType != reflect.Struct {
 
-		if definedType == reflect.Pointer {
+		if definedType == reflect.Ptr {
 			return GetMembers(list, tp.Elem(), lang, memberType)
 		}
 
@@ -215,7 +215,7 @@ func GetMembers(list *ObjectMap, tp reflect.Type, lang, memberType string) ([]Me
 
 		}
 		if f.Anonymous && f.Tag.Get("json") == "" {
-			if f.Type.Kind() == reflect.Pointer {
+			if f.Type.Kind() == reflect.Ptr {
 				f.Type = f.Type.Elem()
 			}
 			mem, list, err := GetMembers(list, f.Type, lang, memberType)

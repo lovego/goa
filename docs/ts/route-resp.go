@@ -43,7 +43,7 @@ func (r *Route) RespBody() ([]api_type.Object, *api_type.Object) {
 		req.Comment = desc
 	}
 
-	if field.Type.Kind() == reflect.Pointer {
+	if field.Type.Kind() == reflect.Ptr {
 		field.Type = field.Type.Elem()
 	}
 	ob := api_type.ObjectMap{}

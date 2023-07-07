@@ -56,9 +56,6 @@ func (r *Route) TypeScriptSdk(method, fullPath, tsFile string) error {
 
 	// 数组去重之后就开始了
 
-	//fmt.Println(fullPath)
-	//fmt.Println("tsfile:", tsFile)
-
 	api := ts_tpl.ApiInfo{
 		File:         tsFile,
 		Title:        strings.TrimSpace(r.Title()),
@@ -74,8 +71,6 @@ func (r *Route) TypeScriptSdk(method, fullPath, tsFile string) error {
 		Resp:         resp,
 		FunctionName: "test",
 	}
-
-	//fmt.Println(api)
 
 	err := api.Run()
 	if err != nil {

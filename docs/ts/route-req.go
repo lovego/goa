@@ -45,7 +45,7 @@ func (r *Route) Param(fullPath string) (*api_type.Object, []string) {
 		Comment:  getComment(field.Tag),
 	}
 
-	if field.Type.Kind() == reflect.Pointer {
+	if field.Type.Kind() == reflect.Ptr {
 		field.Type = field.Type.Elem()
 	}
 
@@ -160,7 +160,7 @@ func (r *Route) Query() ([]api_type.Object, *api_type.Object) {
 		req.Comment = desc
 	}
 
-	if field.Type.Kind() == reflect.Pointer {
+	if field.Type.Kind() == reflect.Ptr {
 		field.Type = field.Type.Elem()
 	}
 
@@ -221,7 +221,7 @@ func (r *Route) Header() *api_type.Object {
 		req.Comment = desc
 	}
 
-	if field.Type.Kind() == reflect.Pointer {
+	if field.Type.Kind() == reflect.Ptr {
 		field.Type = field.Type.Elem()
 	}
 
@@ -262,7 +262,7 @@ func (r *Route) Body() ([]api_type.Object, *api_type.Object) {
 		req.Comment = desc
 	}
 
-	if field.Type.Kind() == reflect.Pointer {
+	if field.Type.Kind() == reflect.Ptr {
 		field.Type = field.Type.Elem()
 	}
 	ob := api_type.ObjectMap{}

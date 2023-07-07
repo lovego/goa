@@ -84,7 +84,7 @@ export default async  ({{if !IsZero(.Param) }}{{"\n"}}    param: paramReq,// {{.
     options?: { [key: string]: any }, // 请求配置
 ) => {
     return request{{if !IsZero(.Resp) }}<resp>{{end}}(
-        `/api{{.Router}}`,
+        `{{.Router}}`,
         {
             method: '{{.Method}}', // 通过options覆盖method
             ...(options || {}), {{if !IsZero(.Query) }}{{"\n"}}            params: params,{{end}}  {{if !IsZero(.Body) }}{{"\n"}}            data: body,{{end}}

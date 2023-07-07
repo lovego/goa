@@ -28,7 +28,7 @@ func ApiType(typ reflect.Type) (string, bool, error) {
 		return valueType, isCustom, nil
 	case reflect.Interface:
 		return "any", false, nil
-	case reflect.Pointer:
+	case reflect.Ptr:
 		return ApiType(typ.Elem())
 	}
 

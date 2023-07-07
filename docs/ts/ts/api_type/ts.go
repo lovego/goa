@@ -80,7 +80,7 @@ func ToTypeScriptType(typ reflect.Type) (string, error) {
 		return fmt.Sprintf("Array<%s>", valueType), nil
 	case reflect.Interface:
 		return "any", nil
-	case reflect.Pointer:
+	case reflect.Ptr:
 		return ToTypeScriptType(typ.Elem())
 	}
 
