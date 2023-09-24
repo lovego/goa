@@ -3,8 +3,6 @@ package jet
 import (
 	"bytes"
 	"io"
-	"os"
-	"path"
 	"strings"
 	"text/template"
 
@@ -43,35 +41,19 @@ func NewFuncMap(f template.FuncMap) template.FuncMap {
 }
 
 func Tpl(tpl []byte, data interface{}) (*bytes.Buffer, error) {
+	l := jet.NewInMemLoader()
 
-	tplDir := "./.tmp/tpl/"
-	tplFile := "home.jet"
-	err := os.MkdirAll(tplDir, 0700)
-	if err != nil {
-		return nil, err
-	}
+	l.Set("tmp", string(tpl))
 
-	defer func() {
-		os.RemoveAll(".tmp")
-	}()
-
-	err = os.WriteFile(path.Join(tplDir, tplFile), []byte(tpl), 0700)
-	if err != nil {
-		return nil, err
-	}
-
-	var views = jet.NewSet(
-		jet.NewOSFileSystemLoader(tplDir),
-		jet.WithSafeWriter(RawWriter),
-		jet.InDevelopmentMode(), // remove in production
-	)
-
+	views := jet.NewSet(
+		l,
+		jet.WithDelims("≤", "≥"))
 	funcM := NewFuncMap(nil)
 	for s, fun := range funcM {
 		views.AddGlobal(s, fun)
 	}
 
-	t, err := views.GetTemplate(tplFile)
+	t, err := views.GetTemplate("tmp")
 	if err != nil {
 		return nil, err
 	}
