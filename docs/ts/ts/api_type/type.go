@@ -1,6 +1,7 @@
 package api_type
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"reflect"
@@ -204,11 +205,13 @@ func GetMembers(list *ObjectMap, tp reflect.Type, lang, memberType string) ([]Me
 
 			_, ok := list.Get(name)
 			if !ok {
-				n := strings.ToLower(t.Name())
-				if n != "time" &&
-					n != "decimal" &&
-					n != "date" && (!f.Anonymous || (f.Anonymous && f.Tag.Get("json") != "")) {
+				//n := strings.ToLower(t.Name())
 
+				v := reflect.New(t).Interface()
+				_, unmar := v.(json.Unmarshaler)
+				_, mar := v.(json.Marshaler)
+
+				if !(unmar || mar) && (!f.Anonymous || (f.Anonymous && f.Tag.Get("json") != "")) {
 					specTypeList = append(specTypeList, t)
 				}
 			}

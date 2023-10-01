@@ -89,33 +89,33 @@ func ExampleGroup() {
 	accounts := router.Group("/", "账号", "用户、公司、员工、角色、权限")
 	accounts.Child("/123", "用户").
 		//Get(`/`, testHandler).
-		Put(`/(?P<type>`+billNoReg+`)/(?P<id>\d+)/(?P<action>`+billStatusReg+`)/werfdfg`, func(req struct {
-			Title string `更新单据状态`
-			Param BillAction
-			Body  ActionBody `c:"
-		{\"costAudit\":[    # 成本价审核通过需要的参数
-			{
-				\"id\":3505,				# 明细ID
-				\"supplierId\":469768,		# 供应商ID
-				\"costPrice\":\"10\",		# 成本价
-				\"costTaxRate\":\"0.13\"	# 税率
-			}
-		]}
-		"`
-		}, resp *struct {
-			Error error
-		}) {
-
-		})
-	//.Post(`/user`,
-	//		func(req struct {
-	//			Title string `获取无调拨记录的可退库存列表`
-	//			Body  *Bill
-	//		}, resp *struct {
-	//			Data  *Bill
-	//			Error error
-	//		}) {
-	//		})
+		//Put(`/(?P<type>`+billNoReg+`)/(?P<id>\d+)/(?P<action>`+billStatusReg+`)/werfdfg`, func(req struct {
+		//	Title string `更新单据状态`
+		//	Param BillAction
+		//	Body  ActionBody `c:"
+		//{\"costAudit\":[    # 成本价审核通过需要的参数
+		//	{
+		//		\"id\":3505,				# 明细ID
+		//		\"supplierId\":469768,		# 供应商ID
+		//		\"costPrice\":\"10\",		# 成本价
+		//		\"costTaxRate\":\"0.13\"	# 税率
+		//	}
+		//]}
+		//"`
+		//}, resp *struct {
+		//	Error error
+		//}) {
+		//
+		//})
+		Post(`/user`,
+			func(req struct {
+				Title string `获取无调拨记录的可退库存列表`
+				Body  *Bill
+			}, resp *struct {
+				Data  *Bill
+				Error error
+			}) {
+			})
 	accounts.Group("/companies", "公司")
 
 	router.Group("/goods", "商品")
@@ -137,19 +137,19 @@ type CreateResp struct {
 }
 
 type T struct {
-	Type      string    `c:"类型"`
-	Id        *int      `c:"ID"`
+	//Type      string    `c:"类型"`
+	//Id        *int      `c:"ID"`
 	Flag      bool      `json:"-" c:"标志"`
 	CreatedAt time.Time `json:"createdAt" c:""`
 }
 
 type Bill struct {
-	Id     int64
-	T      *T `json:"t" c:""`
-	*User  `json:"user" c:""`
-	Status Status
-	BillNo string `json:"billNo" c:"单据号"`
-	Rows   []*T   `json:"rows,omitempty" c:""`
+	//Id     int64
+	T *T `json:"t" c:""`
+	//*User  `json:"user" c:""`
+	//Status Status
+	//BillNo string `json:"billNo" c:"单据号"`
+	//Rows   []*T   `json:"rows,omitempty" c:""`
 }
 type User struct {
 	//Id int64 `json:"id" c:"用户ID"`

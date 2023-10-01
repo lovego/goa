@@ -1,6 +1,7 @@
 package api_type
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"reflect"
@@ -45,9 +46,12 @@ func genTsMemberType(m reflect.Type) (typ string, err error) {
 func ToTypeScriptType(typ reflect.Type) (string, error) {
 	switch typ.Kind() {
 	case reflect.Struct:
-		if typ.Name() == "Time" ||
-			typ.Name() == "Decimal" ||
-			typ.Name() == "Date" {
+
+		v := reflect.New(typ).Interface()
+		_, unmar := v.(json.Unmarshaler)
+		_, mar := v.(json.Marshaler)
+
+		if unmar && mar {
 			return "string", nil
 		}
 		return typ.Name(), nil
@@ -77,7 +81,7 @@ func ToTypeScriptType(typ reflect.Type) (string, error) {
 			return "", err
 		}
 
-		return fmt.Sprintf("Array<%s>", valueType), nil
+		return fmt.Sprintf(`Array<%s>`, valueType), nil
 	case reflect.Interface:
 		return "any", nil
 	case reflect.Ptr:

@@ -45,9 +45,7 @@ func Tpl(tpl []byte, data interface{}) (*bytes.Buffer, error) {
 
 	l.Set("tmp", string(tpl))
 
-	views := jet.NewSet(
-		l,
-		jet.WithDelims("≤", "≥"))
+	views := jet.NewSet(l, jet.WithSafeWriter(RawWriter), jet.WithDelims("≤", "≥"))
 	funcM := NewFuncMap(nil)
 	for s, fun := range funcM {
 		views.AddGlobal(s, fun)
