@@ -4,9 +4,7 @@ import request from "@/utils/request";
 
 /**
  * ≤.Title≥
- * ≤.Method≥
- * ≤.Router≥
- * ≤.Desc≥
+ * ≤.Method≥ ≤.Router≥≤if .Desc != "" ≥≤"\n"≥ * ≤.Desc≥≤end≥
  */
 
 ≤if !IsZero(.Header) ≥≤"\n"≥
@@ -14,7 +12,6 @@ import request from "@/utils/request";
 ≤range  index, field := .Header.Members≥    ≤if field.Comment != "" ≥/*≤field.Comment≥*/≤end≥
     ≤field.JsonName≥?: ≤field.Type≥;≤if len(.Header.Members) > index + 1 ≥≤"\n"≥≤end≥≤end≥
 };
-
 ≤end≥
 
 
@@ -23,7 +20,6 @@ export type paramReq = {
 ≤range  index, field := .Param.Members≥    ≤if field.Comment != "" ≥/*≤field.Comment≥*/ ≤end≥
     ≤field.JsonName≥: ≤field.Type≥;≤if len(.Param.Members) > index + 1 ≥≤"\n"≥≤end≥≤end≥
 };
-
 ≤end≥
 
 
@@ -42,7 +38,6 @@ export type queryReq = {
 ≤range  index, field := .Query.Members≥    ≤if field.Comment != "" ≥/*≤field.Comment≥*/ ≤end≥
     ≤field.JsonName≥?: ≤field.Type≥;≤if len(.Query.Members) > index + 1 ≥≤"\n"≥≤end≥≤end≥
 };
-
 ≤end≥
 
 
@@ -51,7 +46,6 @@ export type bodyReq = {
 ≤range  index, field := .Body.Members≥    ≤if field.Comment != "" ≥/*≤field.Comment≥*/ ≤end≥
     ≤field.JsonName≥?: ≤field.Type≥;≤if len(.Body.Members) > index + 1 ≥≤"\n"≥≤end≥≤end≥
 };
-
 ≤end≥
 
 
@@ -60,14 +54,13 @@ export type resp = {
 ≤range  index, field := .Resp.Members≥    ≤if field.Comment != "" ≥/*≤field.Comment≥*/ ≤end≥
     ≤field.JsonName≥?: ≤field.Type≥;≤if len(.Resp.Members) > index + 1 ≥≤"\n"≥≤end≥≤end≥
 };
-
 ≤end≥
 
 // 标题:≤.Title≥
 // 注释:≤.Desc≥
 
-//  ≤.Method≥ /api≤.Router≥
-export default async  (≤if !IsZero(.Param) ≥≤"\n"≥    param: paramReq,// ≤.Param.Comment≥ ≤end≥ ≤if !IsZero(.Query) ≥≤"\n"≥    params: queryReq,// ≤.Query.Comment≥ ≤end≥ ≤if !IsZero(.Body) ≥≤"\n"≥    body: bodyReq,// ≤.Body.Comment≥ ≤end≥
+// ≤.Method≥ /api≤.Router≥
+export default async (≤if !IsZero(.Param) ≥≤"\n"≥    param: paramReq,// ≤.Param.Comment≥ ≤end≥ ≤if !IsZero(.Query) ≥≤"\n"≥    params: queryReq,// ≤.Query.Comment≥ ≤end≥ ≤if !IsZero(.Body) ≥≤"\n"≥    body: bodyReq,// ≤.Body.Comment≥ ≤end≥
     options?: { [key: string]: any }, // 请求配置
 ) => {
     return request≤if !IsZero(.Resp) ≥<resp>≤end≥(
@@ -77,6 +70,4 @@ export default async  (≤if !IsZero(.Param) ≥≤"\n"≥    param: paramReq,//
             ...(options || {}), ≤if !IsZero(.Query) ≥≤"\n"≥            params: params,≤end≥  ≤if !IsZero(.Body) ≥≤"\n"≥            data: body,≤end≥
         });
 }
-
-
 
