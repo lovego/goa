@@ -77,7 +77,8 @@ func (g *Group) Route(method, path, fullPath string, handler interface{}) {
 	}
 
 	tsRoute := ts.Route{Req: route.req, Resp: route.resp}
-	tsSdkFile := strings.TrimRight(file, ".md") + ".ts"
+	tsSdkFile := strings.TrimSuffix(file, `.md`) + ".ts"
+
 	tsRoute.TypeScriptSdk(method, fullPath, tsSdkFile)
 
 	title := route.Title() + " ： " + route.MethodPath(method, fullPath)
