@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/lovego/fs"
+	"github.com/lovego/goa/docs/mdbook"
 	"github.com/lovego/goa/docs/ts"
 )
 
@@ -80,6 +81,8 @@ func (g *Group) Route(method, path, fullPath string, handler interface{}) {
 	tsSdkFile := strings.TrimSuffix(file, `.md`) + ".ts"
 
 	tsRoute.TypeScriptSdk(method, fullPath, tsSdkFile)
+
+	mdbook.DefaultBook.AddNode(filepath.Dir(file), file, tsRoute.Title())
 
 	title := route.Title() + " ： " + route.MethodPath(method, fullPath)
 	g.LinkInReadme(title, hashPath, nil, true)

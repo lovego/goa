@@ -1,5 +1,5 @@
 // @ts-ignore
-/* eslint-disable */
+/** eslint-disable */
 import request from "@/utils/request";
 
 /**
@@ -9,7 +9,7 @@ import request from "@/utils/request";
 
 ≤if !IsZero(.Header) ≥≤"\n"≥
 // 请求头描述
-≤range  index, field := .Header.Members≥≤if field.Comment != "" ≥    /*≤field.Comment≥*/≤end≥
+≤range  index, field := .Header.Members≥≤if field.Comment != "" ≥    /**≤field.Comment≥*/≤end≥
     ≤field.JsonName≥?: ≤field.Type≥;≤if len(.Header.Members) > index + 1 ≥≤"\n"≥≤end≥≤end≥
 };
 ≤end≥
@@ -17,7 +17,7 @@ import request from "@/utils/request";
 
 ≤if !IsZero(.Param) ≥≤"\n"≥
 export type paramReq = {
-≤range  index, field := .Param.Members≥≤if field.Comment != "" ≥    /*≤field.Comment≥*/≤end≥
+≤range  index, field := .Param.Members≥≤if field.Comment != "" ≥    /**≤field.Comment≥*/≤end≥
     ≤field.JsonName≥: ≤field.Type≥;≤if len(.Param.Members) > index + 1 ≥≤"\n"≥≤end≥≤end≥
 };
 ≤end≥
@@ -26,7 +26,7 @@ export type paramReq = {
 
 ≤range  index, api := .TypeList≥
 export type ≤api.Name≥ = {
-≤range  index, field := api.Members≥≤if field.Comment != "" ≥    /*≤field.Comment≥*/≤end≥
+≤range  index, field := api.Members≥≤if field.Comment != "" ≥    /**≤field.Comment≥*/≤end≥
     ≤field.JsonName≥: ≤field.Type≥;≤if len(api.Members) > index + 1 ≥≤"\n"≥≤end≥≤end≥
 };
 ≤end≥
@@ -35,7 +35,7 @@ export type ≤api.Name≥ = {
 
 ≤if !IsZero(.Query) ≥≤"\n"≥
 export type queryReq = {
-≤range  index, field := .Query.Members≥≤if field.Comment != "" ≥    /*≤field.Comment≥*/≤end≥
+≤range  index, field := .Query.Members≥≤if field.Comment != "" ≥    /**≤field.Comment≥*/≤end≥
     ≤field.JsonName≥?: ≤field.Type≥;≤if len(.Query.Members) > index + 1 ≥≤"\n"≥≤end≥≤end≥
 };
 ≤end≥
@@ -43,7 +43,7 @@ export type queryReq = {
 
 ≤if !IsZero(.Body) ≥≤"\n"≥
 export type bodyReq = {
-≤range  index, field := .Body.Members≥≤if field.Comment != "" ≥    /*≤field.Comment≥*/≤end≥
+≤range  index, field := .Body.Members≥≤if field.Comment != "" ≥    /**≤field.Comment≥*/≤end≥
     ≤field.JsonName≥?: ≤field.Type≥;≤if len(.Body.Members) > index + 1 ≥≤"\n"≥≤end≥≤end≥
 };
 ≤end≥
@@ -51,7 +51,7 @@ export type bodyReq = {
 
 ≤if !IsZero(.Resp) ≥≤"\n"≥
 export type resp = {
-≤range  index, field := .Resp.Members≥≤if field.Comment != "" ≥    /*≤field.Comment≥*/≤end≥
+≤range  index, field := .Resp.Members≥≤if field.Comment != "" ≥    /**≤field.Comment≥*/≤end≥
     ≤field.JsonName≥?: ≤field.Type≥;≤if len(.Resp.Members) > index + 1 ≥≤"\n"≥≤end≥≤end≥
 };
 ≤end≥

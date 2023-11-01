@@ -211,13 +211,14 @@ func GetMembers(list *ObjectMap, tp reflect.Type, lang, memberType string) ([]Me
 				_, unmar := v.(json.Unmarshaler)
 				_, mar := v.(json.Marshaler)
 
-				if !(unmar || mar) && (!f.Anonymous || (f.Anonymous && f.Tag.Get("json") != "")) {
+				if !(unmar || mar) && (!f.Anonymous || (f.Anonymous && f.Tag.Get(
+					"json") != "")) {
 					specTypeList = append(specTypeList, t)
 				}
 			}
 
 		}
-		if f.Anonymous && f.Tag.Get("json") == "" {
+		if f.Anonymous && f.Tag.Get("json") == "" && t.Name() != "" {
 			if f.Type.Kind() == reflect.Ptr {
 				f.Type = f.Type.Elem()
 			}
@@ -230,13 +231,16 @@ func GetMembers(list *ObjectMap, tp reflect.Type, lang, memberType string) ([]Me
 			continue
 		}
 
-		s, err := GenMemberType(f.Type, lang)
+		tName, err := GenMemberType(f.Type, lang)
 		if err != nil {
 			return nil, nil, err
 		}
+		if tName == "" {
+			tName = f.Name
+		}
 
 		m := Member{
-			Type:     s,
+			Type:     tName,
 			Name:     f.Name,
 			Comment:  getComment(f.Tag),
 			JsonName: strings.ReplaceAll(f.Tag.Get("json"), ",omitempty", ""),
