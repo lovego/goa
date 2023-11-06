@@ -141,6 +141,8 @@ func (a *Line) GetPath() string {
 func (a *Line) LevelSpace() string {
 	p := strings.TrimPrefix(a.Path, pwd)
 
+	p = strings.TrimPrefix(p, `/docs/apis/`)
+
 	a.level = len(strings.Split(p, "/"))
 
 	if a.level == 0 {

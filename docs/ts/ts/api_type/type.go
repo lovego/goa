@@ -198,49 +198,58 @@ func GetMembers(list *ObjectMap, tp reflect.Type, lang, memberType string) ([]Me
 		if f.Tag.Get("json") == "-" || (f.Name[0] >= 'a' && f.Name[0] <= 'z') {
 			continue
 		}
-		t := GetTyp(f.Type)
+		v := reflect.New(f.Type).Interface()
 
-		if t.Kind() == reflect.Struct && !(f.Anonymous && f.Tag.Get("json") == "") {
-			name := t.Name()
+		var name string
 
-			_, ok := list.Get(name)
-			if !ok {
-				//n := strings.ToLower(t.Name())
+		_, unmar := v.(json.Unmarshaler)
+		_, mar := v.(json.Marshaler)
+		if unmar || mar {
+			name = "any"
+		} else {
 
-				v := reflect.New(t).Interface()
-				_, unmar := v.(json.Unmarshaler)
-				_, mar := v.(json.Marshaler)
+			t := GetTyp(f.Type)
 
-				if !(unmar || mar) && (!f.Anonymous || (f.Anonymous && f.Tag.Get(
-					"json") != "")) {
-					specTypeList = append(specTypeList, t)
+			if t.Kind() == reflect.Struct && !(f.Anonymous && f.Tag.Get("json") == "") {
+				name := t.Name()
+
+				_, ok := list.Get(name)
+				if !ok {
+					//n := strings.ToLower(t.Name())
+
+					if !(unmar || mar) && (!f.Anonymous || (f.Anonymous && f.Tag.Get(
+						"json") != "")) {
+						specTypeList = append(specTypeList, t)
+					}
 				}
+
+			}
+			if f.Anonymous && f.Tag.Get("json") == "" && t.Name() != "" {
+				if f.Type.Kind() == reflect.Ptr {
+					f.Type = f.Type.Elem()
+				}
+				mem, list, err := GetMembers(list, f.Type, lang, memberType)
+				if err != nil {
+					return nil, nil, err
+				}
+				fields = append(fields, mem...)
+				specTypeList = append(specTypeList, list...)
+				continue
 			}
 
-		}
-		if f.Anonymous && f.Tag.Get("json") == "" && t.Name() != "" {
-			if f.Type.Kind() == reflect.Ptr {
-				f.Type = f.Type.Elem()
-			}
-			mem, list, err := GetMembers(list, f.Type, lang, memberType)
+			tName, err := GenMemberType(f.Type, lang)
 			if err != nil {
 				return nil, nil, err
 			}
-			fields = append(fields, mem...)
-			specTypeList = append(specTypeList, list...)
-			continue
+			name = tName
 		}
 
-		tName, err := GenMemberType(f.Type, lang)
-		if err != nil {
-			return nil, nil, err
-		}
-		if tName == "" {
-			tName = f.Name
+		if name == "" {
+			name = f.Name
 		}
 
 		m := Member{
-			Type:     tName,
+			Type:     name,
 			Name:     f.Name,
 			Comment:  getComment(f.Tag),
 			JsonName: strings.ReplaceAll(f.Tag.Get("json"), ",omitempty", ""),
