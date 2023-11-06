@@ -128,7 +128,10 @@ func (a *Line) LineString() string {
 		s = "- "
 	}
 
-	return fmt.Sprintf("%s%s[%s](%s)\n", a.LevelSpace(), s, a.Title, a.GetPath())
+	title := strings.ReplaceAll(a.Title, "\n", "")
+	title = strings.ReplaceAll(title, "\r", "")
+
+	return fmt.Sprintf("%s%s[%s](%s)\n", a.LevelSpace(), s, title, a.GetPath())
 }
 
 func (a *Line) GetPath() string {
