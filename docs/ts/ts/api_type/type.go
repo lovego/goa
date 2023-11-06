@@ -204,7 +204,12 @@ func GetMembers(list *ObjectMap, tp reflect.Type, lang, memberType string) ([]Me
 
 		_, unmar := v.(json.Unmarshaler)
 		_, mar := v.(json.Marshaler)
-		if unmar || mar {
+
+		if f.Name == "CreatedByCompany" {
+			fmt.Println(f.Name)
+		}
+
+		if !ExpectedType(f.Type) && (unmar || mar) {
 			name = "any"
 		} else {
 
@@ -269,6 +274,22 @@ func GetMembers(list *ObjectMap, tp reflect.Type, lang, memberType string) ([]Me
 	}
 
 	return fields, specTypeList, nil
+}
+
+func ExpectedType(t reflect.Type) bool {
+
+	if strings.Contains(t.Name(), "date") {
+		return true
+	}
+	if strings.Contains(t.Name(), "time") {
+		return true
+	}
+	if strings.Contains(t.Name(), "Decimal") {
+		return true
+	}
+
+	return false
+
 }
 
 func GenMemberType(m reflect.Type, lang string) (string, error) {
