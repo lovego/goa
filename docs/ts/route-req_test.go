@@ -21,6 +21,20 @@ func Test_getTsParamPath(t *testing.T) {
 			},
 			want: "",
 		},
+		{
+			name: "other",
+			args: args{
+				fullPath: `/cooperators/(\d+)`,
+				names:    []string{"id"},
+			},
+		},
+		{
+			name: "other",
+			args: args{
+				fullPath: `/(?P<id>\d+)`,
+				names:    []string{"id"},
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

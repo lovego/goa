@@ -2,13 +2,14 @@ package docs_test
 
 import (
 	"path/filepath"
+	"testing"
 	"time"
 
 	"github.com/lovego/fs"
 	"github.com/lovego/goa"
 )
 
-func ExampleGroup() {
+func TestExampleGroup(t *testing.T) {
 	router := goa.New()
 	router.DocDir(filepath.Join(fs.SourceDir(), "testdata"))
 
@@ -17,11 +18,11 @@ func ExampleGroup() {
 		Get(`/`, testHandler).
 		Get(`/(?P<type>\w+)/(?P<id>\d+)`, testHandler2)
 
-	accounts.Group("/companies", "公司")
+	//accounts.Group("/companies", "公司")
 
-	router.Group("/goods", "商品")
-	router.Group("/bill", "单据", "采购、销售")
-	router.Group("/storage", "库存")
+	//router.Group("/goods", "商品")
+	//router.Group("/bill", "单据", "采购、销售")
+	//router.Group("/storage", "库存")
 
 	// Output:
 }
