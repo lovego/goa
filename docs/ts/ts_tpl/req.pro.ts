@@ -52,7 +52,7 @@ export type bodyReq = {
 ≤if !IsZero(.Resp) ≥≤"\n"≥
 export type resp = {
 ≤range  index, field := .Resp.Members≥≤if field.Comment != "" ≥    /**≤field.Comment≥*/≤end≥
-    ≤field.JsonName≥?: ≤field.Type≥;≤if len(.Resp.Members) > index + 1 ≥≤"\n"≥≤end≥≤end≥
+    ≤field.JsonName≥: ≤field.Type≥;≤if len(.Resp.Members) > index + 1 ≥≤"\n"≥≤end≥≤end≥
 };
 ≤end≥
 
