@@ -1,6 +1,7 @@
 package utilroutes
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net"
@@ -12,8 +13,8 @@ import (
 
 var instanceName = getInstanceName()
 
-// debugs for register custom debug routes
-func Setup(router *goa.RouterGroup, debugs ...map[string]func(ctx *goa.Context)) {
+// debugs for register custom debug data
+func Setup(router *goa.RouterGroup, debugs ...map[string]interface{}) {
 	router.Get(`/_alive`, func(ctx *goa.Context) {
 		ctx.Write([]byte(`ok`))
 	})
@@ -31,8 +32,18 @@ func Setup(router *goa.RouterGroup, debugs ...map[string]func(ctx *goa.Context))
 		ctx.Write(requests.ToJson())
 	})
 	for i := range debugs {
-		for path, fn := range debugs[i] {
-			debug.Get(path, fn)
+		for path, data := range debugs[i] {
+			debug.Get(path, func(ctx *goa.Context) {
+				bytes, err := json.Marshal(map[string]interface{}{
+					"Instance": instanceName,
+					"Data":     data,
+				})
+				if err != nil {
+					ctx.Write([]byte(fmt.Sprint(err)))
+				} else {
+					ctx.Write(bytes)
+				}
+			})
 		}
 	}
 
