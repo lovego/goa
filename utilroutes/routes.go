@@ -12,7 +12,8 @@ import (
 
 var instanceName = getInstanceName()
 
-func Setup(router *goa.RouterGroup) {
+// debugs for register custom debug routes
+func Setup(router *goa.RouterGroup, debugs ...map[string]func(ctx *goa.Context)) {
 	router.Get(`/_alive`, func(ctx *goa.Context) {
 		ctx.Write([]byte(`ok`))
 	})
@@ -29,6 +30,11 @@ func Setup(router *goa.RouterGroup) {
 	debug.Get(`/reqs`, func(ctx *goa.Context) {
 		ctx.Write(requests.ToJson())
 	})
+	for i := range debugs {
+		for path, fn := range debugs[i] {
+			debug.Get(path, fn)
+		}
+	}
 
 	// pprof
 	debug.Get(`/cpu`, func(ctx *goa.Context) {
