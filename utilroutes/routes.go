@@ -13,8 +13,8 @@ import (
 
 var instanceName = getInstanceName()
 
-// debugs for register custom debug data
-func Setup(router *goa.RouterGroup, debugs ...map[string]interface{}) {
+// debugs for register custom debug func
+func Setup(router *goa.RouterGroup, debugs ...map[string]func() interface{}) {
 	router.Get(`/_alive`, func(ctx *goa.Context) {
 		ctx.Write([]byte(`ok`))
 	})
@@ -32,11 +32,15 @@ func Setup(router *goa.RouterGroup, debugs ...map[string]interface{}) {
 		ctx.Write(requests.ToJson())
 	})
 	for i := range debugs {
-		for path, data := range debugs[i] {
+		for path := range debugs[i] {
+			fn := debugs[i][path]
+			if fn == nil {
+				continue
+			}
 			debug.Get(path, func(ctx *goa.Context) {
 				bytes, err := json.Marshal(map[string]interface{}{
 					"Instance": instanceName,
-					"Data":     data,
+					"Data":     fn(),
 				})
 				if err != nil {
 					ctx.Write([]byte(fmt.Sprint(err)))
