@@ -13,6 +13,7 @@ import (
 )
 
 var metricsHandler = promhttp.Handler()
+
 var instanceName = getInstanceName()
 
 // debugs for register custom debug func
