@@ -9,14 +9,19 @@ import (
 	"strings"
 
 	"github.com/lovego/goa"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
+var metricsHandler = promhttp.Handler()
 var instanceName = getInstanceName()
 
 // debugs for register custom debug func
 func Setup(router *goa.RouterGroup, debugs ...map[string]func() interface{}) {
 	router.Get(`/_alive`, func(ctx *goa.Context) {
 		ctx.Write([]byte(`ok`))
+	})
+	router.Get(`/metrics`, func(ctx *goa.Context) {
+		metricsHandler.ServeHTTP(ctx.ResponseWriter, ctx.Request)
 	})
 	router.Use(recordRequests) // ps middleware
 

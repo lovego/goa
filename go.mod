@@ -19,6 +19,6 @@ require (
 	github.com/lovego/tracer v0.0.1
 	github.com/mattn/go-colorable v0.1.0 // indirect
 	github.com/mattn/go-isatty v0.0.4 // indirect
-	golang.org/x/sys v0.0.0-20190215142949-d0b11bdaac8a
-
+	github.com/prometheus/client_golang v1.11.1
+	golang.org/x/sys v0.0.0-20210603081109-ebe580a85c40
 )
